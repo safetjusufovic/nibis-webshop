@@ -201,7 +201,7 @@ export async function runSyncPartial(only: string, page: number = 1): Promise<{
     let grupeCount = 0, artikliCount = 0, stanjeCount = 0, partneriCount = 0
     if (only === 'grupe') grupeCount = await syncGrupe()
     else if (only === 'artikli') artikliCount = await syncArtikli()
-    else if (only === 'stanje') stanjeCount = await syncStanje(siteConfig.orgJedId)
+    else if (only === 'stanje') stanjeCount = await syncStanje(siteConfig.orgJedId, page)
     else if (only === 'partneri') partneriCount = await syncPartneri()
     return { success: true, grupeCount, artikliCount, stanjeCount, partneriCount, durationMs: Date.now() - start }
   } catch (err) {
