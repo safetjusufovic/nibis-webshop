@@ -76,38 +76,38 @@ function PartnerSelect({ value, onChange }: { value: number | null, onChange: (i
       {open && (
         <>
           <div className="fixed inset-0 z-20" onClick={() => { setOpen(false); setSearch('') }} />
-          <div className="absolute left-0 top-9 z-30 bg-white border border-gray-200 rounded-xl shadow-xl w-72">
-            <div className="p-2 border-b border-gray-100">
+          <div style={{position:'absolute', left:0, top:'38px', zIndex:9999, background:'white', border:'1px solid #e5e7eb', borderRadius:'12px', boxShadow:'0 10px 25px rgba(0,0,0,0.15)', width:'300px'}}>
+            <div style={{padding:'8px', borderBottom:'1px solid #f3f4f6'}}>
               <input
                 ref={inputRef}
                 type="text"
-                placeholder="Upišite naziv ili šifru (min. 2 slova)..."
+                placeholder="Upišite naziv (min. 2 slova)..."
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                className="w-full text-xs px-3 py-2 border border-gray-200 rounded-lg outline-none focus:border-teal-400"
+                style={{width:'100%', fontSize:'12px', padding:'6px 10px', border:'1px solid #e5e7eb', borderRadius:'6px', outline:'none'}}
               />
             </div>
-            <div className="max-h-56 overflow-y-auto">
+            <div style={{maxHeight:'250px', overflowY:'auto'}}>
               <button
                 type="button"
                 onClick={() => select(null)}
-                className="w-full text-left px-3 py-2 text-xs text-gray-400 hover:bg-gray-50 border-b border-gray-50"
+                style={{width:'100%', textAlign:'left', padding:'8px 12px', fontSize:'12px', color:'#9ca3af', background:'none', border:'none', cursor:'pointer', borderBottom:'1px solid #f9fafb'}}
               >
                 — bez partnera —
               </button>
               {search.length < 2 ? (
-                <p className="px-3 py-3 text-xs text-gray-400 text-center">Upišite min. 2 slova za pretragu</p>
+                <p style={{padding:'12px', fontSize:'12px', color:'#9ca3af', textAlign:'center'}}>Upišite min. 2 slova</p>
               ) : results.length === 0 ? (
-                <p className="px-3 py-3 text-xs text-gray-400 text-center">Nema rezultata za "{search}"</p>
+                <p style={{padding:'12px', fontSize:'12px', color:'#9ca3af', textAlign:'center'}}>Nema rezultata</p>
               ) : results.map(p => (
                 <button
                   type="button"
                   key={p.id}
                   onClick={() => select(p)}
-                  className={`w-full text-left px-3 py-2 text-xs hover:bg-gray-50 border-b border-gray-50 last:border-0 ${value === p.id ? 'bg-teal-50' : ''}`}
+                  style={{width:'100%', textAlign:'left', padding:'8px 12px', fontSize:'12px', background: value === p.id ? '#f0fdf4' : 'none', border:'none', cursor:'pointer', borderBottom:'1px solid #f9fafb'}}
                 >
-                  <p className={`font-medium ${value === p.id ? 'text-teal-700' : 'text-gray-800'}`}>{p.naziv}</p>
-                  <p className="text-gray-400">{p.sifra}{p.pdv_broj ? ` · ${p.pdv_broj}` : ''}{p.grad ? ` · ${p.grad}` : ''}{p.rabat > 0 ? ` · Rabat: ${p.rabat}%` : ''}</p>
+                  <div style={{fontWeight:500, color: value === p.id ? '#0f6e56' : '#1f2937'}}>{p.naziv}</div>
+                  <div style={{color:'#9ca3af', fontSize:'11px'}}>{p.sifra}{p.pdv_broj ? ` · ${p.pdv_broj}` : ''}{p.grad ? ` · ${p.grad}` : ''}</div>
                 </button>
               ))}
             </div>
