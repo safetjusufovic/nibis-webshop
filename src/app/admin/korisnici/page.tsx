@@ -20,6 +20,65 @@ interface Korisnik {
   created_at: string; partner?: { naziv: string } | null
 }
 
+
+function PartnerSelect({ value, partneri, onChange }: { value: number | null, partneri: Partner[], onChange: (id: number | null) => void }) {
+  const [search, setSearch] = useState('')
+  const [open, setOpen] = useState(false)
+  const selected = partneri.find(p => p.id === value)
+  const filtered = partneri.filter(p => 
+    search.length < 2 ? false : 
+    p.naziv.toLowerCase().includes(search.toLowerCase()) ||
+    p.sifra.toLowerCase().includes(search.toLowerCase())
+  ).slice(0, 20)
+
+  return (
+    <div className="relative">
+      <div
+        className="text-xs border border-gray-200 rounded-lg px-2 py-1 text-gray-600 cursor-pointer min-w-[160px] flex items-center justify-between gap-1"
+        onClick={() => setOpen(!open)}
+      >
+        <span className="truncate">{selected?.naziv ?? '— bez partnera —'}</span>
+        <span>▾</span>
+      </div>
+      {open && (
+        <>
+          <div className="fixed inset-0 z-10" onClick={() => { setOpen(false); setSearch('') }} />
+          <div className="absolute right-0 top-8 z-20 bg-white border border-gray-200 rounded-lg shadow-lg w-64">
+            <input
+              autoFocus
+              type="text"
+              placeholder="Pretraži partnera..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              className="w-full px-3 py-2 text-xs border-b border-gray-100 outline-none"
+            />
+            <div className="max-h-48 overflow-y-auto">
+              <button
+                className="w-full text-left px-3 py-1.5 text-xs text-gray-400 hover:bg-gray-50"
+                onClick={() => { onChange(null); setOpen(false); setSearch('') }}
+              >— bez partnera —</button>
+              {search.length < 2 ? (
+                <p className="px-3 py-2 text-xs text-gray-400">Upišite min. 2 slova...</p>
+              ) : filtered.length === 0 ? (
+                <p className="px-3 py-2 text-xs text-gray-400">Nema rezultata</p>
+              ) : filtered.map(p => (
+                <button
+                  key={p.id}
+                  className={`w-full text-left px-3 py-1.5 text-xs hover:bg-gray-50 ${value === p.id ? 'bg-teal-50 text-teal-700' : 'text-gray-700'}`}
+                  onClick={() => { onChange(p.id); setOpen(false); setSearch('') }}
+                >
+                  <p className="font-medium">{p.naziv}</p>
+                  <p className="text-gray-400">{p.sifra}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
 export default function AdminKorisniciPage() {
   const [zahtjevi, setZahtjevi] = useState<Zahtjev[]>([])
   const [korisnici, setKorisnici] = useState<Korisnik[]>([])
@@ -167,14 +226,11 @@ export default function AdminKorisniciPage() {
                     </td>
                     <td className="px-4 py-2.5 text-right">
                       <div className="flex items-center gap-2 justify-end">
-                        <select
-                          className="text-xs border border-gray-200 rounded-lg px-2 py-1 text-gray-600 max-w-[140px]"
-                          value={k.partner_id ?? ''}
-                          onChange={e => promijeniPartnera(k.id, e.target.value ? parseInt(e.target.value) : null)}
-                        >
-                          <option value="">— bez partnera —</option>
-                          {partneri.map(p => <option key={p.id} value={p.id}>{p.naziv}</option>)}
-                        </select>
+                        <PartnerSelect
+                          value={k.partner_id}
+                          partneri={partneri}
+                          onChange={(id) => promijeniPartnera(k.id, id)}
+                        />
                         <button onClick={() => toggleOdobren(k.id, k.odobren)} className="text-xs text-gray-400 hover:text-gray-600 underline whitespace-nowrap">
                           {k.odobren ? 'Deaktiviraj' : 'Aktiviraj'}
                         </button>
