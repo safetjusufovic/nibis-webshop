@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { supabase } from '@/lib/supabase'
 
 interface Zahtjev {
@@ -20,55 +20,87 @@ interface Korisnik {
   created_at: string; partner?: { naziv: string } | null
 }
 
-
-function PartnerSelect({ value, partneri, onChange }: { value: number | null, partneri: Partner[], onChange: (id: number | null) => void }) {
+// ─── Searchable Partner Select ────────────────────────────────────────────────
+function PartnerSelect({ value, onChange }: { value: number | null, onChange: (id: number | null) => void }) {
   const [search, setSearch] = useState('')
   const [open, setOpen] = useState(false)
-  const selected = partneri.find(p => p.id === value)
-  const filtered = partneri.filter(p => 
-    search.length < 2 ? false : 
-    p.naziv.toLowerCase().includes(search.toLowerCase()) ||
-    p.sifra.toLowerCase().includes(search.toLowerCase())
-  ).slice(0, 20)
+  const [results, setResults] = useState<Partner[]>([])
+  const [selected, setSelected] = useState<Partner | null>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    if (value) {
+      supabase.from('partneri').select('id, naziv, sifra, pdv_broj, grad, rabat').eq('id', value).single()
+        .then(({ data }) => setSelected(data ?? null))
+    } else {
+      setSelected(null)
+    }
+  }, [value])
+
+  useEffect(() => {
+    if (search.length < 2) { setResults([]); return }
+    supabase.from('partneri')
+      .select('id, naziv, sifra, pdv_broj, grad, rabat')
+      .or(`naziv.ilike.%${search}%,sifra.ilike.%${search}%`)
+      .order('naziv')
+      .limit(15)
+      .then(({ data }) => setResults(data ?? []))
+  }, [search])
+
+  function select(p: Partner | null) {
+    setSelected(p)
+    onChange(p?.id ?? null)
+    setOpen(false)
+    setSearch('')
+    setResults([])
+  }
 
   return (
     <div className="relative">
-      <div
-        className="text-xs border border-gray-200 rounded-lg px-2 py-1 text-gray-600 cursor-pointer min-w-[160px] flex items-center justify-between gap-1"
-        onClick={() => setOpen(!open)}
+      <button
+        type="button"
+        onClick={() => { setOpen(true); setTimeout(() => inputRef.current?.focus(), 50) }}
+        className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 text-gray-700 min-w-[180px] text-left flex items-center justify-between gap-2 hover:border-gray-300"
       >
-        <span className="truncate">{selected?.naziv ?? '— bez partnera —'}</span>
-        <span>▾</span>
-      </div>
+        <span className="truncate">{selected?.naziv ?? '— odaberi partnera —'}</span>
+        <span className="text-gray-400">▾</span>
+      </button>
+
       {open && (
         <>
-          <div className="fixed inset-0 z-10" onClick={() => { setOpen(false); setSearch('') }} />
-          <div className="absolute right-0 top-8 z-20 bg-white border border-gray-200 rounded-lg shadow-lg w-64">
-            <input
-              autoFocus
-              type="text"
-              placeholder="Pretraži partnera..."
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              className="w-full px-3 py-2 text-xs border-b border-gray-100 outline-none"
-            />
-            <div className="max-h-48 overflow-y-auto">
+          <div className="fixed inset-0 z-20" onClick={() => { setOpen(false); setSearch('') }} />
+          <div className="absolute left-0 top-9 z-30 bg-white border border-gray-200 rounded-xl shadow-xl w-72">
+            <div className="p-2 border-b border-gray-100">
+              <input
+                ref={inputRef}
+                type="text"
+                placeholder="Upišite naziv ili šifru (min. 2 slova)..."
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                className="w-full text-xs px-3 py-2 border border-gray-200 rounded-lg outline-none focus:border-teal-400"
+              />
+            </div>
+            <div className="max-h-56 overflow-y-auto">
               <button
-                className="w-full text-left px-3 py-1.5 text-xs text-gray-400 hover:bg-gray-50"
-                onClick={() => { onChange(null); setOpen(false); setSearch('') }}
-              >— bez partnera —</button>
+                type="button"
+                onClick={() => select(null)}
+                className="w-full text-left px-3 py-2 text-xs text-gray-400 hover:bg-gray-50 border-b border-gray-50"
+              >
+                — bez partnera —
+              </button>
               {search.length < 2 ? (
-                <p className="px-3 py-2 text-xs text-gray-400">Upišite min. 2 slova...</p>
-              ) : filtered.length === 0 ? (
-                <p className="px-3 py-2 text-xs text-gray-400">Nema rezultata</p>
-              ) : filtered.map(p => (
+                <p className="px-3 py-3 text-xs text-gray-400 text-center">Upišite min. 2 slova za pretragu</p>
+              ) : results.length === 0 ? (
+                <p className="px-3 py-3 text-xs text-gray-400 text-center">Nema rezultata za "{search}"</p>
+              ) : results.map(p => (
                 <button
+                  type="button"
                   key={p.id}
-                  className={`w-full text-left px-3 py-1.5 text-xs hover:bg-gray-50 ${value === p.id ? 'bg-teal-50 text-teal-700' : 'text-gray-700'}`}
-                  onClick={() => { onChange(p.id); setOpen(false); setSearch('') }}
+                  onClick={() => select(p)}
+                  className={`w-full text-left px-3 py-2 text-xs hover:bg-gray-50 border-b border-gray-50 last:border-0 ${value === p.id ? 'bg-teal-50' : ''}`}
                 >
-                  <p className="font-medium">{p.naziv}</p>
-                  <p className="text-gray-400">{p.sifra}</p>
+                  <p className={`font-medium ${value === p.id ? 'text-teal-700' : 'text-gray-800'}`}>{p.naziv}</p>
+                  <p className="text-gray-400">{p.sifra}{p.pdv_broj ? ` · ${p.pdv_broj}` : ''}{p.grad ? ` · ${p.grad}` : ''}{p.rabat > 0 ? ` · Rabat: ${p.rabat}%` : ''}</p>
                 </button>
               ))}
             </div>
@@ -79,58 +111,50 @@ function PartnerSelect({ value, partneri, onChange }: { value: number | null, pa
   )
 }
 
+// ─── Main Page ────────────────────────────────────────────────────────────────
 export default function AdminKorisniciPage() {
   const [zahtjevi, setZahtjevi] = useState<Zahtjev[]>([])
   const [korisnici, setKorisnici] = useState<Korisnik[]>([])
-  const [partneri, setPartneri] = useState<Partner[]>([])
   const [loading, setLoading] = useState(true)
   const [odabirModal, setOdabirModal] = useState<{ zahtjev: Zahtjev } | null>(null)
-  const [odabraniPartner, setOdabraniPartner] = useState<number | null>(null)
-  const [partnerSearch, setPartnerSearch] = useState('')
+  const [odabraniPartnerId, setOdabraniPartnerId] = useState<number | null>(null)
   const [saving, setSaving] = useState(false)
 
   async function load() {
-    const [z, k, p] = await Promise.all([
+    const [z, k] = await Promise.all([
       supabase.from('registracija_zahtjevi').select('*').is('odobren', null).order('created_at'),
       supabase.from('korisnici').select('*, partner:partneri(naziv)').order('created_at', { ascending: false }),
-      supabase.from('partneri').select('id, naziv, sifra, pdv_broj, grad, rabat').eq('aktivan', true).order('naziv').limit(500),
     ])
     setZahtjevi(z.data ?? [])
     setKorisnici(k.data ?? [])
-    setPartneri(p.data ?? [])
     setLoading(false)
   }
 
   useEffect(() => { load() }, [])
 
   function otvoriModal(zahtjev: Zahtjev) {
-    const match = zahtjev.pdv_broj
-      ? partneri.find(p => p.pdv_broj?.replace(/\s/g, '') === zahtjev.pdv_broj?.replace(/\s/g, ''))
-      : null
-    setOdabraniPartner(match?.id ?? null)
-    setPartnerSearch(zahtjev.naziv_firme ?? '')
+    setOdabraniPartnerId(null)
     setOdabirModal({ zahtjev })
   }
 
   async function odobriSaPartnerom() {
     if (!odabirModal) return
     setSaving(true)
-    const { zahtjev } = odabirModal
-    // Koristi API rutu — ne supabaseAdmin direktno iz browsera
     await fetch('/api/admin/odobri-korisnika', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        zahtjevId: zahtjev.id,
-        userId: zahtjev.user_id,
-        email: zahtjev.email,
-        ime: zahtjev.ime,
-        prezime: zahtjev.prezime,
-        partnerId: odabraniPartner,
+        zahtjevId: odabirModal.zahtjev.id,
+        userId: odabirModal.zahtjev.user_id,
+        email: odabirModal.zahtjev.email,
+        ime: odabirModal.zahtjev.ime,
+        prezime: odabirModal.zahtjev.prezime,
+        partnerId: odabraniPartnerId,
       }),
     })
     setSaving(false)
     setOdabirModal(null)
+    setOdabraniPartnerId(null)
     load()
   }
 
@@ -148,12 +172,6 @@ export default function AdminKorisniciPage() {
     await supabase.from('korisnici').update({ partner_id: partnerId }).eq('id', korisnikId)
     load()
   }
-
-  const filtriranPartneri = partneri.filter(p =>
-    p.naziv.toLowerCase().includes(partnerSearch.toLowerCase()) ||
-    p.sifra.toLowerCase().includes(partnerSearch.toLowerCase()) ||
-    (p.pdv_broj ?? '').toLowerCase().includes(partnerSearch.toLowerCase())
-  )
 
   return (
     <div className="space-y-8">
@@ -224,11 +242,10 @@ export default function AdminKorisniciPage() {
                         {k.odobren ? 'Aktivan' : 'Neaktivan'}
                       </span>
                     </td>
-                    <td className="px-4 py-2.5 text-right">
+                    <td className="px-4 py-2.5">
                       <div className="flex items-center gap-2 justify-end">
                         <PartnerSelect
                           value={k.partner_id}
-                          partneri={partneri}
                           onChange={(id) => promijeniPartnera(k.id, id)}
                         />
                         <button onClick={() => toggleOdobren(k.id, k.odobren)} className="text-xs text-gray-400 hover:text-gray-600 underline whitespace-nowrap">
@@ -244,7 +261,7 @@ export default function AdminKorisniciPage() {
         )}
       </div>
 
-      {/* Modal odabira partnera */}
+      {/* Modal odobravanje */}
       {odabirModal && (
         <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-xl border border-gray-100 w-full max-w-md shadow-xl">
@@ -257,38 +274,11 @@ export default function AdminKorisniciPage() {
             <div className="p-5 space-y-4">
               <div>
                 <label className="text-xs font-medium text-gray-500 uppercase tracking-wide block mb-2">Veži za partnera iz NIBIS-a</label>
-                <input
-                  type="text"
-                  placeholder="Pretraži po nazivu, šifri ili PDV broju..."
-                  value={partnerSearch}
-                  onChange={e => setPartnerSearch(e.target.value)}
-                  className="input text-sm mb-2"
-                />
-                <div className="border border-gray-100 rounded-lg overflow-hidden max-h-56 overflow-y-auto">
-                  <button
-                    onClick={() => setOdabraniPartner(null)}
-                    className={`w-full text-left px-3 py-2 text-sm border-b border-gray-50 transition-colors ${odabraniPartner === null ? 'bg-gray-50 text-gray-500' : 'hover:bg-gray-50 text-gray-400'}`}
-                  >
-                    — Bez partnera
-                  </button>
-                  {filtriranPartneri.map(p => (
-                    <button
-                      key={p.id}
-                      onClick={() => setOdabraniPartner(p.id)}
-                      className={`w-full text-left px-3 py-2 border-b border-gray-50 last:border-0 transition-colors ${odabraniPartner === p.id ? 'bg-teal-50' : 'hover:bg-gray-50'}`}
-                    >
-                      <p className={`text-sm font-medium ${odabraniPartner === p.id ? 'text-teal-700' : 'text-gray-800'}`}>{p.naziv}</p>
-                      <p className="text-xs text-gray-400">{p.sifra}{p.pdv_broj ? ` · PDV: ${p.pdv_broj}` : ''}{p.grad ? ` · ${p.grad}` : ''}{p.rabat > 0 ? ` · Rabat: ${p.rabat}%` : ''}</p>
-                    </button>
-                  ))}
-                  {filtriranPartneri.length === 0 && <p className="text-xs text-gray-400 text-center py-4">Nema rezultata</p>}
-                </div>
+                <PartnerSelect value={odabraniPartnerId} onChange={setOdabraniPartnerId} />
               </div>
-              {odabraniPartner && (
+              {odabraniPartnerId && (
                 <div className="bg-teal-50 border border-teal-100 rounded-lg px-3 py-2 text-xs text-teal-700">
-                  ✓ Odabran: {partneri.find(p => p.id === odabraniPartner)?.naziv}
-                  {(partneri.find(p => p.id === odabraniPartner)?.rabat ?? 0) > 0 &&
-                    ` — rabat ${partneri.find(p => p.id === odabraniPartner)?.rabat}%`}
+                  ✓ Partner odabran (ID: {odabraniPartnerId})
                 </div>
               )}
             </div>
