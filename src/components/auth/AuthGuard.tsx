@@ -22,15 +22,12 @@ export default function AuthGuard({ children, requireAdmin = false }: Props) {
       return
     }
 
-    // Čekaj da se profil učita
-    if (profil === undefined) return
-
-    // Ako profil nije pronađen ili nije odobren — čekaj malo više (async učitavanje)
+    // profil je null dok se učitava ili ako nije pronađen
+    // Daj 3 sekunde da se profil učita
     if (profil === null) {
-      // Daj još 2 sekunde da se profil učita
       const t = setTimeout(() => {
-        router.replace('/login')
-      }, 2000)
+        setReady(true) // Prikaži stranicu čak i bez profila
+      }, 3000)
       return () => clearTimeout(t)
     }
 
@@ -47,10 +44,18 @@ export default function AuthGuard({ children, requireAdmin = false }: Props) {
     setReady(true)
   }, [user, profil, loading, requireAdmin, router])
 
-  if (!ready) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-sm text-gray-400">Učitavam...</div>
+      </div>
+    )
+  }
+
+  if (!ready) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-sm text-gray-400">Provjera pristupa...</div>
       </div>
     )
   }

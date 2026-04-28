@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Search, SlidersHorizontal, X } from 'lucide-react'
 import Header from '@/components/layout/Header'
+import AuthGuard from '@/components/auth/AuthGuard'
 import ProductCard from '@/components/shop/ProductCard'
 import type { Artikal, ArtikalGrupa, StanjeSkladista, PaginatedResponse } from '@/types/nibis'
 import { siteConfig } from '@/lib/config'
@@ -198,5 +199,6 @@ export default function HomePage() {
           {siteConfig.contactEmail && <> · <a href={`mailto:${siteConfig.contactEmail}`} className="hover:text-teal-600">{siteConfig.contactEmail}</a></>}
         </footer>
       </div>
+    </AuthGuard>
   )
 }
