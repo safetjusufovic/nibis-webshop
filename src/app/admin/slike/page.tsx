@@ -54,9 +54,7 @@ export default function AdminSlikePage() {
     <div className="space-y-6">
       <h1 className="text-xl font-semibold text-gray-900">Slike artikala</h1>
 
-      <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-sm text-amber-800">
-        Slike se čuvaju na Cloudinary. Potreban je besplatan account i <code className="font-mono bg-amber-100 px-1 rounded">upload_preset</code> nazvan <code className="font-mono bg-amber-100 px-1 rounded">nibis_webshop</code> (unsigned).
-      </div>
+
 
       <input
         type="text"
