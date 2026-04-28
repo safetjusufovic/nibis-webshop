@@ -84,14 +84,17 @@ export async function getGrupe(params: ListParams = {}) {
 
 // ─── Stanje skladišta ────────────────────────────────────────────────────────
 export async function getStanje(orgJedId: number, page: number = 1) {
+  console.log('[getStanje] page:', page, 'orgJedId:', orgJedId)
   const filters: Array<{ name: string; operator: string; value: string }> = [
     { name: 'orgJedId', operator: 'eq', value: String(orgJedId) },
   ]
-  return nibisGet<PaginatedResponse<StanjeSkladista>>('/stanje-skladista', {
+  const result = await nibisGet<PaginatedResponse<StanjeSkladista>>('/stanje-skladista', {
     filters,
     page,
     perPage: 100,
   })
+  console.log('[getStanje] total:', result.total, 'page:', result.page, 'firstId:', result.items[0]?.id)
+  return result
 }
 
 // ─── Narudžba ────────────────────────────────────────────────────────────────
