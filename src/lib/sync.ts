@@ -76,30 +76,24 @@ async function syncArtikli(): Promise<number> {
 // artikalId → artikal_id | orgJedId → org_jed_id
 // raspolozivaKolicina → raspoloziva_kolicina | nabavnaCijena → nabavna_cijena
 // vpcijena → vpcijena | mpcijena → mpcijena (isti naziv)
-async function syncStanje(orgJedId: number): Promise<number> {
-  let page = 1, synced = 0
-  while (true) {
-    const data = await getStanje(orgJedId)
-    if (!data.items.length) break
-    const rows = data.items.map(s => ({
-      id:                   s.id,
-      artikal_id:           s.artikalId,
-      org_jed_id:           s.orgJedId,
-      raspoloziva_kolicina: s.raspolozivaKolicina,
-      nabavna_cijena:       s.nabavnaCijena,
-      vpcijena:             s.vpcijena,
-      mpcijena:             s.mpcijena,
-      nibis_created:        s.dateCreated,
-      nibis_updated:        s.dateModified,
-      synced_at:            new Date().toISOString(),
-    }))
-    const { error } = await supabaseAdmin.from('stanje_skladista').upsert(rows, { onConflict: 'id' })
-    if (error) throw new Error('Stanje upsert: ' + error.message)
-    synced += rows.length
-    if (data.items.length < BATCH_SIZE) break
-    page++
-  }
-  return synced
+async function syncStanje(orgJedId: number, page: number = 1): Promise<number> {
+  const data = await getStanje(orgJedId, page)
+  if (!data.items.length) return 0
+  const rows = data.items.map(s => ({
+    id:                   s.id,
+    artikal_id:           s.artikalId,
+    org_jed_id:           s.orgJedId,
+    raspoloziva_kolicina: s.raspolozivaKolicina,
+    nabavna_cijena:       s.nabavnaCijena,
+    vpcijena:             s.vpcijena,
+    mpcijena:             s.mpcijena,
+    nibis_created:        s.dateCreated,
+    nibis_updated:        s.dateModified,
+    synced_at:            new Date().toISOString(),
+  }))
+  const { error } = await supabaseAdmin.from('stanje_skladista').upsert(rows, { onConflict: 'id' })
+  if (error) throw new Error('Stanje upsert: ' + error.message)
+  return rows.length
 }
 
 // ─── Sync partneri ────────────────────────────────────────────────────────────
@@ -193,7 +187,7 @@ export async function runSync(): Promise<{
 }
 
 // ─── Partial sync ─────────────────────────────────────────────────────────────
-export async function runSyncPartial(only: string): Promise<{
+export async function runSyncPartial(only: string, page: number = 1): Promise<{
   success: boolean
   grupeCount: number
   artikliCount: number

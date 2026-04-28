@@ -14,11 +14,12 @@ export async function GET(req: NextRequest) {
   }
 
   const only = req.nextUrl.searchParams.get('only')
+  const page = parseInt(req.nextUrl.searchParams.get('page') ?? '1')
 
   console.log('[SYNC] Pokrenuto:', new Date().toISOString(), only ? `only=${only}` : 'full')
 
   const result = only
-    ? await runSyncPartial(only)
+    ? await runSyncPartial(only, page)
     : await runSync()
 
   return NextResponse.json({ ok: result.success, ...result, timestamp: new Date().toISOString() })
