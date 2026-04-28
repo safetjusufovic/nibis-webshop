@@ -39,12 +39,19 @@ function PartnerSelect({ value, onChange }: { value: number | null, onChange: (i
 
   useEffect(() => {
     if (search.length < 2) { setResults([]); return }
+    let cancelled = false
     supabase.from('partneri')
       .select('id, naziv, sifra, pdv_broj, grad, rabat')
       .ilike('naziv', `%${search}%`)
       .order('naziv')
       .limit(15)
-      .then(({ data }) => setResults(data ?? []))
+      .then(({ data, error }) => {
+        if (!cancelled) {
+          console.log('[PartnerSelect] results:', data?.length, error)
+          setResults(data ?? [])
+        }
+      })
+    return () => { cancelled = true }
   }, [search])
 
   function select(p: Partner | null) {
