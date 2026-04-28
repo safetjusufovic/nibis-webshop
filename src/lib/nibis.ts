@@ -83,17 +83,14 @@ export async function getGrupe(params: ListParams = {}) {
 }
 
 // ─── Stanje skladišta ────────────────────────────────────────────────────────
-export async function getStanje(orgJedId: number, artikalIds?: number[]) {
+export async function getStanje(orgJedId: number, page: number = 1) {
   const filters: Array<{ name: string; operator: string; value: string }> = [
     { name: 'orgJedId', operator: 'eq', value: String(orgJedId) },
   ]
-  // API podržava filter po artikalId — šaljemo batch
-  if (artikalIds?.length) {
-    artikalIds.forEach(id => filters.push({ name: 'artikalId', operator: 'eq', value: String(id) }))
-  }
   return nibisGet<PaginatedResponse<StanjeSkladista>>('/stanje-skladista', {
     filters,
-    perPage: Math.min(artikalIds?.length ?? 100, 100),
+    page,
+    perPage: 100,
   })
 }
 
