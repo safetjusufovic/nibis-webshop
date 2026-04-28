@@ -26,11 +26,13 @@ function PartnerSelect({ value, onChange }: { value: number | null, onChange: (i
   const [open, setOpen] = useState(false)
   const [results, setResults] = useState<Partner[]>([])
   const [selected, setSelected] = useState<Partner | null>(null)
+  const [loading, setLoading] = useState(false)
+  const btnRef = useRef<HTMLButtonElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     if (value) {
-      supabase.from('partneri').select('id, naziv, sifra, pdv_broj, grad, rabat').eq('id', value).single()
+      supabase.from('partneri').select('id, naziv, sifra').eq('id', value).single()
         .then(({ data }) => setSelected(data ?? null))
     } else {
       setSelected(null)
@@ -39,19 +41,12 @@ function PartnerSelect({ value, onChange }: { value: number | null, onChange: (i
 
   useEffect(() => {
     if (search.length < 2) { setResults([]); return }
-    let cancelled = false
+    setLoading(true)
     supabase.from('partneri')
       .select('id, naziv, sifra, pdv_broj, grad, rabat')
       .ilike('naziv', `%${search}%`)
-      .order('naziv')
-      .limit(15)
-      .then(({ data, error }) => {
-        if (!cancelled) {
-          console.log('[PartnerSelect] results:', data?.length, error)
-          setResults(data ?? [])
-        }
-      })
-    return () => { cancelled = true }
+      .order('naziv').limit(10)
+      .then(({ data }) => { setResults(data ?? []); setLoading(false) })
   }, [search])
 
   function select(p: Partner | null) {
@@ -63,51 +58,44 @@ function PartnerSelect({ value, onChange }: { value: number | null, onChange: (i
   }
 
   return (
-    <div className="relative">
+    <div style={{position:'relative', display:'inline-block'}}>
       <button
+        ref={btnRef}
         type="button"
-        onClick={() => { setOpen(true); setTimeout(() => inputRef.current?.focus(), 50) }}
-        className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 text-gray-700 min-w-[180px] text-left flex items-center justify-between gap-2 hover:border-gray-300"
+        onClick={() => { setOpen(!open); setTimeout(() => inputRef.current?.focus(), 50) }}
+        style={{fontSize:'12px', border:'1px solid #e5e7eb', borderRadius:'8px', padding:'6px 10px', background:'white', cursor:'pointer', minWidth:'180px', textAlign:'left', display:'flex', alignItems:'center', justifyContent:'space-between', gap:'8px'}}
       >
-        <span className="truncate">{selected?.naziv ?? '— odaberi partnera —'}</span>
-        <span className="text-gray-400">▾</span>
+        <span style={{overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap'}}>{selected?.naziv ?? '— odaberi partnera —'}</span>
+        <span style={{color:'#9ca3af', flexShrink:0}}>▾</span>
       </button>
 
       {open && (
         <>
-          <div className="fixed inset-0 z-20" onClick={() => { setOpen(false); setSearch('') }} />
-          <div style={{position:'absolute', left:0, top:'38px', zIndex:9999, background:'white', border:'1px solid #e5e7eb', borderRadius:'12px', boxShadow:'0 10px 25px rgba(0,0,0,0.15)', width:'300px'}}>
+          <div style={{position:'fixed', inset:0, zIndex:9998}} onClick={() => { setOpen(false); setSearch('') }} />
+          <div style={{position:'absolute', right:0, top:'38px', zIndex:9999, background:'white', border:'1px solid #e5e7eb', borderRadius:'12px', boxShadow:'0 20px 40px rgba(0,0,0,0.2)', width:'320px', overflow:'hidden'}}>
             <div style={{padding:'8px', borderBottom:'1px solid #f3f4f6'}}>
               <input
                 ref={inputRef}
                 type="text"
-                placeholder="Upišite naziv (min. 2 slova)..."
+                placeholder="Upišite naziv partnera..."
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                style={{width:'100%', fontSize:'12px', padding:'6px 10px', border:'1px solid #e5e7eb', borderRadius:'6px', outline:'none'}}
+                style={{width:'100%', fontSize:'12px', padding:'8px 10px', border:'1px solid #e5e7eb', borderRadius:'6px', outline:'none', boxSizing:'border-box'}}
               />
             </div>
-            <div style={{maxHeight:'250px', overflowY:'auto'}}>
-              <button
-                type="button"
-                onClick={() => select(null)}
-                style={{width:'100%', textAlign:'left', padding:'8px 12px', fontSize:'12px', color:'#9ca3af', background:'none', border:'none', cursor:'pointer', borderBottom:'1px solid #f9fafb'}}
-              >
+            <div style={{maxHeight:'280px', overflowY:'auto'}}>
+              <button type="button" onClick={() => select(null)}
+                style={{width:'100%', textAlign:'left', padding:'8px 12px', fontSize:'12px', color:'#9ca3af', background:'none', border:'none', borderBottom:'1px solid #f9fafb', cursor:'pointer', display:'block'}}>
                 — bez partnera —
               </button>
-              {search.length < 2 ? (
-                <p style={{padding:'12px', fontSize:'12px', color:'#9ca3af', textAlign:'center'}}>Upišite min. 2 slova</p>
-              ) : results.length === 0 ? (
-                <p style={{padding:'12px', fontSize:'12px', color:'#9ca3af', textAlign:'center'}}>Nema rezultata</p>
-              ) : results.map(p => (
-                <button
-                  type="button"
-                  key={p.id}
-                  onClick={() => select(p)}
-                  style={{width:'100%', textAlign:'left', padding:'8px 12px', fontSize:'12px', background: value === p.id ? '#f0fdf4' : 'none', border:'none', cursor:'pointer', borderBottom:'1px solid #f9fafb'}}
-                >
+              {loading && <p style={{padding:'12px', fontSize:'12px', color:'#9ca3af', textAlign:'center'}}>Učitavam...</p>}
+              {!loading && search.length < 2 && <p style={{padding:'12px', fontSize:'12px', color:'#9ca3af', textAlign:'center'}}>Upišite min. 2 slova</p>}
+              {!loading && search.length >= 2 && results.length === 0 && <p style={{padding:'12px', fontSize:'12px', color:'#9ca3af', textAlign:'center'}}>Nema rezultata</p>}
+              {!loading && results.map(p => (
+                <button type="button" key={p.id} onClick={() => select(p)}
+                  style={{width:'100%', textAlign:'left', padding:'8px 12px', fontSize:'12px', background: value === p.id ? '#f0fdf4' : 'white', border:'none', borderBottom:'1px solid #f9fafb', cursor:'pointer', display:'block'}}>
                   <div style={{fontWeight:500, color: value === p.id ? '#0f6e56' : '#1f2937'}}>{p.naziv}</div>
-                  <div style={{color:'#9ca3af', fontSize:'11px'}}>{p.sifra}{p.pdv_broj ? ` · ${p.pdv_broj}` : ''}{p.grad ? ` · ${p.grad}` : ''}</div>
+                  <div style={{color:'#9ca3af', fontSize:'11px', marginTop:'2px'}}>{p.sifra}{p.pdv_broj ? ` · PDV: ${p.pdv_broj}` : ''}{p.grad ? ` · ${p.grad}` : ''}{p.rabat > 0 ? ` · Rabat: ${p.rabat}%` : ''}</div>
                 </button>
               ))}
             </div>
