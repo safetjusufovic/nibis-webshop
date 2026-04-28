@@ -41,7 +41,7 @@ function PartnerSelect({ value, onChange }: { value: number | null, onChange: (i
     if (search.length < 2) { setResults([]); return }
     supabase.from('partneri')
       .select('id, naziv, sifra, pdv_broj, grad, rabat')
-      .or(`naziv.ilike.%${search}%,sifra.ilike.%${search}%`)
+      .ilike('naziv', `%${search}%`)
       .order('naziv')
       .limit(15)
       .then(({ data }) => setResults(data ?? []))
