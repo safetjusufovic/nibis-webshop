@@ -135,7 +135,7 @@ export default function MojeNarudzbePage() {
       })
   }, [user])
 
-  const imeKupca = profil ? `${profil.ime ?? ''} ${profil.prezime ?? ''}`.trim() || user?.email ?? '' : user?.email ?? ''
+  const imeKupca = profil ? (`${profil.ime ?? ''} ${profil.prezime ?? ''}`.trim() || (user?.email ?? '')) : (user?.email ?? '')
 
   return (
     <AuthGuard>
