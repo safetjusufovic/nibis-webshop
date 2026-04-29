@@ -113,6 +113,33 @@ export default function ProductCard({ artikal, stanje, slika }: Props) {
           </div>
 
           {/* Badges */}
+          {/* Favorit dugme */}
+          <button
+            onClick={e => { e.preventDefault(); toggleFavorit(artikal.id) }}
+            style={{
+              position: 'absolute',
+              bottom: '10px',
+              right: '10px',
+              width: '28px',
+              height: '28px',
+              borderRadius: '50%',
+              background: favoriti.has(artikal.id) ? '#FEF2F2' : 'rgba(255,255,255,0.9)',
+              border: favoriti.has(artikal.id) ? '1px solid #FECACA' : '1px solid var(--border)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              transition: 'all 0.15s',
+              zIndex: 1,
+            }}
+          >
+            <Heart
+              size={13}
+              style={{ color: favoriti.has(artikal.id) ? '#DC2626' : '#9CACA6' }}
+              fill={favoriti.has(artikal.id) ? '#DC2626' : 'none'}
+            />
+          </button>
+
           {inCart > 0 && (
             <div style={{
               position: 'absolute',
