@@ -69,11 +69,14 @@ export async function POST(req: NextRequest) {
     const nibisResult = await createNarudzba(payload)
 
     // 4. Spremi u Supabase
-    const ukupnoSa = body.stavke.reduce((s: number, st: any) => s + st.kolicina * st.jedinicnaCijena, 0)
+    // jedinicnaCijena je vpcijena = BEZ PDV-a (osnovica)
     const ukupnoBez = body.stavke.reduce((s: number, st: any) => {
-      const sub = st.kolicina * st.jedinicnaCijena
-      return s + sub / (1 + (st.poreskaStopa ?? 0) / 100)
+      return s + st.kolicina * st.jedinicnaCijena
     }, 0)
+    const ukupnoPorez = body.stavke.reduce((s: number, st: any) => {
+      return s + st.kolicina * st.jedinicnaCijena * ((st.poreskaStopa ?? 0) / 100)
+    }, 0)
+    const ukupnoSa = Math.round((ukupnoBez + ukupnoPorez) * 100) / 100
 
     const { data: narudzba } = await supabaseAdmin
       .from('narudzbe')
@@ -84,8 +87,8 @@ export async function POST(req: NextRequest) {
         nibis_oznaka: nibisResult.oznakaDokumenta,
         nibis_external_id: externalId,
         org_jed_id: payload.orgJedId,
-        ukupno_bez_poreza: ukupnoBez,
-        ukupno_porez: ukupnoSa - ukupnoBez,
+        ukupno_bez_poreza: Math.round(ukupnoBez * 100) / 100,
+        ukupno_porez: Math.round(ukupnoPorez * 100) / 100,
         ukupno_sa_porezom: ukupnoSa,
         nacin_placanja: payload.nacinPlacanja,
         napomena: payload.napomena,
