@@ -15,20 +15,17 @@ export async function GET(req: NextRequest) {
       .from('artikli')
       .select(`
         id, sifra, barkod, naziv, naziv2, opis,
-        aktivan, van_upotrebe, proc_poreza,
+        proc_poreza,
         planska_maloprodajna_cijena, planska_veleprodajna_cijena,
         slika_url, grupa_id,
-        webshop_aktivan, akcija_popust, akcija_do,
+        akcija_popust, akcija_do,
         grupe:grupa_id ( id, sifra, naziv )
       `, { count: 'exact' })
-      .eq('aktivan', true)
-      .eq('van_upotrebe', false)
-      .eq('webshop_aktivan', true)
       .order('naziv')
       .range(from, to)
 
     if (search) {
-      query = query.or(`naziv.ilike.%${search}%,sifra.ilike.%${search}%,barkod.ilike.%${search}%`)
+      query = query.or(`naziv.ilike.%${search}%,sifra.ilike.%${search}%`)
     }
     if (grupaId) query = query.eq('grupa_id', grupaId)
 
@@ -38,7 +35,7 @@ export async function GET(req: NextRequest) {
     const items = (data ?? []).map((a: any) => ({
       id: a.id, sifra: a.sifra, barkod: a.barkod,
       naziv: a.naziv, naziv2: a.naziv2, opis: a.opis,
-      aktivan: a.aktivan, vanUpotrebe: a.van_upotrebe,
+      aktivan: true, vanUpotrebe: false,
       procPoreza: a.proc_poreza,
       planskaMaloprodajnaCijena: a.planska_maloprodajna_cijena,
       planskaVeleprodajnaCijena: a.planska_veleprodajna_cijena,
