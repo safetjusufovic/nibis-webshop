@@ -23,13 +23,13 @@ export async function GET(req: NextRequest) {
       `, { count: 'exact' })
       .eq('aktivan', true)
       .eq('van_upotrebe', false)
+      .eq('webshop_aktivan', true)
       .order('naziv')
       .range(from, to)
 
     if (search) {
       query = query.or(`naziv.ilike.%${search}%,sifra.ilike.%${search}%,barkod.ilike.%${search}%`)
     }
-    query = query.eq('webshop_aktivan', true)
     if (grupaId) query = query.eq('grupa_id', grupaId)
 
     const { data, error, count } = await query
@@ -45,6 +45,8 @@ export async function GET(req: NextRequest) {
       slika_url: a.slika_url,
       grupaId: a.grupa_id,
       grupa: a.grupe ?? null,
+      akcija_popust: a.akcija_popust ?? 0,
+      akcija_do: a.akcija_do ?? null,
     }))
 
     return NextResponse.json({ total: count ?? 0, filtered: count ?? 0, page, perPage, items })
