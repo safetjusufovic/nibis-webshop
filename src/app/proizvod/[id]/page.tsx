@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Package, ArrowLeft, ShoppingCart, Plus, Minus, Truck, Shield, RotateCcw, Info } from 'lucide-react'
+import { Package, ArrowLeft, ShoppingCart, Plus, Minus, Info } from 'lucide-react'
 import Header from '@/components/layout/Header'
 import AuthGuard from '@/components/auth/AuthGuard'
 import { useCart } from '@/hooks/useCart'
@@ -302,30 +302,7 @@ export default function ProizvodPage() {
                 </div>
               )}
 
-              {/* Info badges */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
-                {[
-                  { icon: <Truck size={16} />, label: 'Isporuka', value: 'Naredni radni dan' },
-                  { icon: <Shield size={16} />, label: 'Jamstvo', value: 'Garancija proizvođača' },
-                  { icon: <RotateCcw size={16} />, label: 'Povrat', value: '14 dana' },
-                ].map(item => (
-                  <div key={item.label} style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    gap: '6px',
-                    padding: '14px 10px',
-                    background: 'white',
-                    border: '1px solid var(--border)',
-                    borderRadius: '12px',
-                    textAlign: 'center',
-                  }}>
-                    <span style={{ color: 'var(--brand)' }}>{item.icon}</span>
-                    <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 500 }}>{item.label}</span>
-                    <span style={{ fontSize: '11px', color: 'var(--text)', fontWeight: 500 }}>{item.value}</span>
-                  </div>
-                ))}
-              </div>
+
 
               {/* Specs */}
               <div style={{
