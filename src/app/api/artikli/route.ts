@@ -28,6 +28,7 @@ export async function GET(req: NextRequest) {
     if (search) {
       query = query.or(`naziv.ilike.%${search}%,sifra.ilike.%${search}%,barkod.ilike.%${search}%`)
     }
+    query = query.eq('webshop_aktivan', true)
     if (grupaId) query = query.eq('grupa_id', grupaId)
 
     const { data, error, count } = await query
