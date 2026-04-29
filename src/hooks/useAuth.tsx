@@ -19,6 +19,8 @@ export interface KorisnikProfil {
     rabat: number
     rok_placanja: number | null
     pdv_broj: string | null
+    limit_fin: number | null
+    limit_fin2: number | null
   } | null
 }
 
@@ -49,7 +51,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .select(`
         id, partner_id, ime, prezime, telefon, role, odobren,
         partner:partneri (
-          id, naziv, rabat, rok_placanja, pdv_broj
+          id, naziv, rabat, rok_placanja, pdv_broj, limit_fin, limit_fin2
         )
       `)
       .eq('id', userId)
