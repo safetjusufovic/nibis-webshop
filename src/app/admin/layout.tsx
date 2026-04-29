@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Users, ShoppingBag, Image, RefreshCw, LayoutDashboard, Settings, LayoutList } from 'lucide-react'
+import { Users, ShoppingBag, Image, RefreshCw, LayoutDashboard, Settings, LayoutList, BarChart2 } from 'lucide-react'
 import AuthGuard from '@/components/auth/AuthGuard'
 import Header from '@/components/layout/Header'
 
@@ -13,6 +13,7 @@ const NAV = [
   { href: '/admin/slike', label: 'Slike artikala', icon: Image },
   { href: '/admin/sync', label: 'Sinhronizacija', icon: RefreshCw },
   { href: '/admin/katalog', label: 'Katalog', icon: LayoutList },
+  { href: '/admin/izvjestaji', label: 'Izvještaji', icon: BarChart2 },
   { href: '/admin/postavke', label: 'Postavke', icon: Settings },
 ]
 
