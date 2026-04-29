@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { SlidersHorizontal, ChevronRight, LayoutGrid, List } from 'lucide-react'
+import { SlidersHorizontal, ChevronRight, Package } from 'lucide-react'
 import Header from '@/components/layout/Header'
 import AuthGuard from '@/components/auth/AuthGuard'
 import ProductCard from '@/components/shop/ProductCard'
