@@ -208,3 +208,82 @@ export async function runSyncPartial(only: string, page: number = 1): Promise<{
     return { success: false, grupeCount: 0, artikliCount: 0, stanjeCount: 0, partneriCount: 0, durationMs: Date.now() - start, error: String(err) }
   }
 }
+
+// ─── Incremental sync — samo izmijenjeni u zadnjih N minuta ──────────────────
+export async function runIncrementalSync(minutesBack: number = 5): Promise<{
+  success: boolean
+  grupeCount: number
+  artikliCount: number
+  stanjeCount: number
+  partneriCount: number
+  durationMs: number
+  error?: string
+}> {
+  const start = Date.now()
+  const since = new Date(Date.now() - minutesBack * 60 * 1000).toISOString()
+
+  try {
+    // Grupe se rijetko mijenjaju — sync jednom dnevno je dovoljno
+    // Ovdje syncamo samo artikle, stanje i partnere
+    let artikliCount = 0
+    let stanjeCount = 0
+    let partneriCount = 0
+
+    // Artikli izmijenjeni od `since`
+    const artikliData = await getArtikli({ page: 1, perPage: 100, since })
+    if (artikliData.items.length > 0) {
+      const rows = artikliData.items.map(a => ({
+        id: a.id, sifra: a.sifra, barkod: a.barkod, naziv: a.naziv,
+        naziv2: a.naziv2, opis: a.opis, aktivan: a.aktivan,
+        van_upotrebe: a.vanUpotrebe, proc_poreza: a.procPoreza,
+        planska_maloprodajna_cijena: a.planskaMaloprodajnaCijena,
+        planska_veleprodajna_cijena: a.planskaVeleprodajnaCijena,
+        grupa_id: a.grupaId, dobavljac_naziv: a.dobavljac?.naziv ?? null,
+        proizvodjac_naziv: a.proizvodjac?.naziv ?? null,
+        nibis_created: a.dateCreated, nibis_updated: a.dateModified,
+        synced_at: new Date().toISOString(),
+      }))
+      await supabaseAdmin.from('artikli').upsert(rows, { onConflict: 'id', ignoreDuplicates: false })
+      artikliCount = rows.length
+    }
+
+    // Stanje izmijenjeno od `since`
+    const stanjeData = await getStanje(siteConfig.orgJedId, 1, since)
+    if (stanjeData.items.length > 0) {
+      const rows = stanjeData.items.map(s => ({
+        id: s.id, artikal_id: s.artikalId, org_jed_id: s.orgJedId,
+        raspoloziva_kolicina: s.raspolozivaKolicina, nabavna_cijena: s.nabavnaCijena,
+        vpcijena: s.vpcijena, mpcijena: s.mpcijena,
+        nibis_created: s.dateCreated, nibis_updated: s.dateModified,
+        synced_at: new Date().toISOString(),
+      }))
+      await supabaseAdmin.from('stanje_skladista').upsert(rows, { onConflict: 'id' })
+      stanjeCount = rows.length
+    }
+
+    // Partneri izmijenjeni od `since`  
+    const partneriData = await getPartneri({ page: 1, perPage: 100, filters: [{ name: 'dateModified', operator: 'gte', value: since }] })
+    if (partneriData.items.length > 0) {
+      const rows = partneriData.items.map(p => ({
+        id: p.id, sifra: p.sifra, aktivan: p.aktivan, naziv: p.naziv,
+        adresa: p.adresa, postanski_broj: p.postanskiBroj, grad: p.grad,
+        pdv_broj: p.pdvBroj, id_broj: p.idBroj, tel: p.tel, fax: p.fax,
+        email: p.email, pdv_obveznik: p.pdvObveznik, rok_placanja: p.rokPlacanja,
+        opis: p.opis, web_site: p.webSite, rabat: p.rabat,
+        limit_fin: p.limitFin, limit_fin2: p.limitFin2, napomena: p.napomena,
+        partner_grupa_id: p.grupa?.id ?? null, partner_grupa_naziv: p.grupa?.naziv ?? null,
+        komercijalista_id: p.komercijalista?.id ?? null, komercijalista_naziv: p.komercijalista?.naziv ?? null,
+        nibis_created: p.dateCreated, nibis_updated: p.dateModified,
+        synced_at: new Date().toISOString(),
+      }))
+      await supabaseAdmin.from('partneri').upsert(rows, { onConflict: 'id' })
+      partneriCount = rows.length
+    }
+
+    console.log(`[INCREMENTAL SYNC] artikli:${artikliCount} stanje:${stanjeCount} partneri:${partneriCount} since:${since}`)
+
+    return { success: true, grupeCount: 0, artikliCount, stanjeCount, partneriCount, durationMs: Date.now() - start }
+  } catch (err) {
+    return { success: false, grupeCount: 0, artikliCount: 0, stanjeCount: 0, partneriCount: 0, durationMs: Date.now() - start, error: String(err) }
+  }
+}

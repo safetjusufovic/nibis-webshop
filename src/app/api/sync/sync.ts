@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { runSync, runSyncPartial } from '@/lib/sync'
+import { runSync, runSyncPartial, runIncrementalSync } from '@/lib/sync'
 
 export const maxDuration = 60
 
@@ -18,7 +18,10 @@ export async function GET(req: NextRequest) {
 
   console.log('[SYNC] Pokrenuto:', new Date().toISOString(), only ? `only=${only}` : 'full')
 
-  const result = only
+  const incremental = req.nextUrl.searchParams.get('incremental') === 'true'
+  const result = incremental
+    ? await runIncrementalSync(5)
+    : only
     ? await runSyncPartial(only, page)
     : await runSync()
 

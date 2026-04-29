@@ -59,12 +59,13 @@ async function nibisGet<T>(path: string, params?: ListParams): Promise<T> {
 }
 
 // ─── Artikli ─────────────────────────────────────────────────────────────────
-export async function getArtikli(params: ListParams & { grupaId?: number; aktivni?: boolean } = {}) {
+export async function getArtikli(params: ListParams & { grupaId?: number; aktivni?: boolean; since?: string } = {}) {
   const filters: Array<{ name: string; operator: string; value: string }> = [
     ...(params.filters ?? []),
   ]
   if (params.grupaId) filters.push({ name: 'grupaId', operator: 'eq', value: String(params.grupaId) })
   if (params.aktivni !== undefined) filters.push({ name: 'aktivan', operator: 'eq', value: String(params.aktivni) })
+  if (params.since) filters.push({ name: 'dateModified', operator: 'gte', value: params.since })
   return nibisGet<PaginatedResponse<Artikal>>('/artikli', { ...params, filters, sortName: params.sortName ?? 'naziv' })
 }
 
@@ -83,18 +84,16 @@ export async function getGrupe(params: ListParams = {}) {
 }
 
 // ─── Stanje skladišta ────────────────────────────────────────────────────────
-export async function getStanje(orgJedId: number, page: number = 1) {
-  console.log('[getStanje] page:', page, 'orgJedId:', orgJedId)
+export async function getStanje(orgJedId: number, page: number = 1, since?: string) {
   const filters: Array<{ name: string; operator: string; value: string }> = [
     { name: 'orgJedId', operator: 'eq', value: String(orgJedId) },
   ]
-  const result = await nibisGet<PaginatedResponse<StanjeSkladista>>('/stanje-skladista', {
+  if (since) filters.push({ name: 'dateModified', operator: 'gte', value: since })
+  return nibisGet<PaginatedResponse<StanjeSkladista>>('/stanje-skladista', {
     filters,
     page,
     perPage: 100,
   })
-  console.log('[getStanje] total:', result.total, 'page:', result.page, 'firstId:', result.items[0]?.id)
-  return result
 }
 
 // ─── Narudžba ────────────────────────────────────────────────────────────────
