@@ -21,6 +21,8 @@ export async function GET(req: NextRequest) {
         akcija_popust, akcija_do,
         grupe:grupa_id ( id, sifra, naziv )
       `, { count: 'exact' })
+      .eq('aktivan', true)
+      .eq('webshop_aktivan', true)
       .order('naziv')
       .range(from, to)
 
