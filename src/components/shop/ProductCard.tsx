@@ -28,10 +28,18 @@ export default function ProductCard({ artikal, stanje, slika }: Props) {
   const { rabat } = useAuth()
   const inCart = cart[artikal.id]?.qty ?? 0
 
-  const cijenaOriginal = stanje
+  const cijenaBase = stanje
     ? stanje[siteConfig.tipCijene]
     : artikal.planskaMaloprodajnaCijena ?? 0
-  const cijena = rabat > 0 ? cijenaOriginal * (1 - rabat / 100) : cijenaOriginal
+
+  // Akcija popust (iz admina) ima prioritet nad partner rabatom
+  const akcijaPopust = (artikal as any).akcija_popust ?? 0
+  const akcijaDo = (artikal as any).akcija_do
+  const akcijaAktivna = akcijaPopust > 0 && (!akcijaDo || new Date(akcijaDo) > new Date())
+
+  const popust = akcijaAktivna ? akcijaPopust : rabat
+  const cijenaOriginal = cijenaBase
+  const cijena = popust > 0 ? Math.round(cijenaOriginal * (1 - popust / 100) * 100) / 100 : cijenaOriginal
 
   const canAdd = stanje ? stanje.raspolozivaKolicina > 0 : false
   const atMax = stanje ? inCart >= stanje.raspolozivaKolicina : false
@@ -124,19 +132,19 @@ export default function ProductCard({ artikal, stanje, slika }: Props) {
               {inCart}
             </div>
           )}
-          {rabat > 0 && (
+          {popust > 0 && (
             <div style={{
               position: 'absolute',
               top: '10px',
               left: '10px',
-              background: '#DC2626',
+              background: akcijaAktivna ? '#DC2626' : '#0F6E56',
               color: 'white',
               fontSize: '10px',
               fontWeight: 700,
               padding: '2px 8px',
               borderRadius: '100px',
             }}>
-              -{rabat}%
+              {akcijaAktivna ? 'AKCIJA' : ''} -{popust}%
             </div>
           )}
         </div>
@@ -168,7 +176,7 @@ export default function ProductCard({ artikal, stanje, slika }: Props) {
               <div style={{ fontSize: '17px', fontWeight: 700, color: 'var(--text)', lineHeight: 1 }}>
                 {formatCijena(cijena)}
               </div>
-              {rabat > 0 && (
+              {popust > 0 && (
                 <div style={{ fontSize: '12px', color: '#9CACA6', textDecoration: 'line-through', marginTop: '2px' }}>
                   {formatCijena(cijenaOriginal)}
                 </div>
