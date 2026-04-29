@@ -44,18 +44,31 @@ export function formatCijena(iznos: number, currency = siteConfig.currency): str
   return `${iznos.toFixed(2)} ${currency}`
 }
 
-// Helper za PDV kalkulaciju (cijena je već sa PDV-om po NIBIS modelu)
+// Helper za PDV kalkulaciju
+// vpcijena = cijena BEZ PDV-a (osnovica), PDV se dodaje na nju
+// mpcijena = cijena SA PDV-om, PDV se izvlači iz nje
 export function calculateTotals(stavke: Array<{ cijena: number; qty: number; procPoreza: number }>) {
-  let ukupnoSaPorezom = 0
+  const tipCijene = process.env.NEXT_PUBLIC_TIP_CIJENE ?? 'vpcijena'
+  let ukupnoBezPoreza = 0
   let ukupnoPorez = 0
+
   stavke.forEach(({ cijena, qty, procPoreza }) => {
     const total = cijena * qty
-    ukupnoSaPorezom += total
-    ukupnoPorez += total - total / (1 + procPoreza / 100)
+    if (tipCijene === 'vpcijena') {
+      // VP cijena je bez PDV-a — dodajemo PDV
+      ukupnoBezPoreza += total
+      ukupnoPorez += total * (procPoreza / 100)
+    } else {
+      // MP cijena je sa PDV-om — izvlačimo PDV
+      const bezPdv = total / (1 + procPoreza / 100)
+      ukupnoBezPoreza += bezPdv
+      ukupnoPorez += total - bezPdv
+    }
   })
+
   return {
-    ukupnoSaPorezom,
-    ukupnoPorez,
-    ukupnoBezPoreza: ukupnoSaPorezom - ukupnoPorez,
+    ukupnoBezPoreza: Math.round(ukupnoBezPoreza * 100) / 100,
+    ukupnoPorez: Math.round(ukupnoPorez * 100) / 100,
+    ukupnoSaPorezom: Math.round((ukupnoBezPoreza + ukupnoPorez) * 100) / 100,
   }
 }
