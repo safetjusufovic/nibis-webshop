@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '@/hooks/useAuth'
+import { supabase } from '@/lib/supabase'
 import { siteConfig } from '@/lib/config'
 
 export default function LoginPage() {
@@ -23,6 +24,16 @@ export default function LoginPage() {
       setError('Pogrešan email ili lozinka.')
       setLoading(false)
     } else {
+      // Logiraj prijavu
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (user) {
+          await supabase.from('login_log').insert({
+            korisnik_id: user.id,
+            user_agent: navigator.userAgent,
+          })
+        }
+      } catch (e) { /* ignoriši greške u logovanju */ }
       router.push('/')
     }
   }
