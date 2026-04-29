@@ -72,3 +72,4 @@ export function calculateTotals(stavke: Array<{ cijena: number; qty: number; pro
     ukupnoSaPorezom: Math.round((ukupnoBezPoreza + ukupnoPorez) * 100) / 100,
   }
 }
+// 
