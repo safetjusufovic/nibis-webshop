@@ -2,35 +2,145 @@
 @tailwind components;
 @tailwind utilities;
 
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Mono:wght@400;500&display=swap');
+
 @layer base {
   :root {
-    --teal: #1D9E75;
-    --teal-light: #E1F5EE;
-    --teal-dark: #085041;
-    --teal-mid: #0F6E56;
+    --brand: #0F6E56;
+    --brand-light: #1D9E75;
+    --brand-dark: #085041;
+    --brand-pale: #E8F5F0;
+    --surface: #F8FAFA;
+    --border: #E8EDEB;
+    --text: #0D1F1A;
+    --text-muted: #6B8279;
+    --radius: 10px;
   }
+
+  *, *::before, *::after { box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'DM Sans', system-ui, sans-serif;
+    background: var(--surface);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-size: 15px;
+    line-height: 1.6;
+  }
+
+  ::selection { background: var(--brand-pale); color: var(--brand-dark); }
 }
 
 @layer components {
+  /* ── Buttons ── */
   .btn-primary {
-    @apply bg-teal-600 hover:bg-teal-700 text-white font-medium px-4 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply inline-flex items-center justify-center gap-2 font-medium transition-all duration-150;
+    background: var(--brand);
+    color: white;
+    padding: 10px 20px;
+    border-radius: var(--radius);
+    font-size: 14px;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 1px 2px rgba(15,110,86,0.2);
   }
+  .btn-primary:hover { background: var(--brand-dark); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(15,110,86,0.25); }
+  .btn-primary:active { transform: translateY(0); }
+  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+
   .btn-secondary {
-    @apply border border-gray-200 hover:bg-gray-50 text-gray-700 font-medium px-4 py-2 rounded-lg transition-colors;
+    @apply inline-flex items-center justify-center gap-2 font-medium transition-all duration-150;
+    background: white;
+    color: var(--text);
+    padding: 10px 20px;
+    border-radius: var(--radius);
+    font-size: 14px;
+    border: 1px solid var(--border);
+    cursor: pointer;
   }
+  .btn-secondary:hover { background: var(--surface); border-color: #C5D4CE; }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 font-medium transition-all duration-150;
+    background: transparent;
+    color: var(--text-muted);
+    padding: 8px 14px;
+    border-radius: var(--radius);
+    font-size: 14px;
+    border: none;
+    cursor: pointer;
+  }
+  .btn-ghost:hover { background: var(--brand-pale); color: var(--brand); }
+
+  /* ── Cards ── */
   .card {
-    @apply bg-white border border-gray-100 rounded-xl;
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 14px;
   }
+  .card-elevated {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.03);
+  }
+
+  /* ── Inputs ── */
   .input {
-    @apply border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent w-full;
+    width: 100%;
+    padding: 10px 14px;
+    font-size: 14px;
+    font-family: inherit;
+    color: var(--text);
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
   }
+  .input:focus { border-color: var(--brand-light); box-shadow: 0 0 0 3px rgba(29,158,117,0.12); }
+  .input::placeholder { color: #9CACA6; }
+
+  /* ── Badges ── */
   .badge-in-stock {
-    @apply text-xs bg-teal-50 text-teal-700 px-2 py-0.5 rounded-full;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: var(--brand);
+    background: var(--brand-pale);
+    padding: 3px 9px;
+    border-radius: 100px;
   }
   .badge-low-stock {
-    @apply text-xs bg-amber-50 text-amber-700 px-2 py-0.5 rounded-full;
+    display: inline-flex;
+    align-items: center;
+    font-size: 11px;
+    font-weight: 600;
+    color: #92400E;
+    background: #FEF3C7;
+    padding: 3px 9px;
+    border-radius: 100px;
   }
   .badge-out-stock {
-    @apply text-xs bg-red-50 text-red-600 px-2 py-0.5 rounded-full;
+    display: inline-flex;
+    align-items: center;
+    font-size: 11px;
+    font-weight: 600;
+    color: #991B1B;
+    background: #FEE2E2;
+    padding: 3px 9px;
+    border-radius: 100px;
   }
+
+  /* ── Dividers ── */
+  .divider { height: 1px; background: var(--border); }
+
+  /* ── Mono text ── */
+  .mono { font-family: 'DM Mono', monospace; }
 }
