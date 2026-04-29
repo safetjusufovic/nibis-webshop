@@ -1,71 +1,151 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { Search, SlidersHorizontal, X } from 'lucide-react'
+import { SlidersHorizontal, ChevronRight, LayoutGrid, List } from 'lucide-react'
 import Header from '@/components/layout/Header'
 import AuthGuard from '@/components/auth/AuthGuard'
 import ProductCard from '@/components/shop/ProductCard'
 import type { Artikal, ArtikalGrupa, StanjeSkladista, PaginatedResponse } from '@/types/nibis'
 import { siteConfig } from '@/lib/config'
 
-function CategorySidebar({
-  grupe, activeId, onSelect
-}: {
+// ─── Category Sidebar ─────────────────────────────────────────────────────────
+function CategorySidebar({ grupe, activeId, onSelect }: {
   grupe: ArtikalGrupa[]
   activeId: number | null
   onSelect: (id: number | null) => void
 }) {
   const roots = grupe.filter(g => !g.parentId)
+
   return (
-    <aside className="w-48 shrink-0 hidden md:block">
-      <div className="card p-3 sticky top-20">
-        <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-2 px-2">Kategorije</p>
-        <button
-          onClick={() => onSelect(null)}
-          className={`w-full text-left text-sm px-2 py-1.5 rounded-lg transition-colors ${activeId === null ? 'bg-teal-50 text-teal-700 font-medium' : 'text-gray-600 hover:bg-gray-50'}`}
-        >
-          Sve kategorije
-        </button>
-        {roots.map(root => {
-          const children = grupe.filter(g => g.parentId === root.id)
-          return (
-            <div key={root.id}>
-              <button
-                onClick={() => onSelect(root.id)}
-                className={`w-full text-left text-sm px-2 py-1.5 rounded-lg transition-colors ${activeId === root.id ? 'bg-teal-50 text-teal-700 font-medium' : 'text-gray-600 hover:bg-gray-50'}`}
-              >
-                {root.naziv}
-              </button>
-              {children.map(child => (
+    <aside style={{ width: '220px', flexShrink: 0 }}>
+      <div style={{
+        background: 'white',
+        border: '1px solid var(--border)',
+        borderRadius: '14px',
+        overflow: 'hidden',
+        position: 'sticky',
+        top: '76px',
+      }}>
+        <div style={{ padding: '14px 16px', borderBottom: '1px solid var(--border)', background: 'var(--surface)' }}>
+          <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+            Kategorije
+          </span>
+        </div>
+        <div style={{ padding: '8px' }}>
+          <button
+            onClick={() => onSelect(null)}
+            style={{
+              width: '100%',
+              textAlign: 'left',
+              padding: '8px 10px',
+              fontSize: '14px',
+              fontFamily: 'inherit',
+              border: 'none',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              transition: 'all 0.1s',
+              fontWeight: activeId === null ? 500 : 400,
+              color: activeId === null ? 'var(--brand)' : 'var(--text)',
+              background: activeId === null ? 'var(--brand-pale)' : 'transparent',
+            }}
+          >
+            Sve kategorije
+          </button>
+
+          {roots.map(root => {
+            const children = grupe.filter(g => g.parentId === root.id)
+            const isActive = activeId === root.id || children.some(c => c.id === activeId)
+
+            return (
+              <div key={root.id}>
                 <button
-                  key={child.id}
-                  onClick={() => onSelect(child.id)}
-                  className={`w-full text-left text-xs pl-5 pr-2 py-1 rounded-lg transition-colors ${activeId === child.id ? 'text-teal-700 font-medium' : 'text-gray-500 hover:bg-gray-50'}`}
+                  onClick={() => onSelect(root.id)}
+                  style={{
+                    width: '100%',
+                    textAlign: 'left',
+                    padding: '8px 10px',
+                    fontSize: '14px',
+                    fontFamily: 'inherit',
+                    border: 'none',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    transition: 'all 0.1s',
+                    fontWeight: isActive ? 500 : 400,
+                    color: activeId === root.id ? 'var(--brand)' : 'var(--text)',
+                    background: activeId === root.id ? 'var(--brand-pale)' : 'transparent',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                  }}
+                  onMouseEnter={e => { if (activeId !== root.id) (e.currentTarget as HTMLElement).style.background = 'var(--surface)' }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = activeId === root.id ? 'var(--brand-pale)' : 'transparent' }}
                 >
-                  ↳ {child.naziv}
+                  <span>{root.naziv}</span>
+                  {children.length > 0 && <ChevronRight size={12} style={{ color: 'var(--text-muted)', opacity: 0.6 }} />}
                 </button>
-              ))}
-            </div>
-          )
-        })}
+
+                {(isActive || children.some(c => c.id === activeId)) && children.map(child => (
+                  <button
+                    key={child.id}
+                    onClick={() => onSelect(child.id)}
+                    style={{
+                      width: '100%',
+                      textAlign: 'left',
+                      padding: '6px 10px 6px 24px',
+                      fontSize: '13px',
+                      fontFamily: 'inherit',
+                      border: 'none',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      transition: 'all 0.1s',
+                      color: activeId === child.id ? 'var(--brand)' : 'var(--text-muted)',
+                      fontWeight: activeId === child.id ? 500 : 400,
+                      background: activeId === child.id ? 'var(--brand-pale)' : 'transparent',
+                    }}
+                    onMouseEnter={e => { if (activeId !== child.id) (e.currentTarget as HTMLElement).style.background = 'var(--surface)' }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = activeId === child.id ? 'var(--brand-pale)' : 'transparent' }}
+                  >
+                    {child.naziv}
+                  </button>
+                ))}
+              </div>
+            )
+          })}
+        </div>
       </div>
     </aside>
   )
 }
 
+// ─── Skeleton ─────────────────────────────────────────────────────────────────
 function SkeletonCard() {
   return (
-    <div className="card overflow-hidden animate-pulse">
-      <div className="h-40 bg-gray-100" />
-      <div className="p-3 space-y-2">
-        <div className="h-3 bg-gray-100 rounded w-3/4" />
-        <div className="h-3 bg-gray-100 rounded w-1/2" />
-        <div className="h-7 bg-gray-100 rounded mt-3" />
+    <div style={{
+      background: 'white',
+      border: '1px solid var(--border)',
+      borderRadius: '14px',
+      overflow: 'hidden',
+    }}>
+      <div style={{ paddingTop: '72%', background: 'var(--surface)', position: 'relative' }}>
+        <div style={{
+          position: 'absolute', inset: 0,
+          background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.6) 50%, transparent 100%)',
+          backgroundSize: '200% 100%',
+          animation: 'shimmer 1.5s infinite',
+        }} />
       </div>
+      <div style={{ padding: '14px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        <div style={{ height: '10px', borderRadius: '6px', background: 'var(--surface)', width: '40%' }} />
+        <div style={{ height: '14px', borderRadius: '6px', background: 'var(--surface)', width: '85%' }} />
+        <div style={{ height: '12px', borderRadius: '6px', background: 'var(--surface)', width: '60%' }} />
+        <div style={{ height: '38px', borderRadius: '9px', background: 'var(--surface)', marginTop: '4px' }} />
+      </div>
+      <style>{`@keyframes shimmer { 0% { backgroundPosition: -200% 0 } 100% { backgroundPosition: 200% 0 } }`}</style>
     </div>
   )
 }
 
+// ─── Main page ────────────────────────────────────────────────────────────────
 export default function HomePage() {
   const [grupe, setGrupe] = useState<ArtikalGrupa[]>([])
   const [artikli, setArtikli] = useState<Artikal[]>([])
@@ -136,69 +216,242 @@ export default function HomePage() {
 
   return (
     <AuthGuard>
-      <div className="min-h-screen bg-gray-50">
-        <Header />
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="relative flex-1 max-w-md">
-              <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Pretraži artikle..."
-                value={searchInput}
-                onChange={e => setSearchInput(e.target.value)}
-                className="input pl-9"
-              />
-              {searchInput && (
-                <button onClick={() => setSearchInput('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
-                  <X size={14} />
-                </button>
+      <div style={{ minHeight: '100vh', background: 'var(--surface)' }}>
+        <Header onSearch={q => setSearchInput(q)} />
+
+        <main style={{ maxWidth: '1280px', margin: '0 auto', padding: '24px 24px 64px' }}>
+
+          {/* Toolbar */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            marginBottom: '20px',
+            flexWrap: 'wrap',
+          }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              {activeGrupa ? (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '14px' }}>
+                  <button
+                    onClick={() => onGrupaSelect(null)}
+                    style={{ color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: '14px', padding: 0 }}
+                  >
+                    Sve kategorije
+                  </button>
+                  <ChevronRight size={12} style={{ color: 'var(--text-muted)' }} />
+                  <span style={{ color: 'var(--text)', fontWeight: 500 }}>
+                    {grupe.find(g => g.id === activeGrupa)?.naziv}
+                  </span>
+                </div>
+              ) : (
+                <span style={{ fontSize: '14px', color: 'var(--text-muted)' }}>
+                  {search ? `Rezultati za "${search}"` : 'Svi artikli'}
+                </span>
               )}
             </div>
-            <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer select-none">
-              <input type="checkbox" checked={filterStock} onChange={e => setFilterStock(e.target.checked)} className="accent-teal-600" />
-              <span className="hidden sm:inline">Samo na stanju</span>
-            </label>
-            <button className="md:hidden btn-secondary flex items-center gap-1 text-sm" onClick={() => setMobileFilters(!mobileFilters)}>
-              <SlidersHorizontal size={14} /> Kategorije
-            </button>
-            <span className="ml-auto text-sm text-gray-400">{total} artikala</span>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <label style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '7px',
+                fontSize: '13px',
+                color: 'var(--text-muted)',
+                cursor: 'pointer',
+                userSelect: 'none',
+              }}>
+                <input
+                  type="checkbox"
+                  checked={filterStock}
+                  onChange={e => setFilterStock(e.target.checked)}
+                  style={{ accentColor: 'var(--brand)', width: '15px', height: '15px' }}
+                />
+                Samo na stanju
+              </label>
+
+              <button
+                className="mobile-filters-btn"
+                style={{
+                  display: 'none',
+                  alignItems: 'center',
+                  gap: '6px',
+                  fontSize: '13px',
+                  padding: '7px 14px',
+                  background: 'white',
+                  border: '1px solid var(--border)',
+                  borderRadius: '9px',
+                  cursor: 'pointer',
+                  fontFamily: 'inherit',
+                  color: 'var(--text)',
+                }}
+                onClick={() => setMobileFilters(!mobileFilters)}
+              >
+                <SlidersHorizontal size={13} /> Kategorije
+              </button>
+
+              <div style={{
+                fontSize: '13px',
+                color: 'var(--text-muted)',
+                background: 'white',
+                border: '1px solid var(--border)',
+                padding: '7px 14px',
+                borderRadius: '9px',
+                fontWeight: 500,
+                whiteSpace: 'nowrap',
+              }}>
+                {total.toLocaleString()} artikala
+              </div>
+            </div>
           </div>
 
+          {/* Mobile filters */}
           {mobileFilters && (
-            <div className="md:hidden card p-3 mb-4">
+            <div style={{ marginBottom: '16px' }} className="mobile-filters">
               <CategorySidebar grupe={grupe} activeId={activeGrupa} onSelect={onGrupaSelect} />
             </div>
           )}
 
-          <div className="flex gap-6">
-            <CategorySidebar grupe={grupe} activeId={activeGrupa} onSelect={onGrupaSelect} />
-            <div className="flex-1 min-w-0">
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+          {/* Layout */}
+          <div style={{ display: 'flex', gap: '24px', alignItems: 'flex-start' }}>
+            {/* Sidebar — desktop only */}
+            <div className="desktop-sidebar" style={{ display: 'block' }}>
+              <CategorySidebar grupe={grupe} activeId={activeGrupa} onSelect={onGrupaSelect} />
+            </div>
+
+            {/* Grid */}
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+                gap: '16px',
+              }}>
                 {loading
                   ? Array(perPage).fill(0).map((_, i) => <SkeletonCard key={i} />)
                   : displayed.length === 0
-                  ? <div className="col-span-full text-center py-16 text-gray-400 text-sm">Nema artikala za odabrane kriterije</div>
+                  ? (
+                    <div style={{
+                      gridColumn: '1 / -1',
+                      textAlign: 'center',
+                      padding: '64px 24px',
+                      color: 'var(--text-muted)',
+                    }}>
+                      <Package size={40} style={{ margin: '0 auto 12px', opacity: 0.3 }} />
+                      <p style={{ fontSize: '15px', margin: 0 }}>Nema artikala za odabrane kriterije</p>
+                      <button
+                        onClick={() => { onGrupaSelect(null); setFilterStock(false) }}
+                        style={{ marginTop: '12px', color: 'var(--brand)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '14px', fontFamily: 'inherit' }}
+                      >
+                        Prikaži sve
+                      </button>
+                    </div>
+                  )
                   : displayed.map(a => (
-                      <ProductCard key={a.id} artikal={a} stanje={stanje[a.id]} slika={(a as any).slika_url} />
-                    ))
+                    <ProductCard key={a.id} artikal={a} stanje={stanje[a.id]} slika={(a as any).slika_url} />
+                  ))
                 }
               </div>
+
+              {/* Pagination */}
               {totalPages > 1 && (
-                <div className="flex items-center justify-center gap-3 mt-8 text-sm">
-                  <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page <= 1} className="btn-secondary disabled:opacity-40">← Preth.</button>
-                  <span className="text-gray-500">Stranica {page} / {totalPages}</span>
-                  <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page >= totalPages} className="btn-secondary disabled:opacity-40">Sljed. →</button>
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  marginTop: '40px',
+                  flexWrap: 'wrap',
+                }}>
+                  <button
+                    onClick={() => setPage(p => Math.max(1, p - 1))}
+                    disabled={page <= 1}
+                    className="btn-secondary"
+                    style={{ padding: '8px 16px', fontSize: '13px' }}
+                  >
+                    ← Prethodna
+                  </button>
+
+                  <div style={{
+                    display: 'flex',
+                    gap: '4px',
+                    alignItems: 'center',
+                  }}>
+                    {Array.from({ length: Math.min(7, totalPages) }, (_, i) => {
+                      let p: number
+                      if (totalPages <= 7) p = i + 1
+                      else if (page <= 4) p = i + 1
+                      else if (page >= totalPages - 3) p = totalPages - 6 + i
+                      else p = page - 3 + i
+                      return (
+                        <button
+                          key={p}
+                          onClick={() => setPage(p)}
+                          style={{
+                            width: '36px',
+                            height: '36px',
+                            border: p === page ? 'none' : '1px solid var(--border)',
+                            borderRadius: '9px',
+                            background: p === page ? 'var(--brand)' : 'white',
+                            color: p === page ? 'white' : 'var(--text)',
+                            fontFamily: 'inherit',
+                            fontSize: '13px',
+                            fontWeight: p === page ? 600 : 400,
+                            cursor: 'pointer',
+                            transition: 'all 0.15s',
+                          }}
+                        >
+                          {p}
+                        </button>
+                      )
+                    })}
+                  </div>
+
+                  <button
+                    onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                    disabled={page >= totalPages}
+                    className="btn-secondary"
+                    style={{ padding: '8px 16px', fontSize: '13px' }}
+                  >
+                    Sljedeća →
+                  </button>
                 </div>
               )}
             </div>
           </div>
         </main>
-        <footer className="border-t border-gray-100 mt-16 py-6 text-center text-xs text-gray-400">
-          {siteConfig.name} · Powered by NIBIS ERP
-          {siteConfig.contactEmail && <> · <a href={`mailto:${siteConfig.contactEmail}`} className="hover:text-teal-600">{siteConfig.contactEmail}</a></>}
+
+        {/* Footer */}
+        <footer style={{
+          borderTop: '1px solid var(--border)',
+          background: 'white',
+          padding: '32px 24px',
+        }}>
+          <div style={{ maxWidth: '1280px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+            <div>
+              <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text)', marginBottom: '4px' }}>
+                {siteConfig.name}
+              </div>
+              <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
+                B2B webshop · Powered by NIBIS ERP
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: '24px', fontSize: '13px', color: 'var(--text-muted)' }}>
+              <span>Pon–Pet 08:00–16:00</span>
+              {siteConfig.contactEmail && (
+                <a href={`mailto:${siteConfig.contactEmail}`} style={{ color: 'var(--brand)', textDecoration: 'none' }}>
+                  {siteConfig.contactEmail}
+                </a>
+              )}
+            </div>
+          </div>
         </footer>
       </div>
+
+      <style>{`
+        @media (max-width: 768px) {
+          .desktop-sidebar { display: none !important; }
+          .mobile-filters-btn { display: flex !important; }
+        }
+      `}</style>
     </AuthGuard>
   )
 }
