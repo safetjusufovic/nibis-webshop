@@ -18,6 +18,7 @@ export async function GET(req: NextRequest) {
         aktivan, van_upotrebe, proc_poreza,
         planska_maloprodajna_cijena, planska_veleprodajna_cijena,
         slika_url, grupa_id,
+        webshop_aktivan, akcija_popust, akcija_do,
         grupe:grupa_id ( id, sifra, naziv )
       `, { count: 'exact' })
       .eq('aktivan', true)
