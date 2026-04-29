@@ -2,8 +2,9 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import { ShoppingCart, Package, Plus } from 'lucide-react'
+import { ShoppingCart, Package, Plus, Heart } from 'lucide-react'
 import { useCart } from '@/hooks/useCart'
+import { useFavoriti } from '@/hooks/useFavoriti'
 import { useAuth } from '@/hooks/useAuth'
 import { formatCijena, siteConfig } from '@/lib/config'
 import type { Artikal, StanjeSkladista } from '@/types/nibis'
@@ -25,6 +26,7 @@ function StockBadge({ stanje }: { stanje: StanjeSkladista | null | undefined }) 
 
 export default function ProductCard({ artikal, stanje, slika }: Props) {
   const { cart, add } = useCart()
+  const { favoriti, toggle: toggleFavorit } = useFavoriti()
   const { rabat } = useAuth()
   const inCart = cart[artikal.id]?.qty ?? 0
 

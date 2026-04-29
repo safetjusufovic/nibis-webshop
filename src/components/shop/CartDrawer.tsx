@@ -189,6 +189,27 @@ export default function CartDrawer({ open, onClose }: CartDrawerProps) {
                   </div>
                 </div>
 
+                {/* Kreditni limit upozorenje */}
+                {(() => {
+                  const limitFin = (profil?.partner as any)?.limit_fin ?? 0
+                  const rokPlacanja = (profil?.partner as any)?.rok_placanja ?? 0
+                  if (limitFin > 0 && totals.ukupnoSaPorezom > limitFin) {
+                    return (
+                      <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: '10px', padding: '10px 14px', fontSize: '13px', color: '#991B1B' }}>
+                        ⚠ Narudžba ({formatCijena(totals.ukupnoSaPorezom)}) prelazi vaš kreditni limit ({formatCijena(limitFin)})
+                      </div>
+                    )
+                  }
+                  if (rokPlacanja > 0) {
+                    return (
+                      <div style={{ background: 'var(--brand-pale)', border: '1px solid #B8D4CB', borderRadius: '10px', padding: '10px 14px', fontSize: '13px', color: 'var(--brand)' }}>
+                        Rok plaćanja: <strong>{rokPlacanja} dana</strong>
+                      </div>
+                    )
+                  }
+                  return null
+                })()}
+
                 <div>
                   <label className="text-xs text-gray-500 mb-1 block">Način plaćanja</label>
                   <select value={nacinPlacanja} onChange={e => setNacinPlacanja(e.target.value as any)} className="input text-sm">
@@ -207,9 +228,15 @@ export default function CartDrawer({ open, onClose }: CartDrawerProps) {
                   <p className="text-xs text-red-500 bg-red-50 px-3 py-2 rounded-lg">{errorMsg}</p>
                 )}
 
-                <button onClick={handleSubmit} disabled={status === 'loading'} className="btn-primary w-full">
+                {(() => {
+                  const limitFin = (profil?.partner as any)?.limit_fin ?? 0
+                  const prekoracen = limitFin > 0 && totals.ukupnoSaPorezom > limitFin
+                  return (
+                    <button onClick={handleSubmit} disabled={status === 'loading' || prekoracen} className="btn-primary w-full" style={prekoracen ? { opacity: 0.5, cursor: 'not-allowed' } : {}}>
                   {status === 'loading' ? 'Slanje...' : 'Pošalji narudžbu u ERP'}
-                </button>
+                    </button>
+                  )
+                })()}
               </div>
             )}
           </>

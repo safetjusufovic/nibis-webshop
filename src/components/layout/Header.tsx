@@ -232,6 +232,7 @@ export default function Header({ onSearch }: { onSearch?: (q: string) => void })
                         </div>
                         {[
                           { href: '/moje-narudzbe', label: 'Moje narudžbe' },
+          { href: '/favoriti', label: 'Moji favoriti' },
                           ...(isAdmin ? [{ href: '/admin', label: 'Admin panel', accent: true }] : []),
                         ].map(item => (
                           <Link

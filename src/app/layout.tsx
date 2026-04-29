@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import { CartProvider } from '@/hooks/useCart'
 import { AuthProvider } from '@/hooks/useAuth'
+import { FavoritiProvider } from '@/hooks/useFavoriti'
 import { siteConfig } from '@/lib/config'
 import './globals.css'
 
@@ -18,9 +19,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="bs">
       <body className={inter.className}>
         <AuthProvider>
+        <FavoritiProvider>
           <CartProvider>
             {children}
           </CartProvider>
+        </FavoritiProvider>
         </AuthProvider>
       </body>
     </html>
