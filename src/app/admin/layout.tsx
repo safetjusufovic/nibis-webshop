@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Users, ShoppingBag, Image, RefreshCw, LayoutDashboard } from 'lucide-react'
+import { Users, ShoppingBag, Image, RefreshCw, LayoutDashboard, Settings } from 'lucide-react'
 import AuthGuard from '@/components/auth/AuthGuard'
 import Header from '@/components/layout/Header'
 
@@ -12,6 +12,7 @@ const NAV = [
   { href: '/admin/narudzbe', label: 'Narudžbe', icon: ShoppingBag },
   { href: '/admin/slike', label: 'Slike artikala', icon: Image },
   { href: '/admin/sync', label: 'Sinhronizacija', icon: RefreshCw },
+  { href: '/admin/postavke', label: 'Postavke', icon: Settings },
 ]
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
