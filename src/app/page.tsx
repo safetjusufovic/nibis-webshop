@@ -6,6 +6,7 @@ import Header from '@/components/layout/Header'
 import AuthGuard from '@/components/auth/AuthGuard'
 import ProductCard from '@/components/shop/ProductCard'
 import AkcijeSlider from '@/components/shop/AkcijeSlider'
+import HeroBanner from '@/components/shop/HeroBanner'
 import type { Artikal, ArtikalGrupa, StanjeSkladista, PaginatedResponse } from '@/types/nibis'
 import { siteConfig } from '@/lib/config'
 
@@ -159,6 +160,9 @@ export default function HomePage() {
   const [searchInput, setSearchInput] = useState('')
   const [filterStock, setFilterStock] = useState(false)
   const [mobileFilters, setMobileFilters] = useState(false)
+  const [sortBy, setSortBy] = useState('naziv')
+  const [cijenaDo, setCijenaDo] = useState('')
+  const [cijenaOd, setCijenaOd] = useState('')
 
   const perPage = siteConfig.perPage
 
@@ -176,6 +180,9 @@ export default function HomePage() {
       perPage: String(perPage),
       ...(search && { search }),
       ...(activeGrupa && { grupaId: String(activeGrupa) }),
+      ...(sortBy && { sortBy }),
+      ...(cijenaOd && { cijenaOd }),
+      ...(cijenaDo && { cijenaDo }),
     })
     try {
       const res = await fetch(`/api/artikli?${params}`)
@@ -194,7 +201,7 @@ export default function HomePage() {
       console.error(e)
     }
     setLoading(false)
-  }, [page, perPage, search, activeGrupa])
+  }, [page, perPage, search, activeGrupa, sortBy, cijenaOd, cijenaDo])
 
   useEffect(() => { loadArtikli() }, [loadArtikli])
 
@@ -220,6 +227,7 @@ export default function HomePage() {
       <div style={{ minHeight: '100vh', background: 'var(--surface)' }}>
         <Header onSearch={q => setSearchInput(q)} />
 
+        <HeroBanner />
         <AkcijeSlider />
         <main style={{ maxWidth: '1280px', margin: '0 auto', padding: '24px 24px 64px' }}>
 
@@ -290,6 +298,37 @@ export default function HomePage() {
               >
                 <SlidersHorizontal size={13} /> Kategorije
               </button>
+
+              {/* Sortiranje */}
+              <select
+                value={sortBy}
+                onChange={e => { setSortBy(e.target.value); setPage(1) }}
+                style={{ height: '36px', fontSize: '13px', background: 'white', border: '1px solid var(--border)', borderRadius: '9px', padding: '0 10px', fontFamily: 'inherit', cursor: 'pointer', color: 'var(--text)', outline: 'none' }}
+              >
+                <option value="naziv">Naziv A-Z</option>
+                <option value="naziv_desc">Naziv Z-A</option>
+                <option value="cijena_asc">Cijena ↑</option>
+                <option value="cijena_desc">Cijena ↓</option>
+              </select>
+
+              {/* Filter cijene */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <input
+                  type="number"
+                  placeholder="Od KM"
+                  value={cijenaOd}
+                  onChange={e => { setCijenaOd(e.target.value); setPage(1) }}
+                  style={{ width: '70px', height: '36px', fontSize: '12px', padding: '0 8px', border: '1px solid var(--border)', borderRadius: '9px', outline: 'none', fontFamily: 'inherit' }}
+                />
+                <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>—</span>
+                <input
+                  type="number"
+                  placeholder="Do KM"
+                  value={cijenaDo}
+                  onChange={e => { setCijenaDo(e.target.value); setPage(1) }}
+                  style={{ width: '70px', height: '36px', fontSize: '12px', padding: '0 8px', border: '1px solid var(--border)', borderRadius: '9px', outline: 'none', fontFamily: 'inherit' }}
+                />
+              </div>
 
               <div style={{
                 fontSize: '13px',

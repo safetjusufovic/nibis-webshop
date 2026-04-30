@@ -40,6 +40,19 @@ const SECTIONS = [
     ]
   },
   {
+    id: 'hero',
+    icon: <Bell size={16} />,
+    title: 'Hero Banner',
+    keys: [
+      { key: 'hero_aktivan', label: 'Prikaži hero banner', type: 'boolean', placeholder: '' },
+      { key: 'hero_naslov', label: 'Naslov', type: 'text', placeholder: 'Dobrodošli u naš webshop' },
+      { key: 'hero_podnaslov', label: 'Podnaslov', type: 'text', placeholder: 'Profesionalna roba za vaše poslovanje' },
+      { key: 'hero_dugme_tekst', label: 'Tekst dugmeta', type: 'text', placeholder: 'Pregledaj katalog' },
+      { key: 'hero_boja_pozadine', label: 'Boja pozadine (hex)', type: 'text', placeholder: '#0F6E56' },
+      { key: 'hero_url_slike', label: 'URL pozadinske slike (opcionalno)', type: 'text', placeholder: 'https://...' },
+    ]
+  },
+  {
     id: 'izgled',
     icon: <Settings size={16} />,
     title: 'Izgled i banneri',
