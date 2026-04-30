@@ -61,6 +61,13 @@ function CategorySidebar({ grupe, activeId, onSelect }: {
                         : isActive ? 'text-gray-800 font-medium' : 'text-gray-600 hover:bg-gray-50'
                     }`}
                   >
+                    <span
+                      style={{
+                        width: '8px', height: '8px', borderRadius: '50%', flexShrink: 0,
+                        background: root.boja || 'var(--brand)',
+                        display: 'inline-block', marginRight: '6px',
+                      }}
+                    />
                     {root.naziv}
                   </button>
                   {children.length > 0 && (
