@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { SlidersHorizontal, ChevronRight, ChevronDown, Package, ShoppingCart, Plus } from 'lucide-react'
+import { SlidersHorizontal, ChevronRight, ChevronDown, Package, ShoppingCart, Plus, LayoutGrid, LayoutList } from 'lucide-react'
 import Header from '@/components/layout/Header'
 import AuthGuard from '@/components/auth/AuthGuard'
 import AkcijeSlider from '@/components/shop/AkcijeSlider'
@@ -11,6 +11,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { useFavoriti } from '@/hooks/useFavoriti'
 import type { Artikal, ArtikalGrupa, StanjeSkladista, PaginatedResponse } from '@/types/nibis'
 import { formatCijena, siteConfig } from '@/lib/config'
+import ProductCard from '@/components/shop/ProductCard'
 import Link from 'next/link'
 
 // ─── Collapsible Category Sidebar ─────────────────────────────────────────────
@@ -228,6 +229,7 @@ export default function HomePage() {
   const [sortBy, setSortBy] = useState('naziv')
   const [cijenaDo, setCijenaDo] = useState('')
   const [cijenaOd, setCijenaOd] = useState('')
+  const [viewMode, setViewMode] = useState<'table' | 'grid'>('table')
 
   const perPage = siteConfig.perPage
 
@@ -353,6 +355,24 @@ export default function HomePage() {
             <span className="text-[12px] text-gray-400 bg-white border border-gray-200 px-3 py-1.5 rounded whitespace-nowrap">
               {total.toLocaleString()} artikala
             </span>
+
+            {/* View switcher */}
+            <div className="flex border border-gray-200 rounded overflow-hidden bg-white">
+              <button
+                onClick={() => setViewMode('table')}
+                title="Tabelarni prikaz"
+                className={`p-1.5 transition-colors ${viewMode === 'table' ? 'bg-emerald-700 text-white' : 'text-gray-400 hover:bg-gray-50'}`}
+              >
+                <LayoutList size={15} />
+              </button>
+              <button
+                onClick={() => setViewMode('grid')}
+                title="Grid prikaz"
+                className={`p-1.5 transition-colors ${viewMode === 'grid' ? 'bg-emerald-700 text-white' : 'text-gray-400 hover:bg-gray-50'}`}
+              >
+                <LayoutGrid size={15} />
+              </button>
+            </div>
           </div>
 
           {/* Mobile filters */}
@@ -368,40 +388,72 @@ export default function HomePage() {
 
             {/* Table */}
             <div className="flex-1 min-w-0">
-              <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-                <table className="w-full border-collapse">
-                  <thead>
-                    <tr className="bg-gray-50 border-b border-gray-200">
-                      <th className="py-2.5 pl-4 pr-2 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Naziv</th>
-                      <th className="py-2.5 px-2 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Šifra</th>
-                      <th className="py-2.5 px-2 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider hidden lg:table-cell">Kategorija</th>
-                      <th className="py-2.5 px-2 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Stanje</th>
-                      <th className="py-2.5 px-2 text-right text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Cijena</th>
-                      <th className="py-2.5 pl-2 pr-4 text-right text-[11px] font-semibold text-gray-400 uppercase tracking-wider"></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {loading
-                      ? Array(perPage).fill(0).map((_, i) => <SkeletonRow key={i} />)
-                      : displayed.length === 0
-                      ? (
-                        <tr><td colSpan={6} className="py-16 text-center text-gray-400 text-[13px]">
-                          <Package size={28} className="mx-auto mb-2 opacity-30" />
-                          Nema artikala za odabrane kriterije
-                          <br />
-                          <button onClick={() => { onGrupaSelect(null); setFilterStock(false) }}
-                            className="mt-2 text-emerald-700 underline text-[12px]">
-                            Prikaži sve
-                          </button>
-                        </td></tr>
-                      )
-                      : displayed.map(a => (
-                        <ProductRow key={a.id} artikal={a} stanje={stanje[a.id]} />
-                      ))
-                    }
-                  </tbody>
-                </table>
-              </div>
+              {viewMode === 'table' ? (
+                <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+                  <table className="w-full border-collapse">
+                    <thead>
+                      <tr className="bg-gray-50 border-b border-gray-200">
+                        <th className="py-2.5 pl-4 pr-2 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Naziv</th>
+                        <th className="py-2.5 px-2 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Šifra</th>
+                        <th className="py-2.5 px-2 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider hidden lg:table-cell">Kategorija</th>
+                        <th className="py-2.5 px-2 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Stanje</th>
+                        <th className="py-2.5 px-2 text-right text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Cijena</th>
+                        <th className="py-2.5 pl-2 pr-4 text-right text-[11px] font-semibold text-gray-400 uppercase tracking-wider"></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {loading
+                        ? Array(perPage).fill(0).map((_, i) => <SkeletonRow key={i} />)
+                        : displayed.length === 0
+                        ? (
+                          <tr><td colSpan={6} className="py-16 text-center text-gray-400 text-[13px]">
+                            <Package size={28} className="mx-auto mb-2 opacity-30" />
+                            Nema artikala
+                            <br />
+                            <button onClick={() => { onGrupaSelect(null); setFilterStock(false) }}
+                              className="mt-2 text-emerald-700 underline text-[12px]">
+                              Prikaži sve
+                            </button>
+                          </td></tr>
+                        )
+                        : displayed.map(a => (
+                          <ProductRow key={a.id} artikal={a} stanje={stanje[a.id]} />
+                        ))
+                      }
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                  {loading
+                    ? Array(perPage).fill(0).map((_, i) => (
+                      <div key={i} className="bg-white border border-gray-200 rounded-lg overflow-hidden animate-pulse">
+                        <div className="pt-[72%] bg-gray-100" />
+                        <div className="p-3 space-y-2">
+                          <div className="h-3 bg-gray-100 rounded w-2/3" />
+                          <div className="h-3 bg-gray-100 rounded w-1/2" />
+                          <div className="h-8 bg-gray-100 rounded mt-2" />
+                        </div>
+                      </div>
+                    ))
+                    : displayed.length === 0
+                    ? (
+                      <div className="col-span-full py-16 text-center text-gray-400 text-[13px]">
+                        <Package size={28} className="mx-auto mb-2 opacity-30" />
+                        Nema artikala
+                        <br />
+                        <button onClick={() => { onGrupaSelect(null); setFilterStock(false) }}
+                          className="mt-2 text-emerald-700 underline text-[12px]">
+                          Prikaži sve
+                        </button>
+                      </div>
+                    )
+                    : displayed.map(a => (
+                      <ProductCard key={a.id} artikal={a} stanje={stanje[a.id]} slika={(a as any).slika_url} />
+                    ))
+                  }
+                </div>
+              )}
 
               {/* Pagination */}
               {totalPages > 1 && (
