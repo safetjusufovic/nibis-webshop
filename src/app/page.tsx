@@ -15,10 +15,11 @@ import ProductCard from '@/components/shop/ProductCard'
 import Link from 'next/link'
 
 // ─── Collapsible Category Sidebar ─────────────────────────────────────────────
-function CategorySidebar({ grupe, activeId, onSelect }: {
+function CategorySidebar({ grupe, activeId, onSelect, sirina = 240 }: {
   grupe: ArtikalGrupa[]
   activeId: number | null
   onSelect: (id: number | null) => void
+  sirina?: number
 }) {
   const [open, setOpen] = useState<Record<number, boolean>>({})
   const roots = grupe.filter(g => !g.parentId)
@@ -28,20 +29,31 @@ function CategorySidebar({ grupe, activeId, onSelect }: {
   }
 
   return (
-    <aside className="w-52 flex-shrink-0 hidden md:block">
+    <aside style={{ width: sirina + 'px', flexShrink: 0 }} className="hidden md:block">
       <div className="bg-white border border-gray-200 rounded-lg overflow-hidden sticky top-20">
         <div className="px-3 py-2.5 border-b border-gray-100 bg-gray-50">
           <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest">Kategorije</span>
         </div>
-        <div className="py-1">
+        <div className="py-1.5 px-1.5">
+          {/* Sve kategorije */}
           <button
             onClick={() => onSelect(null)}
-            className={`w-full text-left px-3 py-2 text-[13px] rounded transition-colors ${
+            className={`w-full text-left px-3 py-2 text-[12px] rounded-md mb-1 transition-all duration-150 flex items-center gap-2 ${
               activeId === null
-                ? 'bg-emerald-50 text-emerald-700 font-semibold'
-                : 'text-gray-600 hover:bg-gray-50'
+                ? 'bg-emerald-700 text-white font-semibold shadow-sm'
+                : 'text-gray-600 hover:bg-gray-100'
             }`}
           >
+            <span style={{
+              width: '26px', height: '26px', borderRadius: '6px', flexShrink: 0,
+              background: activeId === null ? 'rgba(255,255,255,0.2)' : '#F1F5F9',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+                <rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
+              </svg>
+            </span>
             Sve kategorije
           </button>
 
@@ -49,50 +61,63 @@ function CategorySidebar({ grupe, activeId, onSelect }: {
             const children = grupe.filter(g => g.parentId === root.id)
             const isActive = activeId === root.id || children.some(c => c.id === activeId)
             const isOpen = open[root.id] ?? isActive
+            const boja = root.boja || '#6B7280'
+            const isSelected = activeId === root.id
 
             return (
-              <div key={root.id}>
-                <div className="flex items-center">
+              <div key={root.id} className="mb-0.5">
+                <div className="flex items-center gap-0.5">
                   <button
-                    onClick={() => onSelect(root.id)}
-                    className={`flex-1 text-left px-3 py-2 text-[13px] rounded transition-colors ${
-                      activeId === root.id
-                        ? 'bg-emerald-50 text-emerald-700 font-semibold'
-                        : isActive ? 'text-gray-800 font-medium' : 'text-gray-600 hover:bg-gray-50'
-                    }`}
+                    onClick={() => { onSelect(root.id); if (children.length > 0) setOpen(prev => ({ ...prev, [root.id]: true })) }}
+                    style={{
+                      background: isSelected ? boja : isActive ? boja + '15' : 'transparent',
+                      color: isSelected ? 'white' : isActive ? boja : '#374151',
+                    }}
+                    className="flex-1 text-left px-2.5 py-2 text-[12px] rounded-md transition-all duration-150 flex items-center gap-2 hover:opacity-90"
                   >
-                    <span
-                      style={{
-                        width: '8px', height: '8px', borderRadius: '50%', flexShrink: 0,
-                        background: root.boja || 'var(--brand)',
-                        display: 'inline-block', marginRight: '6px',
-                      }}
-                    />
-                    {root.naziv}
+                    {/* Ikona ili obojeni kvadratić */}
+                    <span style={{
+                      width: '26px', height: '26px', borderRadius: '6px', flexShrink: 0,
+                      background: isSelected ? 'rgba(255,255,255,0.25)' : boja + '20',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      border: isSelected ? '1px solid rgba(255,255,255,0.2)' : `1px solid ${boja}30`,
+                    }}>
+                      {root.ikonaUrl ? (
+                        <img src={root.ikonaUrl} alt="" style={{ width: '14px', height: '14px', objectFit: 'contain', filter: isSelected ? 'brightness(0) invert(1)' : 'none' }} />
+                      ) : (
+                        <span style={{ width: '10px', height: '10px', borderRadius: '3px', background: isSelected ? 'white' : boja, display: 'inline-block', opacity: isSelected ? 0.9 : 0.7 }} />
+                      )}
+                    </span>
+                    <span className="truncate font-medium" style={{ fontSize: '12px' }}>{root.naziv}</span>
                   </button>
                   {children.length > 0 && (
                     <button
                       onClick={() => toggleOpen(root.id)}
-                      className="p-1.5 text-gray-400 hover:text-gray-600"
+                      className="p-1.5 text-gray-400 hover:text-gray-600 rounded transition-colors"
                     >
-                      {isOpen ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
+                      {isOpen ? <ChevronDown size={11} /> : <ChevronRight size={11} />}
                     </button>
                   )}
                 </div>
 
-                {isOpen && children.map(child => (
-                  <button
-                    key={child.id}
-                    onClick={() => onSelect(child.id)}
-                    className={`w-full text-left pl-6 pr-3 py-1.5 text-[12px] rounded transition-colors ${
-                      activeId === child.id
-                        ? 'bg-emerald-50 text-emerald-700 font-semibold'
-                        : 'text-gray-500 hover:bg-gray-50'
-                    }`}
-                  >
-                    {child.naziv}
-                  </button>
-                ))}
+                {isOpen && children.length > 0 && (
+                  <div className="ml-3 mt-0.5 border-l-2 pl-2" style={{ borderColor: boja + '40' }}>
+                    {children.map(child => (
+                      <button
+                        key={child.id}
+                        onClick={() => onSelect(child.id)}
+                        style={{
+                          color: activeId === child.id ? boja : '#6B7280',
+                          background: activeId === child.id ? boja + '10' : 'transparent',
+                          fontWeight: activeId === child.id ? 600 : 400,
+                        }}
+                        className="w-full text-left px-2 py-1.5 text-[11px] rounded transition-all duration-150 hover:bg-gray-100 truncate block"
+                      >
+                        {child.naziv}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             )
           })}
@@ -231,6 +256,14 @@ export default function HomePage() {
   const [filterStock, setFilterStock] = useState(false)
   const [mobileFilters, setMobileFilters] = useState(false)
   const [sortBy, setSortBy] = useState('naziv')
+  const [sidebarSirina, setSidebarSirina] = useState(240)
+
+  useEffect(() => {
+    fetch('/api/postavke?kljuci=sidebar_sirina')
+      .then(r => r.json())
+      .then(d => { if (d.sidebar_sirina) setSidebarSirina(parseInt(d.sidebar_sirina)) })
+      .catch(() => {})
+  }, [])
   const [cijenaDo, setCijenaDo] = useState('')
   const [cijenaOd, setCijenaOd] = useState('')
   const [viewMode, setViewMode] = useState<'table' | 'grid'>('table')
@@ -382,13 +415,13 @@ export default function HomePage() {
           {/* Mobile filters */}
           {mobileFilters && (
             <div className="md:hidden mb-4">
-              <CategorySidebar grupe={grupe} activeId={activeGrupa} onSelect={onGrupaSelect} />
+              <CategorySidebar grupe={grupe} activeId={activeGrupa} onSelect={onGrupaSelect} sirina={sidebarSirina} />
             </div>
           )}
 
           {/* Layout */}
           <div className="flex gap-5 items-start">
-            <CategorySidebar grupe={grupe} activeId={activeGrupa} onSelect={onGrupaSelect} />
+            <CategorySidebar grupe={grupe} activeId={activeGrupa} onSelect={onGrupaSelect} sirina={sidebarSirina} />
 
             {/* Table */}
             <div className="flex-1 min-w-0">
