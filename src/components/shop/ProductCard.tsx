@@ -1,4 +1,5 @@
 'use client'
+import { useState } from 'react'
 
 import Image from 'next/image'
 import Link from 'next/link'
@@ -43,14 +44,17 @@ export default function ProductCard({ artikal, stanje, slika }: Props) {
   const cijenaOriginal = cijenaBase
   const cijena = popust > 0 ? Math.round(cijenaOriginal * (1 - popust / 100) * 100) / 100 : cijenaOriginal
 
-  const canAdd = stanje ? stanje.raspolozivaKolicina > 0 : false
-  const atMax = stanje ? inCart >= stanje.raspolozivaKolicina : false
-  const unavailable = stanje !== undefined && (!stanje || stanje.raspolozivaKolicina <= 0)
+  const maxQty = stanje?.raspolozivaKolicina ?? 0
+  const canAdd = maxQty > 0
+  const unavailable = stanje !== undefined && maxQty <= 0
 
   function handleAdd(e: React.MouseEvent) {
     e.preventDefault()
-    if (!canAdd || atMax) return
-    add(artikal, cijenaOriginal, stanje ?? null)
+    if (!canAdd) return
+    const toAdd = Math.min(qty, maxQty - inCart)
+    if (toAdd <= 0) return
+    for (let i = 0; i < toAdd; i++) add(artikal, cijenaOriginal, stanje ?? null)
+    setQty(1)
   }
 
   return (
@@ -219,56 +223,78 @@ export default function ProductCard({ artikal, stanje, slika }: Props) {
             <StockBadge stanje={stanje} />
           </div>
 
-          {/* Add button */}
-          <button
-            onClick={handleAdd}
-            disabled={!canAdd || atMax}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '6px',
-              width: '100%',
-              padding: '9px',
-              fontSize: '13px',
-              fontWeight: 500,
-              fontFamily: 'inherit',
-              border: 'none',
-              borderRadius: '9px',
-              cursor: (!canAdd || atMax) ? 'not-allowed' : 'pointer',
-              transition: 'all 0.15s',
-              background: inCart > 0
-                ? 'var(--brand-pale)'
-                : canAdd && !atMax
-                ? 'var(--brand)'
-                : 'var(--surface)',
-              color: inCart > 0
-                ? 'var(--brand)'
-                : canAdd && !atMax
-                ? 'white'
-                : '#9CACA6',
-              boxShadow: (canAdd && !atMax && inCart === 0) ? '0 1px 3px rgba(15,110,86,0.2)' : 'none',
-            }}
-            onMouseEnter={e => {
-              if (!canAdd || atMax) return
-              const el = e.currentTarget as HTMLElement
-              el.style.background = inCart > 0 ? '#D4EDE6' : 'var(--brand-dark)'
-            }}
-            onMouseLeave={e => {
-              const el = e.currentTarget as HTMLElement
-              el.style.background = inCart > 0 ? 'var(--brand-pale)' : canAdd && !atMax ? 'var(--brand)' : 'var(--surface)'
-            }}
-          >
-            {atMax ? (
-              <>Maks. kol.</>
-            ) : inCart > 0 ? (
-              <><Plus size={13} /> Dodaj još ({inCart} u korpi)</>
-            ) : canAdd ? (
-              <><ShoppingCart size={13} /> Dodaj u korpu</>
-            ) : (
-              <>Nema na stanju</>
-            )}
-          </button>
+          {/* Qty + Add button */}
+          <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+            <input
+              type="number"
+              min={1}
+              max={maxQty}
+              value={qty}
+              onClick={e => e.preventDefault()}
+              onChange={e => setQty(Math.max(1, Math.min(maxQty, parseInt(e.target.value) || 1)))}
+              disabled={!canAdd}
+              style={{
+                width: '52px',
+                height: '36px',
+                textAlign: 'center',
+                fontSize: '13px',
+                fontWeight: 600,
+                fontFamily: 'inherit',
+                border: '1px solid #E2E8F0',
+                borderRadius: '8px',
+                outline: 'none',
+                background: 'white',
+                color: '#1a202c',
+                boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+                opacity: canAdd ? 1 : 0.4,
+              }}
+            />
+            <button
+              onClick={handleAdd}
+              disabled={!canAdd || inCart + qty > maxQty}
+              style={{
+                flex: 1,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '6px',
+                height: '36px',
+                fontSize: '12px',
+                fontWeight: 600,
+                fontFamily: 'inherit',
+                border: 'none',
+                borderRadius: '8px',
+                cursor: (!canAdd || inCart + qty > maxQty) ? 'not-allowed' : 'pointer',
+                transition: 'all 0.3s',
+                background: canAdd && inCart + qty <= maxQty
+                  ? 'linear-gradient(135deg, #065f46 0%, #059669 100%)'
+                  : '#F1F5F9',
+                color: canAdd && inCart + qty <= maxQty ? 'white' : '#94a3b8',
+                boxShadow: canAdd && inCart + qty <= maxQty
+                  ? '0 2px 8px rgba(5,150,105,0.3), inset 0 1px 0 rgba(255,255,255,0.1)'
+                  : 'none',
+              }}
+              onMouseEnter={e => {
+                if (!canAdd || inCart + qty > maxQty) return
+                const el = e.currentTarget as HTMLElement
+                el.style.boxShadow = '0 4px 16px rgba(5,150,105,0.45), inset 0 1px 0 rgba(255,255,255,0.15)'
+                el.style.transform = 'scale(1.02)'
+              }}
+              onMouseLeave={e => {
+                const el = e.currentTarget as HTMLElement
+                el.style.boxShadow = canAdd ? '0 2px 8px rgba(5,150,105,0.3), inset 0 1px 0 rgba(255,255,255,0.1)' : 'none'
+                el.style.transform = 'none'
+              }}
+            >
+              {!canAdd ? (
+                <>Nema na stanju</>
+              ) : inCart + qty > maxQty ? (
+                <>Maks. kol.</>
+              ) : (
+                <><ShoppingCart size={12} /> {inCart > 0 ? 'Dodaj još' : 'Dodaj'}</>
+              )}
+            </button>
+          </div>
         </div>
       </article>
     </Link>

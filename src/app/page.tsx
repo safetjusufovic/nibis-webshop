@@ -100,6 +100,7 @@ function ProductRow({ artikal, stanje }: { artikal: Artikal; stanje: StanjeSklad
   const { cart, add } = useCart()
   const { rabat } = useAuth()
   const { favoriti, toggle: toggleFavorit } = useFavoriti()
+  const [qty, setQty] = useState(1)
   const inCart = cart[artikal.id]?.qty ?? 0
 
   const cijenaBase = stanje ? stanje[siteConfig.tipCijene] : artikal.planskaMaloprodajnaCijena ?? 0
@@ -108,91 +109,87 @@ function ProductRow({ artikal, stanje }: { artikal: Artikal; stanje: StanjeSklad
   const popust = akcijaAktivna ? akcijaPopust : rabat
   const cijena = popust > 0 ? Math.round(cijenaBase * (1 - popust / 100) * 100) / 100 : cijenaBase
 
-  const canAdd = stanje ? stanje.raspolozivaKolicina > 0 : false
-  const atMax = stanje ? inCart >= stanje.raspolozivaKolicina : false
+  const maxQty = stanje?.raspolozivaKolicina ?? 0
+  const canAdd = maxQty > 0
   const isFav = favoriti.has(artikal.id)
 
+  function handleAdd() {
+    if (!canAdd) return
+    const toAdd = Math.min(qty, maxQty - inCart)
+    if (toAdd <= 0) return
+    for (let i = 0; i < toAdd; i++) add(artikal, cijenaBase, stanje ?? null)
+    setQty(1)
+  }
+
   return (
-    <tr className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors group">
-      {/* Naziv */}
+    <tr className="border-b border-gray-100 hover:bg-slate-50/60 transition-all duration-150 group">
       <td className="py-2.5 pl-4 pr-2">
         <Link href={`/proizvod/${artikal.id}`} className="text-[13px] font-medium text-gray-800 hover:text-emerald-700 transition-colors leading-snug block">
           {artikal.naziv}
         </Link>
         {artikal.naziv2 && <span className="text-[11px] text-gray-400">{artikal.naziv2}</span>}
       </td>
-      {/* Šifra */}
       <td className="py-2.5 px-2 whitespace-nowrap">
         <span className="text-[11px] font-mono text-gray-400">{artikal.sifra}</span>
       </td>
-      {/* Grupa */}
       <td className="py-2.5 px-2 hidden lg:table-cell">
         <span className="text-[11px] text-gray-400">{artikal.grupa?.naziv ?? '—'}</span>
       </td>
-      {/* Stanje */}
       <td className="py-2.5 px-2 whitespace-nowrap">
         {stanje === undefined ? (
           <span className="text-[11px] text-gray-300">...</span>
         ) : !stanje || stanje.raspolozivaKolicina <= 0 ? (
           <span className="inline-flex items-center gap-1 text-[11px] font-medium text-red-500 bg-red-50 px-2 py-0.5 rounded-full">
-            <span className="w-1.5 h-1.5 rounded-full bg-red-400 inline-block" />
-            Nema
+            <span className="w-1.5 h-1.5 rounded-full bg-red-400 inline-block" />Nema
           </span>
         ) : stanje.raspolozivaKolicina <= 3 ? (
           <span className="inline-flex items-center gap-1 text-[11px] font-medium text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">
-            <span className="w-1.5 h-1.5 rounded-full bg-amber-400 inline-block" />
-            {stanje.raspolozivaKolicina} kom
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-400 inline-block" />{stanje.raspolozivaKolicina} kom
           </span>
         ) : (
           <span className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />
-            Na stanju
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />Na stanju
           </span>
         )}
       </td>
-      {/* Cijena */}
       <td className="py-2.5 px-2 whitespace-nowrap text-right">
         <div className="text-[14px] font-bold text-gray-900">{formatCijena(cijena)}</div>
-        {popust > 0 && (
-          <div className="text-[11px] text-gray-400 line-through">{formatCijena(cijenaBase)}</div>
-        )}
+        {popust > 0 && <div className="text-[11px] text-gray-400 line-through">{formatCijena(cijenaBase)}</div>}
+        {inCart > 0 && <div className="text-[10px] text-emerald-600 font-medium">{inCart} u korpi</div>}
       </td>
-      {/* Akcije */}
-      <td className="py-2.5 pl-2 pr-4 whitespace-nowrap">
+      <td className="py-2 pl-2 pr-3 whitespace-nowrap">
         <div className="flex items-center gap-1.5 justify-end">
-          {/* Favorit */}
           <button
             onClick={() => toggleFavorit(artikal.id)}
-            className={`p-1.5 rounded transition-colors ${isFav ? 'text-red-500 bg-red-50' : 'text-gray-300 hover:text-gray-400 hover:bg-gray-100 opacity-0 group-hover:opacity-100'}`}
+            className={`p-1.5 rounded-lg transition-all duration-200 ${isFav ? 'text-red-500 bg-red-50 ring-1 ring-red-200' : 'text-gray-300 hover:text-gray-400 hover:bg-gray-100 opacity-0 group-hover:opacity-100'}`}
           >
-            <svg width="13" height="13" viewBox="0 0 24 24" fill={isFav ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill={isFav ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2">
               <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
             </svg>
           </button>
-          {/* Dodaj u korpu */}
-          {inCart > 0 ? (
-            <button
-              onClick={() => !atMax && add(artikal, cijenaBase, stanje ?? null)}
-              disabled={atMax}
-              className="flex items-center gap-1 text-[12px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-1.5 rounded hover:bg-emerald-100 transition-colors disabled:opacity-50"
-            >
-              <Plus size={11} />
-              {inCart}
-            </button>
-          ) : (
-            <button
-              onClick={() => canAdd && add(artikal, cijenaBase, stanje ?? null)}
-              disabled={!canAdd}
-              className={`flex items-center gap-1 text-[12px] font-medium px-2.5 py-1.5 rounded transition-colors ${
-                canAdd
-                  ? 'bg-emerald-700 text-white hover:bg-emerald-800 shadow-sm'
-                  : 'bg-gray-100 text-gray-300 cursor-not-allowed'
-              }`}
-            >
-              <ShoppingCart size={11} />
-              Dodaj
-            </button>
-          )}
+          {/* Qty input */}
+          <input
+            type="number"
+            min={1}
+            max={maxQty}
+            value={qty}
+            onChange={e => setQty(Math.max(1, Math.min(maxQty, parseInt(e.target.value) || 1)))}
+            disabled={!canAdd}
+            className="w-14 h-7 text-center text-[12px] font-medium bg-white border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 transition-all duration-200 disabled:opacity-40 shadow-sm"
+          />
+          {/* Dodaj button */}
+          <button
+            onClick={handleAdd}
+            disabled={!canAdd || inCart + qty > maxQty}
+            className={`flex items-center gap-1.5 text-[12px] font-semibold px-3 py-1.5 rounded-lg transition-all duration-300 shadow-sm ${
+              canAdd && inCart + qty <= maxQty
+                ? 'bg-gradient-to-r from-emerald-700 to-emerald-600 text-white hover:from-emerald-600 hover:to-emerald-500 hover:shadow-emerald-500/25 hover:shadow-md hover:scale-[1.02] ring-1 ring-emerald-600/50 active:scale-95'
+                : 'bg-gray-100 text-gray-300 cursor-not-allowed'
+            }`}
+          >
+            <ShoppingCart size={11} />
+            {inCart > 0 ? 'Dodaj još' : 'Dodaj'}
+          </button>
         </div>
       </td>
     </tr>
