@@ -1,18 +1,36 @@
 'use client'
 
-export default function GlobalError({ error, reset }: { error: Error; reset: () => void }) {
+export default function Error({ error, reset }: { error: Error; reset: () => void }) {
   return (
-    <html lang="bs">
-      <body className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-        <div className="text-center">
-          <p className="text-6xl font-semibold text-gray-200 mb-4">500</p>
-          <h1 className="text-xl font-medium text-gray-900 mb-2">Došlo je do greške</h1>
-          <p className="text-sm text-gray-500 mb-6">Pokušajte ponovo ili kontaktirajte administratora.</p>
-          <button onClick={reset} className="bg-teal-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-teal-700">
+    <div style={{
+      minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
+      background: 'var(--surface)', fontFamily: 'DM Sans, sans-serif', padding: '24px',
+    }}>
+      <div style={{ textAlign: 'center', maxWidth: '480px' }}>
+        <div style={{ fontSize: '64px', marginBottom: '16px' }}>⚠️</div>
+        <h1 style={{ fontSize: '22px', fontWeight: 600, color: 'var(--text)', marginBottom: '10px' }}>
+          Došlo je do greške
+        </h1>
+        <p style={{ fontSize: '14px', color: 'var(--text-muted)', marginBottom: '8px', lineHeight: 1.6 }}>
+          {error.message || 'Neočekivana greška. Pokušajte ponovo.'}
+        </p>
+        <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginTop: '24px' }}>
+          <button onClick={reset} style={{
+            background: 'var(--brand)', color: 'white', border: 'none',
+            padding: '10px 20px', borderRadius: '10px', fontSize: '14px',
+            fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit',
+          }}>
             Pokušaj ponovo
           </button>
+          <a href="/" style={{
+            background: 'white', color: 'var(--text)', border: '1px solid var(--border)',
+            padding: '10px 20px', borderRadius: '10px', fontSize: '14px',
+            fontWeight: 500, textDecoration: 'none',
+          }}>
+            Nazad na početnu
+          </a>
         </div>
-      </body>
-    </html>
+      </div>
+    </div>
   )
 }

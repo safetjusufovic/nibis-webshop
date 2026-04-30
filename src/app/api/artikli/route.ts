@@ -30,6 +30,7 @@ export async function GET(req: NextRequest) {
       query = query.or(`naziv.ilike.%${search}%,sifra.ilike.%${search}%`)
     }
     if (grupaId) query = query.eq('grupa_id', grupaId)
+    if (sp.get('akcija') === 'true') query = query.gt('akcija_popust', 0)
 
     const { data, error, count } = await query
     if (error) throw error

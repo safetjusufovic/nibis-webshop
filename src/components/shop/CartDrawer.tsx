@@ -6,6 +6,7 @@ import { useCart } from '@/hooks/useCart'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
 import { siteConfig, formatCijena, calculateTotals } from '@/lib/config'
+import { useEffect, useState } from 'react'
 import type { NarudzbaStavka } from '@/types/nibis'
 
 interface CartDrawerProps {
@@ -189,6 +190,19 @@ export default function CartDrawer({ open, onClose }: CartDrawerProps) {
                   </div>
                 </div>
 
+                {/* Minimum narudžbe */}
+                {(() => {
+                  const minNarudzba = siteConfig.minNarudzba ?? 0
+                  if (minNarudzba > 0 && totals.ukupnoSaPorezom < minNarudzba && totals.ukupnoSaPorezom > 0) {
+                    return (
+                      <div style={{ background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: '10px', padding: '10px 14px', fontSize: '13px', color: '#92400E' }}>
+                        Minimalni iznos narudžbe je {formatCijena(minNarudzba)}. Nedostaje još {formatCijena(minNarudzba - totals.ukupnoSaPorezom)}.
+                      </div>
+                    )
+                  }
+                  return null
+                })()}
+
                 {/* Kreditni limit upozorenje */}
                 {(() => {
                   const limitFin = (profil?.partner as any)?.limit_fin ?? 0
@@ -230,9 +244,11 @@ export default function CartDrawer({ open, onClose }: CartDrawerProps) {
 
                 {(() => {
                   const limitFin = (profil?.partner as any)?.limit_fin ?? 0
+                  const minNarudzba = siteConfig.minNarudzba ?? 0
+                  const ispodMinimuma = minNarudzba > 0 && totals.ukupnoSaPorezom < minNarudzba && totals.ukupnoSaPorezom > 0
                   const prekoracen = limitFin > 0 && totals.ukupnoSaPorezom > limitFin
                   return (
-                    <button onClick={handleSubmit} disabled={status === 'loading' || prekoracen} className="btn-primary w-full" style={prekoracen ? { opacity: 0.5, cursor: 'not-allowed' } : {}}>
+                    <button onClick={handleSubmit} disabled={status === 'loading' || prekoracen || ispodMinimuma} className="btn-primary w-full" style={(prekoracen || ispodMinimuma) ? { opacity: 0.5, cursor: 'not-allowed' } : {}}>
                   {status === 'loading' ? 'Slanje...' : 'Pošalji narudžbu u ERP'}
                     </button>
                   )

@@ -5,6 +5,7 @@ import { SlidersHorizontal, ChevronRight, Package } from 'lucide-react'
 import Header from '@/components/layout/Header'
 import AuthGuard from '@/components/auth/AuthGuard'
 import ProductCard from '@/components/shop/ProductCard'
+import AkcijeSlider from '@/components/shop/AkcijeSlider'
 import type { Artikal, ArtikalGrupa, StanjeSkladista, PaginatedResponse } from '@/types/nibis'
 import { siteConfig } from '@/lib/config'
 
@@ -219,6 +220,7 @@ export default function HomePage() {
       <div style={{ minHeight: '100vh', background: 'var(--surface)' }}>
         <Header onSearch={q => setSearchInput(q)} />
 
+        <AkcijeSlider />
         <main style={{ maxWidth: '1280px', margin: '0 auto', padding: '24px 24px 64px' }}>
 
           {/* Toolbar */}
