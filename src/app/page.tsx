@@ -23,6 +23,10 @@ function CategorySidebar({ grupe, activeId, onSelect, sirina = 240 }: {
 }) {
   const [open, setOpen] = useState<Record<number, boolean>>({})
   const roots = grupe.filter(g => !g.parentId)
+  // Ikona se skalira proporcionalno sa sidebarom
+  const ikonaSize = Math.round(Math.min(44, Math.max(24, sirina * 0.15)))
+  const ikonaImgSize = Math.round(ikonaSize * 0.55)
+  const fontSize = sirina > 280 ? '13px' : '12px'
 
   function toggleOpen(id: number) {
     setOpen(prev => ({ ...prev, [id]: !prev[id] }))
@@ -77,18 +81,18 @@ function CategorySidebar({ grupe, activeId, onSelect, sirina = 240 }: {
                   >
                     {/* Ikona ili obojeni kvadratić */}
                     <span style={{
-                      width: '26px', height: '26px', borderRadius: '6px', flexShrink: 0,
+                      width: ikonaSize + 'px', height: ikonaSize + 'px', borderRadius: '7px', flexShrink: 0,
                       background: isSelected ? 'rgba(255,255,255,0.25)' : boja + '20',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       border: isSelected ? '1px solid rgba(255,255,255,0.2)' : `1px solid ${boja}30`,
                     }}>
                       {root.ikonaUrl ? (
-                        <img src={root.ikonaUrl} alt="" style={{ width: '14px', height: '14px', objectFit: 'contain', filter: isSelected ? 'brightness(0) invert(1)' : 'none' }} />
+                        <img src={root.ikonaUrl} alt="" style={{ width: ikonaImgSize + 'px', height: ikonaImgSize + 'px', objectFit: 'contain', filter: isSelected ? 'brightness(0) invert(1)' : 'none' }} />
                       ) : (
-                        <span style={{ width: '10px', height: '10px', borderRadius: '3px', background: isSelected ? 'white' : boja, display: 'inline-block', opacity: isSelected ? 0.9 : 0.7 }} />
+                        <span style={{ width: Math.round(ikonaSize * 0.38) + 'px', height: Math.round(ikonaSize * 0.38) + 'px', borderRadius: '3px', background: isSelected ? 'white' : boja, display: 'inline-block', opacity: isSelected ? 0.9 : 0.7 }} />
                       )}
                     </span>
-                    <span className="truncate font-medium" style={{ fontSize: '12px' }}>{root.naziv}</span>
+                    <span className="truncate font-medium" style={{ fontSize: fontSize }}>{root.naziv}</span>
                   </button>
                   {children.length > 0 && (
                     <button
