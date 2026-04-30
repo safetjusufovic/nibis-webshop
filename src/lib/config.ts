@@ -41,7 +41,8 @@ export const siteConfig = {
 export type SiteConfig = typeof siteConfig
 
 // Helper za formatiranje cijene
-export function formatCijena(iznos: number, currency = siteConfig.currency): string {
+export function formatCijena(iznos: number | null | undefined, currency = siteConfig.currency): string {
+  if (iznos == null || isNaN(iznos as number)) return `0.00 ${currency}`
   return `${iznos.toFixed(2)} ${currency}`
 }
 
