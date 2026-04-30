@@ -31,6 +31,7 @@ export default function ProductCard({ artikal, stanje, slika }: Props) {
   const { favoriti, toggle: toggleFavorit } = useFavoriti()
   const { rabat } = useAuth()
   const inCart = cart[artikal.id]?.qty ?? 0
+  const [qty, setQty] = useState(1)
 
   const cijenaBase = stanje
     ? stanje[siteConfig.tipCijene]
