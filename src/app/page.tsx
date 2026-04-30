@@ -15,18 +15,23 @@ import ProductCard from '@/components/shop/ProductCard'
 import Link from 'next/link'
 
 // ─── Collapsible Category Sidebar ─────────────────────────────────────────────
-function CategorySidebar({ grupe, activeId, onSelect, sirina = 240 }: {
+function CategorySidebar({ grupe, activeId, onSelect, sirina = 240, sidebarConfig }: {
   grupe: ArtikalGrupa[]
   activeId: number | null
   onSelect: (id: number | null) => void
   sirina?: number
+  sidebarConfig?: { bojaPozadine: string; slikaUrl: string; visinaKategorije: number }
 }) {
   const [open, setOpen] = useState<Record<number, boolean>>({})
   const roots = grupe.filter(g => !g.parentId)
-  // Ikona se skalira proporcionalno sa sidebarom
   const ikonaSize = Math.round(Math.min(44, Math.max(24, sirina * 0.15)))
   const ikonaImgSize = Math.round(ikonaSize * 0.55)
   const fontSize = sirina > 280 ? '13px' : '12px'
+  const visinaKat = sidebarConfig?.visinaKategorije ?? 52
+  const hasBgSlika = !!(sidebarConfig?.slikaUrl?.trim())
+  const bgStyle = hasBgSlika
+    ? { backgroundImage: `url(${sidebarConfig!.slikaUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }
+    : { background: sidebarConfig?.bojaPozadine || '#F8FAFA' }
 
   function toggleOpen(id: number) {
     setOpen(prev => ({ ...prev, [id]: !prev[id] }))
@@ -34,11 +39,11 @@ function CategorySidebar({ grupe, activeId, onSelect, sirina = 240 }: {
 
   return (
     <aside style={{ width: sirina + 'px', flexShrink: 0 }} className="hidden md:block">
-      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden sticky top-20">
-        <div className="px-3 py-2.5 border-b border-gray-100 bg-gray-50">
-          <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest">Kategorije</span>
+      <div style={{ border: '1px solid #E5E7EB', borderRadius: '10px', overflow: 'hidden', position: 'sticky', top: '76px', ...bgStyle }}>
+        <div style={{ padding: '10px 12px', borderBottom: '1px solid rgba(0,0,0,0.08)', background: hasBgSlika ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.04)' }}>
+          <span style={{ fontSize: '11px', fontWeight: 600, color: hasBgSlika ? 'white' : '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Kategorije</span>
         </div>
-        <div className="py-1.5 px-1.5">
+        <div style={{ padding: '6px' }}>
           {/* Sve kategorije */}
           <button
             onClick={() => onSelect(null)}
@@ -78,8 +83,9 @@ function CategorySidebar({ grupe, activeId, onSelect, sirina = 240 }: {
                       textAlign: 'left',
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '10px',
+                      gap: '8px',
                       padding: '6px 8px',
+                      height: visinaKat + 'px',
                       borderRadius: '8px',
                       border: 'none',
                       cursor: 'pointer',
@@ -87,11 +93,14 @@ function CategorySidebar({ grupe, activeId, onSelect, sirina = 240 }: {
                       transition: 'all 0.15s',
                       background: isSelected
                         ? boja
+                        : hasBgSlika
+                        ? 'rgba(255,255,255,0.12)'
                         : isActive
                         ? boja + '18'
                         : 'transparent',
-                      color: isSelected ? 'white' : '#374151',
+                      color: isSelected ? 'white' : hasBgSlika ? 'white' : '#374151',
                       boxShadow: isSelected ? `0 2px 8px ${boja}40` : 'none',
+                      backdropFilter: hasBgSlika ? 'blur(4px)' : 'none',
                     }}
                   >
                     {/* Ikona — uvijek prikazana u boji kategorije */}
@@ -306,11 +315,23 @@ export default function HomePage() {
   const [mobileFilters, setMobileFilters] = useState(false)
   const [sortBy, setSortBy] = useState('naziv')
   const [sidebarSirina, setSidebarSirina] = useState(240)
+  const [sidebarConfig, setSidebarConfig] = useState<{
+    bojaPozadine: string
+    slikaUrl: string
+    visinaKategorije: number
+  }>({ bojaPozadine: '#F8FAFA', slikaUrl: '', visinaKategorije: 52 })
 
   useEffect(() => {
-    fetch('/api/postavke?kljuci=sidebar_sirina')
+    fetch('/api/postavke?kljuci=sidebar_sirina,sidebar_boja_pozadine,sidebar_slika_url,sidebar_visina_kategorije')
       .then(r => r.json())
-      .then(d => { if (d.sidebar_sirina) setSidebarSirina(parseInt(d.sidebar_sirina)) })
+      .then(d => {
+        if (d.sidebar_sirina) setSidebarSirina(parseInt(d.sidebar_sirina))
+        setSidebarConfig({
+          bojaPozadine: d.sidebar_boja_pozadine || '#F8FAFA',
+          slikaUrl: d.sidebar_slika_url || '',
+          visinaKategorije: parseInt(d.sidebar_visina_kategorije || '52'),
+        })
+      })
       .catch(() => {})
   }, [])
   const [cijenaDo, setCijenaDo] = useState('')
@@ -464,13 +485,13 @@ export default function HomePage() {
           {/* Mobile filters */}
           {mobileFilters && (
             <div className="md:hidden mb-4">
-              <CategorySidebar grupe={grupe} activeId={activeGrupa} onSelect={onGrupaSelect} sirina={sidebarSirina} />
+              <CategorySidebar grupe={grupe} activeId={activeGrupa} onSelect={onGrupaSelect} sirina={sidebarSirina} sidebarConfig={sidebarConfig} />
             </div>
           )}
 
           {/* Layout */}
           <div className="flex gap-5 items-start">
-            <CategorySidebar grupe={grupe} activeId={activeGrupa} onSelect={onGrupaSelect} sirina={sidebarSirina} />
+            <CategorySidebar grupe={grupe} activeId={activeGrupa} onSelect={onGrupaSelect} sirina={sidebarSirina} sidebarConfig={sidebarConfig} />
 
             {/* Table */}
             <div className="flex-1 min-w-0">
