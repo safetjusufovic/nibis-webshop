@@ -1,55 +1,45 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { SlidersHorizontal, ChevronRight, Package } from 'lucide-react'
+import { SlidersHorizontal, ChevronRight, ChevronDown, Package, ShoppingCart, Plus } from 'lucide-react'
 import Header from '@/components/layout/Header'
 import AuthGuard from '@/components/auth/AuthGuard'
-import ProductCard from '@/components/shop/ProductCard'
 import AkcijeSlider from '@/components/shop/AkcijeSlider'
 import HeroBanner from '@/components/shop/HeroBanner'
+import { useCart } from '@/hooks/useCart'
+import { useAuth } from '@/hooks/useAuth'
+import { useFavoriti } from '@/hooks/useFavoriti'
 import type { Artikal, ArtikalGrupa, StanjeSkladista, PaginatedResponse } from '@/types/nibis'
-import { siteConfig } from '@/lib/config'
+import { formatCijena, siteConfig } from '@/lib/config'
+import Link from 'next/link'
 
-// ─── Category Sidebar ─────────────────────────────────────────────────────────
+// ─── Collapsible Category Sidebar ─────────────────────────────────────────────
 function CategorySidebar({ grupe, activeId, onSelect }: {
   grupe: ArtikalGrupa[]
   activeId: number | null
   onSelect: (id: number | null) => void
 }) {
+  const [open, setOpen] = useState<Record<number, boolean>>({})
   const roots = grupe.filter(g => !g.parentId)
 
+  function toggleOpen(id: number) {
+    setOpen(prev => ({ ...prev, [id]: !prev[id] }))
+  }
+
   return (
-    <aside style={{ width: '220px', flexShrink: 0 }}>
-      <div style={{
-        background: 'white',
-        border: '1px solid var(--border)',
-        borderRadius: '14px',
-        overflow: 'hidden',
-        position: 'sticky',
-        top: '76px',
-      }}>
-        <div style={{ padding: '14px 16px', borderBottom: '1px solid var(--border)', background: 'var(--surface)' }}>
-          <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-            Kategorije
-          </span>
+    <aside className="w-52 flex-shrink-0 hidden md:block">
+      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden sticky top-20">
+        <div className="px-3 py-2.5 border-b border-gray-100 bg-gray-50">
+          <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest">Kategorije</span>
         </div>
-        <div style={{ padding: '8px' }}>
+        <div className="py-1">
           <button
             onClick={() => onSelect(null)}
-            style={{
-              width: '100%',
-              textAlign: 'left',
-              padding: '8px 10px',
-              fontSize: '14px',
-              fontFamily: 'inherit',
-              border: 'none',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              transition: 'all 0.1s',
-              fontWeight: activeId === null ? 500 : 400,
-              color: activeId === null ? 'var(--brand)' : 'var(--text)',
-              background: activeId === null ? 'var(--brand-pale)' : 'transparent',
-            }}
+            className={`w-full text-left px-3 py-2 text-[13px] rounded transition-colors ${
+              activeId === null
+                ? 'bg-emerald-50 text-emerald-700 font-semibold'
+                : 'text-gray-600 hover:bg-gray-50'
+            }`}
           >
             Sve kategorije
           </button>
@@ -57,55 +47,40 @@ function CategorySidebar({ grupe, activeId, onSelect }: {
           {roots.map(root => {
             const children = grupe.filter(g => g.parentId === root.id)
             const isActive = activeId === root.id || children.some(c => c.id === activeId)
+            const isOpen = open[root.id] ?? isActive
 
             return (
               <div key={root.id}>
-                <button
-                  onClick={() => onSelect(root.id)}
-                  style={{
-                    width: '100%',
-                    textAlign: 'left',
-                    padding: '8px 10px',
-                    fontSize: '14px',
-                    fontFamily: 'inherit',
-                    border: 'none',
-                    borderRadius: '8px',
-                    cursor: 'pointer',
-                    transition: 'all 0.1s',
-                    fontWeight: isActive ? 500 : 400,
-                    color: activeId === root.id ? 'var(--brand)' : 'var(--text)',
-                    background: activeId === root.id ? 'var(--brand-pale)' : 'transparent',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                  }}
-                  onMouseEnter={e => { if (activeId !== root.id) (e.currentTarget as HTMLElement).style.background = 'var(--surface)' }}
-                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = activeId === root.id ? 'var(--brand-pale)' : 'transparent' }}
-                >
-                  <span>{root.naziv}</span>
-                  {children.length > 0 && <ChevronRight size={12} style={{ color: 'var(--text-muted)', opacity: 0.6 }} />}
-                </button>
+                <div className="flex items-center">
+                  <button
+                    onClick={() => onSelect(root.id)}
+                    className={`flex-1 text-left px-3 py-2 text-[13px] rounded transition-colors ${
+                      activeId === root.id
+                        ? 'bg-emerald-50 text-emerald-700 font-semibold'
+                        : isActive ? 'text-gray-800 font-medium' : 'text-gray-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    {root.naziv}
+                  </button>
+                  {children.length > 0 && (
+                    <button
+                      onClick={() => toggleOpen(root.id)}
+                      className="p-1.5 text-gray-400 hover:text-gray-600"
+                    >
+                      {isOpen ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
+                    </button>
+                  )}
+                </div>
 
-                {(isActive || children.some(c => c.id === activeId)) && children.map(child => (
+                {isOpen && children.map(child => (
                   <button
                     key={child.id}
                     onClick={() => onSelect(child.id)}
-                    style={{
-                      width: '100%',
-                      textAlign: 'left',
-                      padding: '6px 10px 6px 24px',
-                      fontSize: '13px',
-                      fontFamily: 'inherit',
-                      border: 'none',
-                      borderRadius: '8px',
-                      cursor: 'pointer',
-                      transition: 'all 0.1s',
-                      color: activeId === child.id ? 'var(--brand)' : 'var(--text-muted)',
-                      fontWeight: activeId === child.id ? 500 : 400,
-                      background: activeId === child.id ? 'var(--brand-pale)' : 'transparent',
-                    }}
-                    onMouseEnter={e => { if (activeId !== child.id) (e.currentTarget as HTMLElement).style.background = 'var(--surface)' }}
-                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = activeId === child.id ? 'var(--brand-pale)' : 'transparent' }}
+                    className={`w-full text-left pl-6 pr-3 py-1.5 text-[12px] rounded transition-colors ${
+                      activeId === child.id
+                        ? 'bg-emerald-50 text-emerald-700 font-semibold'
+                        : 'text-gray-500 hover:bg-gray-50'
+                    }`}
                   >
                     {child.naziv}
                   </button>
@@ -119,35 +94,125 @@ function CategorySidebar({ grupe, activeId, onSelect }: {
   )
 }
 
-// ─── Skeleton ─────────────────────────────────────────────────────────────────
-function SkeletonCard() {
+// ─── Product Table Row ─────────────────────────────────────────────────────────
+function ProductRow({ artikal, stanje }: { artikal: Artikal; stanje: StanjeSkladista | null | undefined }) {
+  const { cart, add } = useCart()
+  const { rabat } = useAuth()
+  const { favoriti, toggle: toggleFavorit } = useFavoriti()
+  const inCart = cart[artikal.id]?.qty ?? 0
+
+  const cijenaBase = stanje ? stanje[siteConfig.tipCijene] : artikal.planskaMaloprodajnaCijena ?? 0
+  const akcijaPopust = (artikal as any).akcija_popust ?? 0
+  const akcijaAktivna = akcijaPopust > 0 && (!(artikal as any).akcija_do || new Date((artikal as any).akcija_do) > new Date())
+  const popust = akcijaAktivna ? akcijaPopust : rabat
+  const cijena = popust > 0 ? Math.round(cijenaBase * (1 - popust / 100) * 100) / 100 : cijenaBase
+
+  const canAdd = stanje ? stanje.raspolozivaKolicina > 0 : false
+  const atMax = stanje ? inCart >= stanje.raspolozivaKolicina : false
+  const isFav = favoriti.has(artikal.id)
+
   return (
-    <div style={{
-      background: 'white',
-      border: '1px solid var(--border)',
-      borderRadius: '14px',
-      overflow: 'hidden',
-    }}>
-      <div style={{ paddingTop: '72%', background: 'var(--surface)', position: 'relative' }}>
-        <div style={{
-          position: 'absolute', inset: 0,
-          background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.6) 50%, transparent 100%)',
-          backgroundSize: '200% 100%',
-          animation: 'shimmer 1.5s infinite',
-        }} />
-      </div>
-      <div style={{ padding: '14px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-        <div style={{ height: '10px', borderRadius: '6px', background: 'var(--surface)', width: '40%' }} />
-        <div style={{ height: '14px', borderRadius: '6px', background: 'var(--surface)', width: '85%' }} />
-        <div style={{ height: '12px', borderRadius: '6px', background: 'var(--surface)', width: '60%' }} />
-        <div style={{ height: '38px', borderRadius: '9px', background: 'var(--surface)', marginTop: '4px' }} />
-      </div>
-      <style>{`@keyframes shimmer { 0% { backgroundPosition: -200% 0 } 100% { backgroundPosition: 200% 0 } }`}</style>
-    </div>
+    <tr className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors group">
+      {/* Naziv */}
+      <td className="py-2.5 pl-4 pr-2">
+        <Link href={`/proizvod/${artikal.id}`} className="text-[13px] font-medium text-gray-800 hover:text-emerald-700 transition-colors leading-snug block">
+          {artikal.naziv}
+        </Link>
+        {artikal.naziv2 && <span className="text-[11px] text-gray-400">{artikal.naziv2}</span>}
+      </td>
+      {/* Šifra */}
+      <td className="py-2.5 px-2 whitespace-nowrap">
+        <span className="text-[11px] font-mono text-gray-400">{artikal.sifra}</span>
+      </td>
+      {/* Grupa */}
+      <td className="py-2.5 px-2 hidden lg:table-cell">
+        <span className="text-[11px] text-gray-400">{artikal.grupa?.naziv ?? '—'}</span>
+      </td>
+      {/* Stanje */}
+      <td className="py-2.5 px-2 whitespace-nowrap">
+        {stanje === undefined ? (
+          <span className="text-[11px] text-gray-300">...</span>
+        ) : !stanje || stanje.raspolozivaKolicina <= 0 ? (
+          <span className="inline-flex items-center gap-1 text-[11px] font-medium text-red-500 bg-red-50 px-2 py-0.5 rounded-full">
+            <span className="w-1.5 h-1.5 rounded-full bg-red-400 inline-block" />
+            Nema
+          </span>
+        ) : stanje.raspolozivaKolicina <= 3 ? (
+          <span className="inline-flex items-center gap-1 text-[11px] font-medium text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-400 inline-block" />
+            {stanje.raspolozivaKolicina} kom
+          </span>
+        ) : (
+          <span className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />
+            Na stanju
+          </span>
+        )}
+      </td>
+      {/* Cijena */}
+      <td className="py-2.5 px-2 whitespace-nowrap text-right">
+        <div className="text-[14px] font-bold text-gray-900">{formatCijena(cijena)}</div>
+        {popust > 0 && (
+          <div className="text-[11px] text-gray-400 line-through">{formatCijena(cijenaBase)}</div>
+        )}
+      </td>
+      {/* Akcije */}
+      <td className="py-2.5 pl-2 pr-4 whitespace-nowrap">
+        <div className="flex items-center gap-1.5 justify-end">
+          {/* Favorit */}
+          <button
+            onClick={() => toggleFavorit(artikal.id)}
+            className={`p-1.5 rounded transition-colors ${isFav ? 'text-red-500 bg-red-50' : 'text-gray-300 hover:text-gray-400 hover:bg-gray-100 opacity-0 group-hover:opacity-100'}`}
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill={isFav ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+            </svg>
+          </button>
+          {/* Dodaj u korpu */}
+          {inCart > 0 ? (
+            <button
+              onClick={() => !atMax && add(artikal, cijenaBase, stanje ?? null)}
+              disabled={atMax}
+              className="flex items-center gap-1 text-[12px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-1.5 rounded hover:bg-emerald-100 transition-colors disabled:opacity-50"
+            >
+              <Plus size={11} />
+              {inCart}
+            </button>
+          ) : (
+            <button
+              onClick={() => canAdd && add(artikal, cijenaBase, stanje ?? null)}
+              disabled={!canAdd}
+              className={`flex items-center gap-1 text-[12px] font-medium px-2.5 py-1.5 rounded transition-colors ${
+                canAdd
+                  ? 'bg-emerald-700 text-white hover:bg-emerald-800 shadow-sm'
+                  : 'bg-gray-100 text-gray-300 cursor-not-allowed'
+              }`}
+            >
+              <ShoppingCart size={11} />
+              Dodaj
+            </button>
+          )}
+        </div>
+      </td>
+    </tr>
   )
 }
 
-// ─── Main page ────────────────────────────────────────────────────────────────
+// ─── Skeleton Row ──────────────────────────────────────────────────────────────
+function SkeletonRow() {
+  return (
+    <tr className="border-b border-gray-100">
+      <td className="py-3 pl-4 pr-2"><div className="h-3.5 bg-gray-100 rounded w-3/4 animate-pulse" /></td>
+      <td className="py-3 px-2"><div className="h-3 bg-gray-100 rounded w-16 animate-pulse" /></td>
+      <td className="py-3 px-2 hidden lg:table-cell"><div className="h-3 bg-gray-100 rounded w-20 animate-pulse" /></td>
+      <td className="py-3 px-2"><div className="h-5 bg-gray-100 rounded-full w-16 animate-pulse" /></td>
+      <td className="py-3 px-2"><div className="h-4 bg-gray-100 rounded w-20 ml-auto animate-pulse" /></td>
+      <td className="py-3 pl-2 pr-4"><div className="h-7 bg-gray-100 rounded w-16 ml-auto animate-pulse" /></td>
+    </tr>
+  )
+}
+
+// ─── Main Page ─────────────────────────────────────────────────────────────────
 export default function HomePage() {
   const [grupe, setGrupe] = useState<ArtikalGrupa[]>([])
   const [artikli, setArtikli] = useState<Artikal[]>([])
@@ -224,234 +289,146 @@ export default function HomePage() {
 
   return (
     <AuthGuard>
-      <div style={{ minHeight: '100vh', background: 'var(--surface)' }}>
+      <div className="min-h-screen bg-gray-50">
         <Header onSearch={q => setSearchInput(q)} />
-
         <HeroBanner />
         <AkcijeSlider />
-        <main style={{ maxWidth: '1280px', margin: '0 auto', padding: '24px 24px 64px' }}>
 
+        <main className="max-w-[1280px] mx-auto px-4 sm:px-6 py-5 pb-16">
           {/* Toolbar */}
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '12px',
-            marginBottom: '20px',
-            flexWrap: 'wrap',
-          }}>
-            <div style={{ flex: 1, minWidth: 0 }}>
+          <div className="flex items-center gap-2 mb-4 flex-wrap">
+            {/* Breadcrumb */}
+            <div className="flex-1 min-w-0 flex items-center gap-1.5 text-[13px]">
               {activeGrupa ? (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '14px' }}>
-                  <button
-                    onClick={() => onGrupaSelect(null)}
-                    style={{ color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: '14px', padding: 0 }}
-                  >
+                <>
+                  <button onClick={() => onGrupaSelect(null)} className="text-gray-400 hover:text-emerald-700 transition-colors">
                     Sve kategorije
                   </button>
-                  <ChevronRight size={12} style={{ color: 'var(--text-muted)' }} />
-                  <span style={{ color: 'var(--text)', fontWeight: 500 }}>
+                  <ChevronRight size={12} className="text-gray-300" />
+                  <span className="text-gray-700 font-medium truncate">
                     {grupe.find(g => g.id === activeGrupa)?.naziv}
                   </span>
-                </div>
+                </>
               ) : (
-                <span style={{ fontSize: '14px', color: 'var(--text-muted)' }}>
-                  {search ? `Rezultati za "${search}"` : 'Svi artikli'}
+                <span className="text-gray-400">
+                  {search ? `Pretraga: "${search}"` : 'Svi artikli'}
                 </span>
               )}
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <label style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '7px',
-                fontSize: '13px',
-                color: 'var(--text-muted)',
-                cursor: 'pointer',
-                userSelect: 'none',
-              }}>
-                <input
-                  type="checkbox"
-                  checked={filterStock}
-                  onChange={e => setFilterStock(e.target.checked)}
-                  style={{ accentColor: 'var(--brand)', width: '15px', height: '15px' }}
-                />
-                Samo na stanju
-              </label>
+            {/* Controls */}
+            <label className="flex items-center gap-1.5 text-[12px] text-gray-500 cursor-pointer select-none">
+              <input type="checkbox" checked={filterStock} onChange={e => setFilterStock(e.target.checked)} className="accent-emerald-700 w-3.5 h-3.5" />
+              Samo na stanju
+            </label>
 
-              <button
-                className="mobile-filters-btn"
-                style={{
-                  display: 'none',
-                  alignItems: 'center',
-                  gap: '6px',
-                  fontSize: '13px',
-                  padding: '7px 14px',
-                  background: 'white',
-                  border: '1px solid var(--border)',
-                  borderRadius: '9px',
-                  cursor: 'pointer',
-                  fontFamily: 'inherit',
-                  color: 'var(--text)',
-                }}
-                onClick={() => setMobileFilters(!mobileFilters)}
-              >
-                <SlidersHorizontal size={13} /> Kategorije
-              </button>
+            <button
+              className="md:hidden flex items-center gap-1 text-[12px] px-3 py-1.5 bg-white border border-gray-200 rounded text-gray-600"
+              onClick={() => setMobileFilters(!mobileFilters)}
+            >
+              <SlidersHorizontal size={12} /> Kategorije
+            </button>
 
-              {/* Sortiranje */}
-              <select
-                value={sortBy}
-                onChange={e => { setSortBy(e.target.value); setPage(1) }}
-                style={{ height: '36px', fontSize: '13px', background: 'white', border: '1px solid var(--border)', borderRadius: '9px', padding: '0 10px', fontFamily: 'inherit', cursor: 'pointer', color: 'var(--text)', outline: 'none' }}
-              >
-                <option value="naziv">Naziv A-Z</option>
-                <option value="naziv_desc">Naziv Z-A</option>
-                <option value="cijena_asc">Cijena ↑</option>
-                <option value="cijena_desc">Cijena ↓</option>
-              </select>
+            <select
+              value={sortBy}
+              onChange={e => { setSortBy(e.target.value); setPage(1) }}
+              className="h-8 text-[12px] bg-white border border-gray-200 rounded px-2 text-gray-600 outline-none cursor-pointer"
+            >
+              <option value="naziv">Naziv A-Z</option>
+              <option value="naziv_desc">Naziv Z-A</option>
+              <option value="cijena_asc">Cijena ↑</option>
+              <option value="cijena_desc">Cijena ↓</option>
+            </select>
 
-              {/* Filter cijene */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <input
-                  type="number"
-                  placeholder="Od KM"
-                  value={cijenaOd}
-                  onChange={e => { setCijenaOd(e.target.value); setPage(1) }}
-                  style={{ width: '70px', height: '36px', fontSize: '12px', padding: '0 8px', border: '1px solid var(--border)', borderRadius: '9px', outline: 'none', fontFamily: 'inherit' }}
-                />
-                <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>—</span>
-                <input
-                  type="number"
-                  placeholder="Do KM"
-                  value={cijenaDo}
-                  onChange={e => { setCijenaDo(e.target.value); setPage(1) }}
-                  style={{ width: '70px', height: '36px', fontSize: '12px', padding: '0 8px', border: '1px solid var(--border)', borderRadius: '9px', outline: 'none', fontFamily: 'inherit' }}
-                />
-              </div>
-
-              <div style={{
-                fontSize: '13px',
-                color: 'var(--text-muted)',
-                background: 'white',
-                border: '1px solid var(--border)',
-                padding: '7px 14px',
-                borderRadius: '9px',
-                fontWeight: 500,
-                whiteSpace: 'nowrap',
-              }}>
-                {total.toLocaleString()} artikala
-              </div>
+            <div className="flex items-center gap-1">
+              <input type="number" placeholder="Od" value={cijenaOd}
+                onChange={e => { setCijenaOd(e.target.value); setPage(1) }}
+                className="w-16 h-8 text-[12px] px-2 bg-white border border-gray-200 rounded outline-none" />
+              <span className="text-gray-300 text-xs">–</span>
+              <input type="number" placeholder="Do KM" value={cijenaDo}
+                onChange={e => { setCijenaDo(e.target.value); setPage(1) }}
+                className="w-20 h-8 text-[12px] px-2 bg-white border border-gray-200 rounded outline-none" />
             </div>
+
+            <span className="text-[12px] text-gray-400 bg-white border border-gray-200 px-3 py-1.5 rounded whitespace-nowrap">
+              {total.toLocaleString()} artikala
+            </span>
           </div>
 
           {/* Mobile filters */}
           {mobileFilters && (
-            <div style={{ marginBottom: '16px' }} className="mobile-filters">
+            <div className="md:hidden mb-4">
               <CategorySidebar grupe={grupe} activeId={activeGrupa} onSelect={onGrupaSelect} />
             </div>
           )}
 
           {/* Layout */}
-          <div style={{ display: 'flex', gap: '24px', alignItems: 'flex-start' }}>
-            {/* Sidebar — desktop only */}
-            <div className="desktop-sidebar" style={{ display: 'block' }}>
-              <CategorySidebar grupe={grupe} activeId={activeGrupa} onSelect={onGrupaSelect} />
-            </div>
+          <div className="flex gap-5 items-start">
+            <CategorySidebar grupe={grupe} activeId={activeGrupa} onSelect={onGrupaSelect} />
 
-            {/* Grid */}
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-                gap: '16px',
-              }}>
-                {loading
-                  ? Array(perPage).fill(0).map((_, i) => <SkeletonCard key={i} />)
-                  : displayed.length === 0
-                  ? (
-                    <div style={{
-                      gridColumn: '1 / -1',
-                      textAlign: 'center',
-                      padding: '64px 24px',
-                      color: 'var(--text-muted)',
-                    }}>
-                      <Package size={40} style={{ margin: '0 auto 12px', opacity: 0.3 }} />
-                      <p style={{ fontSize: '15px', margin: 0 }}>Nema artikala za odabrane kriterije</p>
-                      <button
-                        onClick={() => { onGrupaSelect(null); setFilterStock(false) }}
-                        style={{ marginTop: '12px', color: 'var(--brand)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '14px', fontFamily: 'inherit' }}
-                      >
-                        Prikaži sve
-                      </button>
-                    </div>
-                  )
-                  : displayed.map(a => (
-                    <ProductCard key={a.id} artikal={a} stanje={stanje[a.id]} slika={(a as any).slika_url} />
-                  ))
-                }
+            {/* Table */}
+            <div className="flex-1 min-w-0">
+              <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="bg-gray-50 border-b border-gray-200">
+                      <th className="py-2.5 pl-4 pr-2 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Naziv</th>
+                      <th className="py-2.5 px-2 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Šifra</th>
+                      <th className="py-2.5 px-2 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider hidden lg:table-cell">Kategorija</th>
+                      <th className="py-2.5 px-2 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Stanje</th>
+                      <th className="py-2.5 px-2 text-right text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Cijena</th>
+                      <th className="py-2.5 pl-2 pr-4 text-right text-[11px] font-semibold text-gray-400 uppercase tracking-wider"></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {loading
+                      ? Array(perPage).fill(0).map((_, i) => <SkeletonRow key={i} />)
+                      : displayed.length === 0
+                      ? (
+                        <tr><td colSpan={6} className="py-16 text-center text-gray-400 text-[13px]">
+                          <Package size={28} className="mx-auto mb-2 opacity-30" />
+                          Nema artikala za odabrane kriterije
+                          <br />
+                          <button onClick={() => { onGrupaSelect(null); setFilterStock(false) }}
+                            className="mt-2 text-emerald-700 underline text-[12px]">
+                            Prikaži sve
+                          </button>
+                        </td></tr>
+                      )
+                      : displayed.map(a => (
+                        <ProductRow key={a.id} artikal={a} stanje={stanje[a.id]} />
+                      ))
+                    }
+                  </tbody>
+                </table>
               </div>
 
               {/* Pagination */}
               {totalPages > 1 && (
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '8px',
-                  marginTop: '40px',
-                  flexWrap: 'wrap',
-                }}>
-                  <button
-                    onClick={() => setPage(p => Math.max(1, p - 1))}
-                    disabled={page <= 1}
-                    className="btn-secondary"
-                    style={{ padding: '8px 16px', fontSize: '13px' }}
-                  >
+                <div className="flex items-center justify-center gap-1.5 mt-6 flex-wrap">
+                  <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page <= 1}
+                    className="px-3 py-1.5 text-[12px] bg-white border border-gray-200 rounded text-gray-600 hover:bg-gray-50 disabled:opacity-40 transition-colors">
                     ← Prethodna
                   </button>
-
-                  <div style={{
-                    display: 'flex',
-                    gap: '4px',
-                    alignItems: 'center',
-                  }}>
-                    {Array.from({ length: Math.min(7, totalPages) }, (_, i) => {
-                      let p: number
-                      if (totalPages <= 7) p = i + 1
-                      else if (page <= 4) p = i + 1
-                      else if (page >= totalPages - 3) p = totalPages - 6 + i
-                      else p = page - 3 + i
-                      return (
-                        <button
-                          key={p}
-                          onClick={() => setPage(p)}
-                          style={{
-                            width: '36px',
-                            height: '36px',
-                            border: p === page ? 'none' : '1px solid var(--border)',
-                            borderRadius: '9px',
-                            background: p === page ? 'var(--brand)' : 'white',
-                            color: p === page ? 'white' : 'var(--text)',
-                            fontFamily: 'inherit',
-                            fontSize: '13px',
-                            fontWeight: p === page ? 600 : 400,
-                            cursor: 'pointer',
-                            transition: 'all 0.15s',
-                          }}
-                        >
-                          {p}
-                        </button>
-                      )
-                    })}
-                  </div>
-
-                  <button
-                    onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                    disabled={page >= totalPages}
-                    className="btn-secondary"
-                    style={{ padding: '8px 16px', fontSize: '13px' }}
-                  >
+                  {Array.from({ length: Math.min(7, totalPages) }, (_, i) => {
+                    let p: number
+                    if (totalPages <= 7) p = i + 1
+                    else if (page <= 4) p = i + 1
+                    else if (page >= totalPages - 3) p = totalPages - 6 + i
+                    else p = page - 3 + i
+                    return (
+                      <button key={p} onClick={() => setPage(p)}
+                        className={`w-8 h-8 text-[12px] rounded border transition-colors ${
+                          p === page
+                            ? 'bg-emerald-700 text-white border-emerald-700 font-semibold'
+                            : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
+                        }`}>
+                        {p}
+                      </button>
+                    )
+                  })}
+                  <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page >= totalPages}
+                    className="px-3 py-1.5 text-[12px] bg-white border border-gray-200 rounded text-gray-600 hover:bg-gray-50 disabled:opacity-40 transition-colors">
                     Sljedeća →
                   </button>
                 </div>
@@ -460,25 +437,17 @@ export default function HomePage() {
           </div>
         </main>
 
-        {/* Footer */}
-        <footer style={{
-          borderTop: '1px solid var(--border)',
-          background: 'white',
-          padding: '32px 24px',
-        }}>
-          <div style={{ maxWidth: '1280px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+        <footer className="border-t border-gray-200 bg-white py-6 px-6">
+          <div className="max-w-[1280px] mx-auto flex justify-between items-center flex-wrap gap-4 text-[12px] text-gray-400">
             <div>
-              <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text)', marginBottom: '4px' }}>
-                {siteConfig.name}
-              </div>
-              <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
-                B2B webshop · Powered by NIBIS ERP
-              </div>
+              <span className="font-semibold text-gray-600">{siteConfig.name}</span>
+              <span className="mx-2">·</span>
+              B2B webshop · Powered by NIBIS ERP
             </div>
-            <div style={{ display: 'flex', gap: '24px', fontSize: '13px', color: 'var(--text-muted)' }}>
+            <div className="flex gap-5">
               <span>Pon–Pet 08:00–16:00</span>
               {siteConfig.contactEmail && (
-                <a href={`mailto:${siteConfig.contactEmail}`} style={{ color: 'var(--brand)', textDecoration: 'none' }}>
+                <a href={`mailto:${siteConfig.contactEmail}`} className="text-emerald-700 hover:underline">
                   {siteConfig.contactEmail}
                 </a>
               )}
@@ -486,13 +455,6 @@ export default function HomePage() {
           </div>
         </footer>
       </div>
-
-      <style>{`
-        @media (max-width: 768px) {
-          .desktop-sidebar { display: none !important; }
-          .mobile-filters-btn { display: flex !important; }
-        }
-      `}</style>
     </AuthGuard>
   )
 }
