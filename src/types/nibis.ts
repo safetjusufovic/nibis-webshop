@@ -51,6 +51,8 @@ export interface ArtikalGrupa {
   dateModified: string | null
   parentId: number | null
   parent: { id: number; sifra: string; naziv: string } | null
+  boja: string | null
+  ikonaUrl: string | null
 }
 
 // ─── Stanje skladišta ────────────────────────────────────────────────────────
