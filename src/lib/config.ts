@@ -34,7 +34,7 @@ export const siteConfig = {
   prikaziNemaStanja: process.env.NEXT_PUBLIC_PRIKAZI_NEMA_STANJA !== 'false',
 
   // Logotip URL (stavi u /public/logo.png ili URL)
-  logoUrl: process.env.NEXT_PUBLIC_LOGO_URL || '',,
+  logoUrl: process.env.NEXT_PUBLIC_LOGO_URL || '',
   minNarudzba: parseFloat(process.env.NEXT_PUBLIC_MIN_NARUDZBA ?? '0'),
 } as const
 

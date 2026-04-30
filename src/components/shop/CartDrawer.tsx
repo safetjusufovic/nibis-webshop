@@ -1,7 +1,6 @@
 'use client'
 
 import { X, Trash2, Plus, Minus, ShoppingBag, Tag } from 'lucide-react'
-import { useState } from 'react'
 import { useCart } from '@/hooks/useCart'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
