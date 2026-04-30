@@ -27,23 +27,39 @@ export default function AdminKategorijePage() {
   const [saved, setSaved] = useState<number | null>(null)
   const [izmjene, setIzmjene] = useState<Record<number, { boja?: string; ikona_url?: string }>>({})
   const [sidebarSirina, setSidebarSirina] = useState(240)
-  const [sirinaChanged, setSirinaChanged] = useState(false)
-  const [sirinaSpremljena, setSirinaSpremljena] = useState(false)
+  const [sidebarVisina, setSidebarVisina] = useState(52)
+  const [sidebarBoja, setSidebarBoja] = useState('#F8FAFA')
+  const [sidebarSlika, setSidebarSlika] = useState('')
+  const [configChanged, setConfigChanged] = useState(false)
+  const [configSpremljen, setConfigSpremljen] = useState(false)
 
   useEffect(() => {
     supabase.from('grupe').select('*').order('naziv').then(({ data }) => {
       setGrupe((data ?? []) as Grupa[])
       setLoading(false)
     })
-    supabase.from('postavke').select('vrijednost').eq('kljuc', 'sidebar_sirina').single()
-      .then(({ data }) => { if (data) setSidebarSirina(parseInt(data.vrijednost) || 240) })
+    supabase.from('postavke').select('kljuc, vrijednost')
+      .in('kljuc', ['sidebar_sirina', 'sidebar_boja_pozadine', 'sidebar_slika_url', 'sidebar_visina_kategorije'])
+      .then(({ data }) => {
+        data?.forEach(p => {
+          if (p.kljuc === 'sidebar_sirina') setSidebarSirina(parseInt(p.vrijednost) || 240)
+          if (p.kljuc === 'sidebar_boja_pozadine') setSidebarBoja(p.vrijednost || '#F8FAFA')
+          if (p.kljuc === 'sidebar_slika_url') setSidebarSlika(p.vrijednost || '')
+          if (p.kljuc === 'sidebar_visina_kategorije') setSidebarVisina(parseInt(p.vrijednost) || 52)
+        })
+      })
   }, [])
 
-  async function sacuvajSirinu() {
-    await supabase.from('postavke').upsert({ kljuc: 'sidebar_sirina', vrijednost: String(sidebarSirina) }, { onConflict: 'kljuc' })
-    setSirinaChanged(false)
-    setSirinaSpremljena(true)
-    setTimeout(() => setSirinaSpremljena(false), 2000)
+  async function sacuvajConfig() {
+    await supabase.from('postavke').upsert([
+      { kljuc: 'sidebar_sirina', vrijednost: String(sidebarSirina) },
+      { kljuc: 'sidebar_boja_pozadine', vrijednost: sidebarBoja },
+      { kljuc: 'sidebar_slika_url', vrijednost: sidebarSlika },
+      { kljuc: 'sidebar_visina_kategorije', vrijednost: String(sidebarVisina) },
+    ], { onConflict: 'kljuc' })
+    setConfigChanged(false)
+    setConfigSpremljen(true)
+    setTimeout(() => setConfigSpremljen(false), 2000)
   }
 
   function update(id: number, field: 'boja' | 'ikona_url', value: string) {
@@ -77,39 +93,75 @@ export default function AdminKategorijePage() {
         </p>
       </div>
 
-      {/* Širina sidebara */}
-      <div style={{ background: 'white', border: '1px solid var(--border)', borderRadius: '12px', padding: '16px 20px', display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
-        <div style={{ flex: 1, minWidth: '200px' }}>
-          <label style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text)', display: 'block', marginBottom: '8px' }}>
-            Širina sidebara kategorija
-          </label>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <input
-              type="range" min={180} max={400} step={10}
-              value={sidebarSirina}
-              onChange={e => { setSidebarSirina(parseInt(e.target.value)); setSirinaChanged(true) }}
-              style={{ flex: 1, accentColor: 'var(--brand)' }}
-            />
-            <span style={{ fontSize: '14px', fontWeight: 700, color: 'var(--brand)', minWidth: '52px' }}>
-              {sidebarSirina}px
-            </span>
+      {/* Sidebar konfiguracija */}
+      <div style={{ background: 'white', border: '1px solid var(--border)', borderRadius: '12px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text)' }}>Izgled sidebara</span>
+          {configChanged && (
+            <button onClick={sacuvajConfig} style={{
+              display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 16px',
+              fontSize: '13px', fontWeight: 500, background: configSpremljen ? '#059669' : 'var(--brand)',
+              color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontFamily: 'inherit',
+            }}>
+              <Save size={13} />{configSpremljen ? 'Sačuvano ✓' : 'Sačuvaj promjene'}
+            </button>
+          )}
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          {/* Širina */}
+          <div>
+            <label style={{ fontSize: '12px', fontWeight: 500, color: 'var(--text-muted)', display: 'block', marginBottom: '6px' }}>
+              Širina ({sidebarSirina}px)
+            </label>
+            <input type="range" min={180} max={400} step={10} value={sidebarSirina}
+              onChange={e => { setSidebarSirina(parseInt(e.target.value)); setConfigChanged(true) }}
+              style={{ width: '100%', accentColor: 'var(--brand)' }} />
+          </div>
+
+          {/* Visina kategorije */}
+          <div>
+            <label style={{ fontSize: '12px', fontWeight: 500, color: 'var(--text-muted)', display: 'block', marginBottom: '6px' }}>
+              Visina reda ({sidebarVisina}px)
+            </label>
+            <input type="range" min={36} max={80} step={4} value={sidebarVisina}
+              onChange={e => { setSidebarVisina(parseInt(e.target.value)); setConfigChanged(true) }}
+              style={{ width: '100%', accentColor: 'var(--brand)' }} />
+          </div>
+
+          {/* Boja pozadine */}
+          <div>
+            <label style={{ fontSize: '12px', fontWeight: 500, color: 'var(--text-muted)', display: 'block', marginBottom: '6px' }}>
+              Boja pozadine (ako nema slike)
+            </label>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <input type="color" value={sidebarBoja}
+                onChange={e => { setSidebarBoja(e.target.value); setConfigChanged(true) }}
+                style={{ width: '36px', height: '32px', border: 'none', borderRadius: '6px', cursor: 'pointer' }} />
+              <span style={{ fontSize: '12px', fontFamily: 'monospace', color: 'var(--text-muted)' }}>{sidebarBoja}</span>
+            </div>
+          </div>
+
+          {/* Slika pozadine */}
+          <div>
+            <label style={{ fontSize: '12px', fontWeight: 500, color: 'var(--text-muted)', display: 'block', marginBottom: '6px' }}>
+              URL pozadinske slike (preuzima prioritet nad bojom)
+            </label>
+            <input type="text" value={sidebarSlika} placeholder="https://..."
+              onChange={e => { setSidebarSlika(e.target.value); setConfigChanged(true) }}
+              style={{ width: '100%', padding: '7px 10px', fontSize: '12px', border: '1px solid var(--border)', borderRadius: '8px', outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box' }} />
           </div>
         </div>
-        {sirinaChanged && (
-          <button
-            onClick={sacuvajSirinu}
-            style={{
-              display: 'flex', alignItems: 'center', gap: '6px',
-              padding: '8px 16px', fontSize: '13px', fontWeight: 500,
-              background: sirinaSpremljena ? '#059669' : 'var(--brand)',
-              color: 'white', border: 'none', borderRadius: '8px',
-              cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap',
-            }}
-          >
-            <Save size={13} />
-            {sirinaSpremljena ? 'Sačuvano ✓' : 'Sačuvaj'}
-          </button>
-        )}
+
+        {/* Preview */}
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+          <div style={{
+            width: sidebarSirina / 3 + 'px', height: sidebarVisina + 'px', borderRadius: '8px',
+            background: sidebarSlika ? `url(${sidebarSlika}) center/cover` : sidebarBoja,
+            border: '1px solid var(--border)', flexShrink: 0, transition: 'all 0.2s',
+          }} />
+          <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Preview — {sidebarSirina}px širina, {sidebarVisina}px visina</span>
+        </div>
       </div>
 
       <div style={{ position: 'relative', maxWidth: '320px' }}>
