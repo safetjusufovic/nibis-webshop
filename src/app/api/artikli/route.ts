@@ -23,7 +23,6 @@ export async function GET(req: NextRequest) {
       `, { count: 'exact' })
       .eq('aktivan', true)
       .eq('webshop_aktivan', true)
-      .order('naziv')
       .range(from, to)
 
     if (search) {
@@ -31,6 +30,20 @@ export async function GET(req: NextRequest) {
     }
     if (grupaId) query = query.eq('grupa_id', grupaId)
     if (sp.get('akcija') === 'true') query = query.gt('akcija_popust', 0)
+
+    // Filter cijene
+    const cijenaOd = sp.get('cijenaOd')
+    const cijenaDo = sp.get('cijenaDo')
+    if (cijenaOd) query = query.gte('planska_maloprodajna_cijena', parseFloat(cijenaOd))
+    if (cijenaDo) query = query.lte('planska_maloprodajna_cijena', parseFloat(cijenaDo))
+
+    // Sortiranje
+    const sortBy = sp.get('sortBy') ?? 'naziv'
+    if (sortBy === 'naziv') query = query.order('naziv', { ascending: true })
+    else if (sortBy === 'naziv_desc') query = query.order('naziv', { ascending: false })
+    else if (sortBy === 'cijena_asc') query = query.order('planska_maloprodajna_cijena', { ascending: true })
+    else if (sortBy === 'cijena_desc') query = query.order('planska_maloprodajna_cijena', { ascending: false })
+    else query = query.order('naziv', { ascending: true })
 
     const { data, error, count } = await query
     if (error) throw error
