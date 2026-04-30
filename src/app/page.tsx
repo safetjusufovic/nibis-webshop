@@ -69,53 +69,98 @@ function CategorySidebar({ grupe, activeId, onSelect, sirina = 240 }: {
             const isSelected = activeId === root.id
 
             return (
-              <div key={root.id} className="mb-0.5">
-                <div className="flex items-center gap-0.5">
+              <div key={root.id} style={{ marginBottom: '4px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
                   <button
                     onClick={() => { onSelect(root.id); if (children.length > 0) setOpen(prev => ({ ...prev, [root.id]: true })) }}
                     style={{
-                      background: isSelected ? boja : isActive ? boja + '15' : 'transparent',
-                      color: isSelected ? 'white' : isActive ? boja : '#374151',
+                      flex: 1,
+                      textAlign: 'left',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '10px',
+                      padding: '6px 8px',
+                      borderRadius: '8px',
+                      border: 'none',
+                      cursor: 'pointer',
+                      fontFamily: 'inherit',
+                      transition: 'all 0.15s',
+                      background: isSelected
+                        ? boja
+                        : isActive
+                        ? boja + '18'
+                        : 'transparent',
+                      color: isSelected ? 'white' : '#374151',
+                      boxShadow: isSelected ? `0 2px 8px ${boja}40` : 'none',
                     }}
-                    className="flex-1 text-left px-2.5 py-2 text-[12px] rounded-md transition-all duration-150 flex items-center gap-2 hover:opacity-90"
                   >
-                    {/* Ikona ili obojeni kvadratić */}
+                    {/* Ikona — uvijek prikazana u boji kategorije */}
                     <span style={{
-                      width: ikonaSize + 'px', height: ikonaSize + 'px', borderRadius: '7px', flexShrink: 0,
-                      background: isSelected ? 'rgba(255,255,255,0.25)' : boja + '20',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      border: isSelected ? '1px solid rgba(255,255,255,0.2)' : `1px solid ${boja}30`,
+                      width: ikonaSize + 'px',
+                      height: ikonaSize + 'px',
+                      borderRadius: '8px',
+                      flexShrink: 0,
+                      background: isSelected ? 'rgba(255,255,255,0.22)' : boja,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      boxShadow: isSelected ? 'none' : `0 2px 6px ${boja}50`,
                     }}>
                       {root.ikonaUrl ? (
-                        <img src={root.ikonaUrl} alt="" style={{ width: ikonaImgSize + 'px', height: ikonaImgSize + 'px', objectFit: 'contain', filter: isSelected ? 'brightness(0) invert(1)' : 'none' }} />
+                        <img
+                          src={root.ikonaUrl}
+                          alt=""
+                          style={{
+                            width: ikonaImgSize + 'px',
+                            height: ikonaImgSize + 'px',
+                            objectFit: 'contain',
+                            filter: 'brightness(0) invert(1)',
+                          }}
+                        />
                       ) : (
-                        <span style={{ width: Math.round(ikonaSize * 0.38) + 'px', height: Math.round(ikonaSize * 0.38) + 'px', borderRadius: '3px', background: isSelected ? 'white' : boja, display: 'inline-block', opacity: isSelected ? 0.9 : 0.7 }} />
+                        <svg width={ikonaImgSize} height={ikonaImgSize} viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
+                        </svg>
                       )}
                     </span>
-                    <span className="truncate font-medium" style={{ fontSize: fontSize }}>{root.naziv}</span>
+                    <span style={{ fontSize: fontSize, fontWeight: isSelected || isActive ? 600 : 400, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {root.naziv}
+                    </span>
                   </button>
                   {children.length > 0 && (
                     <button
                       onClick={() => toggleOpen(root.id)}
-                      className="p-1.5 text-gray-400 hover:text-gray-600 rounded transition-colors"
+                      style={{ padding: '6px', background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', borderRadius: '6px' }}
                     >
-                      {isOpen ? <ChevronDown size={11} /> : <ChevronRight size={11} />}
+                      {isOpen ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
                     </button>
                   )}
                 </div>
 
                 {isOpen && children.length > 0 && (
-                  <div className="ml-3 mt-0.5 border-l-2 pl-2" style={{ borderColor: boja + '40' }}>
+                  <div style={{ marginLeft: '12px', marginTop: '2px', borderLeft: `2px solid ${boja}40`, paddingLeft: '8px' }}>
                     {children.map(child => (
                       <button
                         key={child.id}
                         onClick={() => onSelect(child.id)}
                         style={{
+                          width: '100%',
+                          textAlign: 'left',
+                          display: 'block',
+                          padding: '5px 8px',
+                          fontSize: '11px',
+                          borderRadius: '6px',
+                          border: 'none',
+                          cursor: 'pointer',
+                          fontFamily: 'inherit',
+                          transition: 'all 0.1s',
                           color: activeId === child.id ? boja : '#6B7280',
-                          background: activeId === child.id ? boja + '10' : 'transparent',
+                          background: activeId === child.id ? boja + '12' : 'transparent',
                           fontWeight: activeId === child.id ? 600 : 400,
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
                         }}
-                        className="w-full text-left px-2 py-1.5 text-[11px] rounded transition-all duration-150 hover:bg-gray-100 truncate block"
                       >
                         {child.naziv}
                       </button>
