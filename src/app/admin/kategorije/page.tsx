@@ -26,13 +26,25 @@ export default function AdminKategorijePage() {
   const [saving, setSaving] = useState<number | null>(null)
   const [saved, setSaved] = useState<number | null>(null)
   const [izmjene, setIzmjene] = useState<Record<number, { boja?: string; ikona_url?: string }>>({})
+  const [sidebarSirina, setSidebarSirina] = useState(240)
+  const [sirinaChanged, setSirinaChanged] = useState(false)
+  const [sirinaSpremljena, setSirinaSpremljena] = useState(false)
 
   useEffect(() => {
     supabase.from('grupe').select('*').order('naziv').then(({ data }) => {
       setGrupe((data ?? []) as Grupa[])
       setLoading(false)
     })
+    supabase.from('postavke').select('vrijednost').eq('kljuc', 'sidebar_sirina').single()
+      .then(({ data }) => { if (data) setSidebarSirina(parseInt(data.vrijednost) || 240) })
   }, [])
+
+  async function sacuvajSirinu() {
+    await supabase.from('postavke').upsert({ kljuc: 'sidebar_sirina', vrijednost: String(sidebarSirina) }, { onConflict: 'kljuc' })
+    setSirinaChanged(false)
+    setSirinaSpremljena(true)
+    setTimeout(() => setSirinaSpremljena(false), 2000)
+  }
 
   function update(id: number, field: 'boja' | 'ikona_url', value: string) {
     setIzmjene(prev => ({ ...prev, [id]: { ...prev[id], [field]: value } }))
@@ -63,6 +75,41 @@ export default function AdminKategorijePage() {
         <p style={{ fontSize: '14px', color: 'var(--text-muted)', margin: '4px 0 0' }}>
           Postavi boje i ikone za kategorije artikala
         </p>
+      </div>
+
+      {/* Širina sidebara */}
+      <div style={{ background: 'white', border: '1px solid var(--border)', borderRadius: '12px', padding: '16px 20px', display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+        <div style={{ flex: 1, minWidth: '200px' }}>
+          <label style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text)', display: 'block', marginBottom: '8px' }}>
+            Širina sidebara kategorija
+          </label>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <input
+              type="range" min={180} max={400} step={10}
+              value={sidebarSirina}
+              onChange={e => { setSidebarSirina(parseInt(e.target.value)); setSirinaChanged(true) }}
+              style={{ flex: 1, accentColor: 'var(--brand)' }}
+            />
+            <span style={{ fontSize: '14px', fontWeight: 700, color: 'var(--brand)', minWidth: '52px' }}>
+              {sidebarSirina}px
+            </span>
+          </div>
+        </div>
+        {sirinaChanged && (
+          <button
+            onClick={sacuvajSirinu}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '6px',
+              padding: '8px 16px', fontSize: '13px', fontWeight: 500,
+              background: sirinaSpremljena ? '#059669' : 'var(--brand)',
+              color: 'white', border: 'none', borderRadius: '8px',
+              cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap',
+            }}
+          >
+            <Save size={13} />
+            {sirinaSpremljena ? 'Sačuvano ✓' : 'Sačuvaj'}
+          </button>
+        )}
       </div>
 
       <div style={{ position: 'relative', maxWidth: '320px' }}>

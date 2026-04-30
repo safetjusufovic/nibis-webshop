@@ -28,7 +28,6 @@ const SECTIONS = [
     keys: [
       { key: 'announcement_bar', label: 'Poruka na vrhu stranice', type: 'text', placeholder: 'Npr. Besplatna dostava iznad 500 KM' },
       { key: 'min_narudzba', label: 'Minimalni iznos narudžbe (KM)', type: 'number', placeholder: '0' },
-      { key: 'sidebar_sirina', label: 'Širina sidebara kategorija (px, 180-400)', type: 'range', placeholder: '240' },
       { key: 'nacini_placanja', label: 'Načini plaćanja (odvojeni zarezom)', type: 'text', placeholder: 'Virman,Gotovina,Kartica' },
     ]
   },
