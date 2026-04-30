@@ -5,7 +5,7 @@ export async function GET() {
   try {
     const { data, error, count } = await supabase
       .from('grupe')
-      .select('id, sifra, naziv, opis, prefix, nivo, parent_id', { count: 'exact' })
+      .select('id, sifra, naziv, opis, prefix, nivo, parent_id, boja, ikona_url', { count: 'exact' })
       .order('naziv')
       .limit(200)
 
@@ -15,6 +15,7 @@ export async function GET() {
       id: g.id, sifra: g.sifra, naziv: g.naziv,
       opis: g.opis, prefix: g.prefix, nivo: g.nivo,
       parentId: g.parent_id,
+      boja: g.boja, ikonaUrl: g.ikona_url,
     }))
 
     return NextResponse.json(
