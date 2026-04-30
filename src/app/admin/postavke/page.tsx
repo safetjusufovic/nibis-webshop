@@ -28,6 +28,7 @@ const SECTIONS = [
     keys: [
       { key: 'announcement_bar', label: 'Poruka na vrhu stranice', type: 'text', placeholder: 'Npr. Besplatna dostava iznad 500 KM' },
       { key: 'min_narudzba', label: 'Minimalni iznos narudžbe (KM)', type: 'number', placeholder: '0' },
+      { key: 'sidebar_sirina', label: 'Širina sidebara kategorija (px, 180-400)', type: 'range', placeholder: '240' },
       { key: 'nacini_placanja', label: 'Načini plaćanja (odvojeni zarezom)', type: 'text', placeholder: 'Virman,Gotovina,Kartica' },
     ]
   },
@@ -186,6 +187,26 @@ export default function AdminPostavkePage() {
                         {postavke[field.key] === 'true' ? 'Uključeno' : 'Isključeno'}
                       </span>
                     </label>
+                  ) : field.type === 'range' ? (
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <input
+                          type="range"
+                          min={180}
+                          max={400}
+                          step={10}
+                          value={parseInt(postavke[field.key] ?? '240') || 240}
+                          onChange={e => update(field.key, e.target.value)}
+                          style={{ flex: 1, accentColor: 'var(--brand)' }}
+                        />
+                        <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--brand)', minWidth: '48px' }}>
+                          {postavke[field.key] ?? '240'}px
+                        </span>
+                      </div>
+                      <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>
+                        Promjena se primjenjuje nakon osvježavanja stranice
+                      </div>
+                    </div>
                   ) : field.type === 'textarea' ? (
                     <textarea
                       value={postavke[field.key] ?? ''}
