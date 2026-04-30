@@ -1,5 +1,7 @@
 'use client'
 
+import { useAdminNotifikacije } from '@/hooks/useAdminNotifikacije'
+
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Users, ShoppingBag, Image, RefreshCw, LayoutDashboard, Settings, LayoutList, BarChart2, Activity } from 'lucide-react'
@@ -8,8 +10,8 @@ import Header from '@/components/layout/Header'
 
 const NAV = [
   { href: '/admin', label: 'Pregled', icon: LayoutDashboard, exact: true },
-  { href: '/admin/korisnici', label: 'Korisnici', icon: Users },
-  { href: '/admin/narudzbe', label: 'Narudžbe', icon: ShoppingBag },
+  { href: '/admin/korisnici', label: 'Korisnici', icon: Users, badge: 'registracije' },
+  { href: '/admin/narudzbe', label: 'Narudžbe', icon: ShoppingBag, badge: 'narudzbe' },
   { href: '/admin/slike', label: 'Slike artikala', icon: Image },
   { href: '/admin/sync', label: 'Sinhronizacija', icon: RefreshCw },
   { href: '/admin/katalog', label: 'Katalog', icon: LayoutList },
@@ -19,6 +21,7 @@ const NAV = [
 ]
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  const notifikacije = useAdminNotifikacije()
   const pathname = usePathname()
 
   return (
@@ -30,8 +33,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <aside className="w-48 shrink-0">
             <div className="bg-white border border-gray-100 rounded-xl p-2 sticky top-20">
               <p className="text-xs font-medium text-gray-400 uppercase tracking-wide px-3 py-2">Admin</p>
-              {NAV.map(({ href, label, icon: Icon, exact }) => {
+              {NAV.map(({ href, label, icon: Icon, exact, badge: badgeKey }: any) => {
                 const active = exact ? pathname === href : pathname.startsWith(href)
+                const badgeCount = badgeKey === 'narudzbe' ? notifikacije.noveNarudzbe : badgeKey === 'registracije' ? notifikacije.noveRegistracije : 0
                 return (
                   <Link
                     key={href}
@@ -39,7 +43,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${active ? 'bg-teal-50 text-teal-700 font-medium' : 'text-gray-600 hover:bg-gray-50'}`}
                   >
                     <Icon size={15} />
-                    {label}
+                    <span style={{ flex: 1 }}>{label}</span>
+                    {badgeCount > 0 && (
+                      <span style={{
+                        background: '#DC2626', color: 'white', fontSize: '10px', fontWeight: 700,
+                        borderRadius: '100px', minWidth: '18px', height: '18px',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 4px',
+                      }}>
+                        {badgeCount}
+                      </span>
+                    )}
                   </Link>
                 )
               })}

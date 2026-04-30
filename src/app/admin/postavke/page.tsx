@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
-import { Save, Settings, Mail, Store, CreditCard, Users, Bell } from 'lucide-react'
+import { Save, Settings, Mail, Store, Users, Bell } from 'lucide-react'
 
 interface Postavka {
   kljuc: string
@@ -37,6 +37,18 @@ const SECTIONS = [
     title: 'Registracija',
     keys: [
       { key: 'registracija_otvorena', label: 'Dozvoliti novu registraciju', type: 'boolean', placeholder: '' },
+    ]
+  },
+  {
+    id: 'izgled',
+    icon: <Settings size={16} />,
+    title: 'Izgled i banneri',
+    keys: [
+      { key: 'baner_tekst', label: 'Tekst bannera (announcement bar)', type: 'text', placeholder: 'Npr. Besplatna dostava iznad 500 KM' },
+      { key: 'baner_boja_pozadine', label: 'Boja pozadine bannera (hex)', type: 'text', placeholder: '#085041' },
+      { key: 'baner_boja_teksta', label: 'Boja teksta bannera (hex)', type: 'text', placeholder: '#ffffff' },
+      { key: 'akcije_slider_naslov', label: 'Naslov sekcije akcija', type: 'text', placeholder: 'Akcije' },
+      { key: 'primary_boja', label: 'Primarna boja (hex)', type: 'text', placeholder: '#0F6E56' },
     ]
   },
   {
