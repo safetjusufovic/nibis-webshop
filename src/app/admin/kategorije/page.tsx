@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
-import { Search, Save, Palette, X } from 'lucide-react'
+import { Search, Save, Palette } from 'lucide-react'
 
 interface Grupa {
   id: number
@@ -31,7 +31,6 @@ export default function AdminKategorijePage() {
   const [sirina, setSirina] = useState(240)
   const [visina, setVisina] = useState(52)
   const [bojaPozadine, setBojaPozadine] = useState('#F8FAFA')
-  const [slikaUrl, setSlikaUrl] = useState('')
   const [configChanged, setConfigChanged] = useState(false)
   const [configSaved, setConfigSaved] = useState(false)
 
@@ -40,13 +39,12 @@ export default function AdminKategorijePage() {
       .then(({ data }) => { setGrupe((data ?? []) as Grupa[]); setLoading(false) })
 
     supabase.from('postavke').select('kljuc, vrijednost')
-      .in('kljuc', ['sidebar_sirina', 'sidebar_visina_kategorije', 'sidebar_boja_pozadine', 'sidebar_slika_url'])
+      .in('kljuc', ['sidebar_sirina', 'sidebar_visina_kategorije', 'sidebar_boja_pozadine'])
       .then(({ data }) => {
         data?.forEach(p => {
           if (p.kljuc === 'sidebar_sirina') setSirina(parseInt(p.vrijednost) || 240)
           if (p.kljuc === 'sidebar_visina_kategorije') setVisina(parseInt(p.vrijednost) || 52)
           if (p.kljuc === 'sidebar_boja_pozadine') setBojaPozadine(p.vrijednost || '#F8FAFA')
-          if (p.kljuc === 'sidebar_slika_url') setSlikaUrl(p.vrijednost || '')
         })
       })
   }, [])
@@ -72,7 +70,6 @@ export default function AdminKategorijePage() {
       { kljuc: 'sidebar_sirina', vrijednost: String(sirina) },
       { kljuc: 'sidebar_visina_kategorije', vrijednost: String(visina) },
       { kljuc: 'sidebar_boja_pozadine', vrijednost: bojaPozadine },
-      { kljuc: 'sidebar_slika_url', vrijednost: slikaUrl },
     ], { onConflict: 'kljuc' })
     setConfigChanged(false)
     setConfigSaved(true)
@@ -145,23 +142,7 @@ export default function AdminKategorijePage() {
             </div>
           </div>
 
-          {/* Slika pozadine */}
-          <div>
-            <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-              Slika pozadine (URL) — preuzima prioritet
-            </label>
-            <div style={{ display: 'flex', gap: '6px' }}>
-              <input type="text" value={slikaUrl} placeholder="https://..."
-                onChange={e => { setSlikaUrl(e.target.value); setConfigChanged(true) }}
-                style={{ flex: 1, padding: '8px 10px', fontSize: '12px', border: '1px solid var(--border)', borderRadius: '8px', outline: 'none', fontFamily: 'inherit' }} />
-              {slikaUrl && (
-                <button onClick={() => { setSlikaUrl(''); setConfigChanged(true) }}
-                  style={{ padding: '8px', background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: '8px', cursor: 'pointer', color: '#DC2626', display: 'flex', alignItems: 'center' }}>
-                  <X size={14} />
-                </button>
-              )}
-            </div>
-          </div>
+
         </div>
 
         {/* Live preview */}
@@ -174,13 +155,13 @@ export default function AdminKategorijePage() {
             borderRadius: '10px',
             overflow: 'hidden',
             border: '1px solid var(--border)',
-            background: slikaUrl ? `url(${slikaUrl}) center/cover` : bojaPozadine,
+            background: bojaPozadine,
             boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
             maxWidth: '100%',
           }}>
             {/* Header */}
             <div style={{ padding: '8px 12px', background: 'rgba(0,0,0,0.06)', borderBottom: '1px solid rgba(0,0,0,0.08)' }}>
-              <span style={{ fontSize: '10px', fontWeight: 700, color: slikaUrl ? 'white' : '#6B7280', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Kategorije</span>
+              <span style={{ fontSize: '10px', fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Kategorije</span>
             </div>
             {/* Sample rows */}
             {roots.slice(0, 4).map(root => {
@@ -198,7 +179,7 @@ export default function AdminKategorijePage() {
                       <div style={{ width: Math.round(ikonaSize * 0.38) + 'px', height: Math.round(ikonaSize * 0.38) + 'px', borderRadius: '3px', background: 'rgba(255,255,255,0.8)' }} />
                     )}
                   </div>
-                  <span style={{ fontSize: '12px', color: slikaUrl ? 'white' : '#374151', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
+                  <span style={{ fontSize: '12px', color: '#374151', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
                     {root.naziv}
                   </span>
                 </div>

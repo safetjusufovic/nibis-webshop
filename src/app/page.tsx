@@ -20,7 +20,7 @@ function CategorySidebar({ grupe, activeId, onSelect, sirina = 240, sidebarConfi
   activeId: number | null
   onSelect: (id: number | null) => void
   sirina?: number
-  sidebarConfig?: { bojaPozadine: string; slikaUrl: string; visinaKategorije: number }
+  sidebarConfig?: { bojaPozadine: string; visinaKategorije: number }
 }) {
   const [open, setOpen] = useState<Record<number, boolean>>({})
   const roots = grupe.filter(g => !g.parentId)
@@ -30,10 +30,8 @@ function CategorySidebar({ grupe, activeId, onSelect, sirina = 240, sidebarConfi
   const ikonaImgSize = Math.round(ikonaSize * 0.60)
   const ikonaRadius = Math.round(ikonaSize * 0.22)
   const fontSize = sirina > 300 ? '13px' : sirina > 220 ? '12px' : '11px'
-  const hasBgSlika = !!(sidebarConfig?.slikaUrl?.trim())
-  const bgStyle = hasBgSlika
-    ? { backgroundImage: `url(${sidebarConfig!.slikaUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }
-    : { background: sidebarConfig?.bojaPozadine || '#F8FAFA' }
+  const hasBgSlika = false
+  const bgStyle = { background: sidebarConfig?.bojaPozadine || '#F8FAFA' }
 
   function toggleOpen(id: number) {
     setOpen(prev => ({ ...prev, [id]: !prev[id] }))
@@ -319,18 +317,16 @@ export default function HomePage() {
   const [sidebarSirina, setSidebarSirina] = useState(240)
   const [sidebarConfig, setSidebarConfig] = useState<{
     bojaPozadine: string
-    slikaUrl: string
     visinaKategorije: number
-  }>({ bojaPozadine: '#F8FAFA', slikaUrl: '', visinaKategorije: 52 })
+  }>({ bojaPozadine: '#F8FAFA', visinaKategorije: 52 })
 
   useEffect(() => {
-    fetch('/api/postavke?kljuci=sidebar_sirina,sidebar_boja_pozadine,sidebar_slika_url,sidebar_visina_kategorije')
+    fetch('/api/postavke?kljuci=sidebar_sirina,sidebar_boja_pozadine,sidebar_visina_kategorije')
       .then(r => r.json())
       .then(d => {
         if (d.sidebar_sirina) setSidebarSirina(parseInt(d.sidebar_sirina))
         setSidebarConfig({
           bojaPozadine: d.sidebar_boja_pozadine || '#F8FAFA',
-          slikaUrl: d.sidebar_slika_url || '',
           visinaKategorije: parseInt(d.sidebar_visina_kategorije || '52'),
         })
       })
