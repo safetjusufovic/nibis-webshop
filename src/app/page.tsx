@@ -109,10 +109,11 @@ function CategorySidebar({ grupe, activeId, onSelect, sirina = 240, sidebarConfi
                       height: ikonaSize + 'px',
                       borderRadius: '8px',
                       flexShrink: 0,
-                      background: isSelected ? 'rgba(255,255,255,0.22)' : boja,
+                      background: root.ikonaUrl ? 'transparent' : (isSelected ? 'rgba(255,255,255,0.22)' : boja),
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
+                      overflow: 'hidden',
                       boxShadow: isSelected ? 'none' : `0 2px 6px ${boja}50`,
                     }}>
                       {root.ikonaUrl ? (
@@ -120,10 +121,10 @@ function CategorySidebar({ grupe, activeId, onSelect, sirina = 240, sidebarConfi
                           src={root.ikonaUrl}
                           alt=""
                           style={{
-                            width: ikonaImgSize + 'px',
-                            height: ikonaImgSize + 'px',
-                            objectFit: 'contain',
-                            filter: 'brightness(0) invert(1)',
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'cover',
+                            borderRadius: ikonaRadius + 'px',
                           }}
                         />
                       ) : (
