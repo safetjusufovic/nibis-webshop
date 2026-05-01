@@ -82,8 +82,9 @@ export default function AdminKategorijePage() {
   const roots = grupe.filter(g => !g.parent_id).filter(g => !search || g.naziv.toLowerCase().includes(search.toLowerCase()))
   const getChildren = (parentId: number) => grupe.filter(g => g.parent_id === parentId)
 
-  // Sidebar preview ikona veličina
-  const ikonaSize = Math.round(Math.min(visina * 0.80, sirina * 0.32))
+  // Mora biti identično kao u page.tsx CategorySidebar
+  const ikonaSize = Math.round(Math.min(visina * 0.84, sirina * 0.38))
+  const ikonaRadius = Math.round(ikonaSize * 0.22)
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -187,7 +188,7 @@ export default function AdminKategorijePage() {
               return (
                 <div key={root.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '4px 6px', height: visina + 'px' }}>
                   <div style={{
-                    width: ikonaSize + 'px', height: ikonaSize + 'px', borderRadius: '7px', flexShrink: 0,
+                    width: ikonaSize + 'px', height: ikonaSize + 'px', borderRadius: ikonaRadius + 'px', flexShrink: 0,
                     background: boja, display: 'flex', alignItems: 'center', justifyContent: 'center',
                     boxShadow: `0 2px 6px ${boja}50`,
                   }}>

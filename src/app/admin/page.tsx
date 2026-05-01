@@ -1,516 +1,351 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
-import { SlidersHorizontal, ChevronRight, ChevronDown, Package, ShoppingCart, Plus, LayoutGrid, LayoutList } from 'lucide-react'
-import Header from '@/components/layout/Header'
-import AuthGuard from '@/components/auth/AuthGuard'
-import AkcijeSlider from '@/components/shop/AkcijeSlider'
-import HeroBanner from '@/components/shop/HeroBanner'
-import { useCart } from '@/hooks/useCart'
-import { useAuth } from '@/hooks/useAuth'
-import { useFavoriti } from '@/hooks/useFavoriti'
-import type { Artikal, ArtikalGrupa, StanjeSkladista, PaginatedResponse } from '@/types/nibis'
-import { formatCijena, siteConfig } from '@/lib/config'
-import ProductCard from '@/components/shop/ProductCard'
-import Link from 'next/link'
+import { useEffect, useState } from 'react'
+import { supabase } from '@/lib/supabase'
+import { Search, Save, Palette, X } from 'lucide-react'
 
-// ─── Collapsible Category Sidebar ─────────────────────────────────────────────
-function CategorySidebar({ grupe, activeId, onSelect }: {
-  grupe: ArtikalGrupa[]
-  activeId: number | null
-  onSelect: (id: number | null) => void
-}) {
-  const [open, setOpen] = useState<Record<number, boolean>>({})
-  const roots = grupe.filter(g => !g.parentId)
-
-  function toggleOpen(id: number) {
-    setOpen(prev => ({ ...prev, [id]: !prev[id] }))
-  }
-
-  return (
-    <aside className="w-52 flex-shrink-0 hidden md:block">
-      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden sticky top-20">
-        <div className="px-3 py-2.5 border-b border-gray-100 bg-gray-50">
-          <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest">Kategorije</span>
-        </div>
-        <div className="py-1">
-          <button
-            onClick={() => onSelect(null)}
-            className={`w-full text-left px-3 py-2 text-[13px] rounded transition-colors ${
-              activeId === null
-                ? 'bg-emerald-50 text-emerald-700 font-semibold'
-                : 'text-gray-600 hover:bg-gray-50'
-            }`}
-          >
-            Sve kategorije
-          </button>
-
-          {roots.map(root => {
-            const children = grupe.filter(g => g.parentId === root.id)
-            const isActive = activeId === root.id || children.some(c => c.id === activeId)
-            const isOpen = open[root.id] ?? isActive
-
-            return (
-              <div key={root.id}>
-                <div className="flex items-center">
-                  <button
-                    onClick={() => onSelect(root.id)}
-                    className={`flex-1 text-left px-3 py-2 text-[13px] rounded transition-colors ${
-                      activeId === root.id
-                        ? 'bg-emerald-50 text-emerald-700 font-semibold'
-                        : isActive ? 'text-gray-800 font-medium' : 'text-gray-600 hover:bg-gray-50'
-                    }`}
-                  >
-                    <span
-                      style={{
-                        width: '8px', height: '8px', borderRadius: '50%', flexShrink: 0,
-                        background: (root as any).boja || 'var(--brand)',
-                        display: 'inline-block', marginRight: '6px',
-                      }}
-                    />
-                    {root.naziv}
-                  </button>
-                  {children.length > 0 && (
-                    <button
-                      onClick={() => toggleOpen(root.id)}
-                      className="p-1.5 text-gray-400 hover:text-gray-600"
-                    >
-                      {isOpen ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
-                    </button>
-                  )}
-                </div>
-
-                {isOpen && children.map(child => (
-                  <button
-                    key={child.id}
-                    onClick={() => onSelect(child.id)}
-                    className={`w-full text-left pl-6 pr-3 py-1.5 text-[12px] rounded transition-colors ${
-                      activeId === child.id
-                        ? 'bg-emerald-50 text-emerald-700 font-semibold'
-                        : 'text-gray-500 hover:bg-gray-50'
-                    }`}
-                  >
-                    {child.naziv}
-                  </button>
-                ))}
-              </div>
-            )
-          })}
-        </div>
-      </div>
-    </aside>
-  )
+interface Grupa {
+  id: number
+  sifra: string
+  naziv: string
+  parent_id: number | null
+  boja: string | null
+  ikona_url: string | null
 }
 
-// ─── Product Table Row ─────────────────────────────────────────────────────────
-function ProductRow({ artikal, stanje }: { artikal: Artikal; stanje: StanjeSkladista | null | undefined }) {
-  const { cart, add } = useCart()
-  const { rabat } = useAuth()
-  const { favoriti, toggle: toggleFavorit } = useFavoriti()
-  const [qty, setQty] = useState(1)
-  const inCart = cart[artikal.id]?.qty ?? 0
+const PRESET_BOJE = [
+  '#0F6E56', '#1D4ED8', '#7C3AED', '#DC2626', '#D97706',
+  '#059669', '#0891B2', '#9333EA', '#E11D48', '#CA8A04',
+  '#374151', '#6B7280', '#1E40AF', '#065F46', '#92400E',
+]
 
-  const cijenaBase = stanje ? stanje[siteConfig.tipCijene] : artikal.planskaMaloprodajnaCijena ?? 0
-  const akcijaPopust = (artikal as any).akcija_popust ?? 0
-  const akcijaAktivna = akcijaPopust > 0 && (!(artikal as any).akcija_do || new Date((artikal as any).akcija_do) > new Date())
-  const popust = akcijaAktivna ? akcijaPopust : rabat
-  const cijena = popust > 0 ? Math.round(cijenaBase * (1 - popust / 100) * 100) / 100 : cijenaBase
-
-  const maxQty = stanje?.raspolozivaKolicina ?? 0
-  const canAdd = maxQty > 0
-  const isFav = favoriti.has(artikal.id)
-
-  function handleAdd() {
-    if (!canAdd) return
-    const toAdd = Math.min(qty, maxQty - inCart)
-    if (toAdd <= 0) return
-    for (let i = 0; i < toAdd; i++) add(artikal, cijenaBase, stanje ?? null)
-    setQty(1)
-  }
-
-  return (
-    <tr className="border-b border-gray-100 hover:bg-slate-50/60 transition-all duration-150 group">
-      <td className="py-2.5 pl-4 pr-2">
-        <Link href={`/proizvod/${artikal.id}`} className="text-[13px] font-medium text-gray-800 hover:text-emerald-700 transition-colors leading-snug block">
-          {artikal.naziv}
-        </Link>
-        {artikal.naziv2 && <span className="text-[11px] text-gray-400">{artikal.naziv2}</span>}
-      </td>
-      <td className="py-2.5 px-2 whitespace-nowrap">
-        <span className="text-[11px] font-mono text-gray-400">{artikal.sifra}</span>
-      </td>
-      <td className="py-2.5 px-2 hidden lg:table-cell">
-        <span className="text-[11px] text-gray-400">{artikal.grupa?.naziv ?? '—'}</span>
-      </td>
-      <td className="py-2.5 px-2 whitespace-nowrap">
-        {stanje === undefined ? (
-          <span className="text-[11px] text-gray-300">...</span>
-        ) : !stanje || stanje.raspolozivaKolicina <= 0 ? (
-          <span className="inline-flex items-center gap-1 text-[11px] font-medium text-red-500 bg-red-50 px-2 py-0.5 rounded-full">
-            <span className="w-1.5 h-1.5 rounded-full bg-red-400 inline-block" />Nema
-          </span>
-        ) : stanje.raspolozivaKolicina <= 3 ? (
-          <span className="inline-flex items-center gap-1 text-[11px] font-medium text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">
-            <span className="w-1.5 h-1.5 rounded-full bg-amber-400 inline-block" />{stanje.raspolozivaKolicina} kom
-          </span>
-        ) : (
-          <span className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />Na stanju
-          </span>
-        )}
-      </td>
-      <td className="py-2.5 px-2 whitespace-nowrap text-right">
-        <div className="text-[14px] font-bold text-gray-900">{formatCijena(cijena)}</div>
-        {popust > 0 && <div className="text-[11px] text-gray-400 line-through">{formatCijena(cijenaBase)}</div>}
-        {inCart > 0 && <div className="text-[10px] text-emerald-600 font-medium">{inCart} u korpi</div>}
-      </td>
-      <td className="py-2 pl-2 pr-3 whitespace-nowrap">
-        <div className="flex items-center gap-1.5 justify-end">
-          <button
-            onClick={() => toggleFavorit(artikal.id)}
-            className={`p-1.5 rounded-lg transition-all duration-200 ${isFav ? 'text-red-500 bg-red-50 ring-1 ring-red-200' : 'text-gray-300 hover:text-gray-400 hover:bg-gray-100 opacity-0 group-hover:opacity-100'}`}
-          >
-            <svg width="12" height="12" viewBox="0 0 24 24" fill={isFav ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2">
-              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-            </svg>
-          </button>
-          {/* Qty input */}
-          <input
-            type="number"
-            min={1}
-            max={maxQty}
-            value={qty}
-            onChange={e => setQty(Math.max(1, Math.min(maxQty, parseInt(e.target.value) || 1)))}
-            disabled={!canAdd}
-            className="w-14 h-7 text-center text-[12px] font-medium bg-white border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 transition-all duration-200 disabled:opacity-40 shadow-sm"
-          />
-          {/* Dodaj button */}
-          <button
-            onClick={handleAdd}
-            disabled={!canAdd || inCart + qty > maxQty}
-            className={`flex items-center gap-1.5 text-[12px] font-semibold px-3 py-1.5 rounded-lg transition-all duration-300 shadow-sm ${
-              canAdd && inCart + qty <= maxQty
-                ? 'bg-gradient-to-r from-emerald-700 to-emerald-600 text-white hover:from-emerald-600 hover:to-emerald-500 hover:shadow-emerald-500/25 hover:shadow-md hover:scale-[1.02] ring-1 ring-emerald-600/50 active:scale-95'
-                : 'bg-gray-100 text-gray-300 cursor-not-allowed'
-            }`}
-          >
-            <ShoppingCart size={11} />
-            {inCart > 0 ? 'Dodaj još' : 'Dodaj'}
-          </button>
-        </div>
-      </td>
-    </tr>
-  )
-}
-
-// ─── Skeleton Row ──────────────────────────────────────────────────────────────
-function SkeletonRow() {
-  return (
-    <tr className="border-b border-gray-100">
-      <td className="py-3 pl-4 pr-2"><div className="h-3.5 bg-gray-100 rounded w-3/4 animate-pulse" /></td>
-      <td className="py-3 px-2"><div className="h-3 bg-gray-100 rounded w-16 animate-pulse" /></td>
-      <td className="py-3 px-2 hidden lg:table-cell"><div className="h-3 bg-gray-100 rounded w-20 animate-pulse" /></td>
-      <td className="py-3 px-2"><div className="h-5 bg-gray-100 rounded-full w-16 animate-pulse" /></td>
-      <td className="py-3 px-2"><div className="h-4 bg-gray-100 rounded w-20 ml-auto animate-pulse" /></td>
-      <td className="py-3 pl-2 pr-4"><div className="h-7 bg-gray-100 rounded w-16 ml-auto animate-pulse" /></td>
-    </tr>
-  )
-}
-
-// ─── Main Page ─────────────────────────────────────────────────────────────────
-export default function HomePage() {
-  const [grupe, setGrupe] = useState<ArtikalGrupa[]>([])
-  const [artikli, setArtikli] = useState<Artikal[]>([])
-  const [stanje, setStanje] = useState<Record<number, StanjeSkladista>>({})
+export default function AdminKategorijePage() {
+  const [grupe, setGrupe] = useState<Grupa[]>([])
   const [loading, setLoading] = useState(true)
-  const [total, setTotal] = useState(0)
-  const [page, setPage] = useState(1)
-  const [activeGrupa, setActiveGrupa] = useState<number | null>(null)
   const [search, setSearch] = useState('')
-  const [searchInput, setSearchInput] = useState('')
-  const [filterStock, setFilterStock] = useState(false)
-  const [mobileFilters, setMobileFilters] = useState(false)
-  const [sortBy, setSortBy] = useState('naziv')
-  const [cijenaDo, setCijenaDo] = useState('')
-  const [cijenaOd, setCijenaOd] = useState('')
-  const [viewMode, setViewMode] = useState<'table' | 'grid'>('table')
+  const [saving, setSaving] = useState<number | null>(null)
+  const [saved, setSaved] = useState<number | null>(null)
+  const [izmjene, setIzmjene] = useState<Record<number, { boja?: string; ikona_url?: string }>>({})
 
-  const perPage = siteConfig.perPage
+  // Sidebar konfiguracija
+  const [sirina, setSirina] = useState(240)
+  const [visina, setVisina] = useState(52)
+  const [bojaPozadine, setBojaPozadine] = useState('#F8FAFA')
+  const [slikaUrl, setSlikaUrl] = useState('')
+  const [configChanged, setConfigChanged] = useState(false)
+  const [configSaved, setConfigSaved] = useState(false)
 
   useEffect(() => {
-    fetch('/api/grupe')
-      .then(r => r.json())
-      .then((d: PaginatedResponse<ArtikalGrupa>) => setGrupe(d.items ?? []))
-      .catch(console.error)
+    supabase.from('grupe').select('id, sifra, naziv, parent_id, boja, ikona_url').order('naziv')
+      .then(({ data }) => { setGrupe((data ?? []) as Grupa[]); setLoading(false) })
+
+    supabase.from('postavke').select('kljuc, vrijednost')
+      .in('kljuc', ['sidebar_sirina', 'sidebar_visina_kategorije', 'sidebar_boja_pozadine', 'sidebar_slika_url'])
+      .then(({ data }) => {
+        data?.forEach(p => {
+          if (p.kljuc === 'sidebar_sirina') setSirina(parseInt(p.vrijednost) || 240)
+          if (p.kljuc === 'sidebar_visina_kategorije') setVisina(parseInt(p.vrijednost) || 52)
+          if (p.kljuc === 'sidebar_boja_pozadine') setBojaPozadine(p.vrijednost || '#F8FAFA')
+          if (p.kljuc === 'sidebar_slika_url') setSlikaUrl(p.vrijednost || '')
+        })
+      })
   }, [])
 
-  const loadArtikli = useCallback(async () => {
-    setLoading(true)
-    const params = new URLSearchParams({
-      page: String(page),
-      perPage: String(perPage),
-      ...(search && { search }),
-      ...(activeGrupa && { grupaId: String(activeGrupa) }),
-      ...(sortBy && { sortBy }),
-      ...(cijenaOd && { cijenaOd }),
-      ...(cijenaDo && { cijenaDo }),
-    })
-    try {
-      const res = await fetch(`/api/artikli?${params}`)
-      const data: PaginatedResponse<Artikal> = await res.json()
-      setArtikli(data.items ?? [])
-      setTotal(data.total ?? 0)
-      if (data.items?.length) {
-        const ids = data.items.map(a => a.id).join(',')
-        const sr = await fetch(`/api/stanje?ids=${ids}`)
-        const sd: PaginatedResponse<StanjeSkladista> = await sr.json()
-        const map: Record<number, StanjeSkladista> = {}
-        sd.items?.forEach(s => { map[s.artikalId] = s })
-        setStanje(map)
-      }
-    } catch (e) {
-      console.error(e)
-    }
-    setLoading(false)
-  }, [page, perPage, search, activeGrupa, sortBy, cijenaOd, cijenaDo])
-
-  useEffect(() => { loadArtikli() }, [loadArtikli])
-
-  useEffect(() => {
-    const t = setTimeout(() => { setSearch(searchInput); setPage(1) }, 350)
-    return () => clearTimeout(t)
-  }, [searchInput])
-
-  function onGrupaSelect(id: number | null) {
-    setActiveGrupa(id)
-    setPage(1)
-    setMobileFilters(false)
+  function update(id: number, field: 'boja' | 'ikona_url', value: string) {
+    setIzmjene(prev => ({ ...prev, [id]: { ...prev[id], [field]: value } }))
+    setGrupe(prev => prev.map(g => g.id === id ? { ...g, [field]: value } : g))
   }
 
-  const displayed = filterStock
-    ? artikli.filter(a => { const s = stanje[a.id]; return s && s.raspolozivaKolicina > 0 })
-    : artikli
+  async function sacuvajGrupu(id: number) {
+    const izmjena = izmjene[id]
+    if (!izmjena) return
+    setSaving(id)
+    await supabase.from('grupe').update(izmjena).eq('id', id)
+    setSaving(null)
+    setSaved(id)
+    setTimeout(() => setSaved(null), 2000)
+    setIzmjene(prev => { const next = { ...prev }; delete next[id]; return next })
+  }
 
-  const totalPages = Math.ceil(total / perPage)
+  async function sacuvajConfig() {
+    await supabase.from('postavke').upsert([
+      { kljuc: 'sidebar_sirina', vrijednost: String(sirina) },
+      { kljuc: 'sidebar_visina_kategorije', vrijednost: String(visina) },
+      { kljuc: 'sidebar_boja_pozadine', vrijednost: bojaPozadine },
+      { kljuc: 'sidebar_slika_url', vrijednost: slikaUrl },
+    ], { onConflict: 'kljuc' })
+    setConfigChanged(false)
+    setConfigSaved(true)
+    setTimeout(() => setConfigSaved(false), 2000)
+  }
+
+  const roots = grupe.filter(g => !g.parent_id).filter(g => !search || g.naziv.toLowerCase().includes(search.toLowerCase()))
+  const getChildren = (parentId: number) => grupe.filter(g => g.parent_id === parentId)
+
+  // Sidebar preview ikona veličina
+  const ikonaSize = Math.round(Math.min(visina * 0.80, sirina * 0.32))
 
   return (
-    <AuthGuard>
-      <div className="min-h-screen bg-gray-50">
-        <Header onSearch={q => setSearchInput(q)} />
-        <HeroBanner />
-        <AkcijeSlider />
-
-        <main className="max-w-[1280px] mx-auto px-4 sm:px-6 py-5 pb-16">
-          {/* Toolbar */}
-          <div className="flex items-center gap-2 mb-4 flex-wrap">
-            {/* Breadcrumb */}
-            <div className="flex-1 min-w-0 flex items-center gap-1.5 text-[13px]">
-              {activeGrupa ? (
-                <>
-                  <button onClick={() => onGrupaSelect(null)} className="text-gray-400 hover:text-emerald-700 transition-colors">
-                    Sve kategorije
-                  </button>
-                  <ChevronRight size={12} className="text-gray-300" />
-                  <span className="text-gray-700 font-medium truncate">
-                    {grupe.find(g => g.id === activeGrupa)?.naziv}
-                  </span>
-                </>
-              ) : (
-                <span className="text-gray-400">
-                  {search ? `Pretraga: "${search}"` : 'Svi artikli'}
-                </span>
-              )}
-            </div>
-
-            {/* Controls */}
-            <label className="flex items-center gap-1.5 text-[12px] text-gray-500 cursor-pointer select-none">
-              <input type="checkbox" checked={filterStock} onChange={e => setFilterStock(e.target.checked)} className="accent-emerald-700 w-3.5 h-3.5" />
-              Samo na stanju
-            </label>
-
-            <button
-              className="md:hidden flex items-center gap-1 text-[12px] px-3 py-1.5 bg-white border border-gray-200 rounded text-gray-600"
-              onClick={() => setMobileFilters(!mobileFilters)}
-            >
-              <SlidersHorizontal size={12} /> Kategorije
-            </button>
-
-            <select
-              value={sortBy}
-              onChange={e => { setSortBy(e.target.value); setPage(1) }}
-              className="h-8 text-[12px] bg-white border border-gray-200 rounded px-2 text-gray-600 outline-none cursor-pointer"
-            >
-              <option value="naziv">Naziv A-Z</option>
-              <option value="naziv_desc">Naziv Z-A</option>
-              <option value="cijena_asc">Cijena ↑</option>
-              <option value="cijena_desc">Cijena ↓</option>
-            </select>
-
-            <div className="flex items-center gap-1">
-              <input type="number" placeholder="Od" value={cijenaOd}
-                onChange={e => { setCijenaOd(e.target.value); setPage(1) }}
-                className="w-16 h-8 text-[12px] px-2 bg-white border border-gray-200 rounded outline-none" />
-              <span className="text-gray-300 text-xs">–</span>
-              <input type="number" placeholder="Do KM" value={cijenaDo}
-                onChange={e => { setCijenaDo(e.target.value); setPage(1) }}
-                className="w-20 h-8 text-[12px] px-2 bg-white border border-gray-200 rounded outline-none" />
-            </div>
-
-            <span className="text-[12px] text-gray-400 bg-white border border-gray-200 px-3 py-1.5 rounded whitespace-nowrap">
-              {total.toLocaleString()} artikala
-            </span>
-
-            {/* View switcher */}
-            <div className="flex border border-gray-200 rounded overflow-hidden bg-white">
-              <button
-                onClick={() => setViewMode('table')}
-                title="Tabelarni prikaz"
-                className={`p-1.5 transition-colors ${viewMode === 'table' ? 'bg-emerald-700 text-white' : 'text-gray-400 hover:bg-gray-50'}`}
-              >
-                <LayoutList size={15} />
-              </button>
-              <button
-                onClick={() => setViewMode('grid')}
-                title="Grid prikaz"
-                className={`p-1.5 transition-colors ${viewMode === 'grid' ? 'bg-emerald-700 text-white' : 'text-gray-400 hover:bg-gray-50'}`}
-              >
-                <LayoutGrid size={15} />
-              </button>
-            </div>
-          </div>
-
-          {/* Mobile filters */}
-          {mobileFilters && (
-            <div className="md:hidden mb-4">
-              <CategorySidebar grupe={grupe} activeId={activeGrupa} onSelect={onGrupaSelect} />
-            </div>
-          )}
-
-          {/* Layout */}
-          <div className="flex gap-5 items-start">
-            <CategorySidebar grupe={grupe} activeId={activeGrupa} onSelect={onGrupaSelect} />
-
-            {/* Table */}
-            <div className="flex-1 min-w-0">
-              {viewMode === 'table' ? (
-                <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-                  <table className="w-full border-collapse">
-                    <thead>
-                      <tr className="bg-gray-50 border-b border-gray-200">
-                        <th className="py-2.5 pl-4 pr-2 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Naziv</th>
-                        <th className="py-2.5 px-2 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Šifra</th>
-                        <th className="py-2.5 px-2 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider hidden lg:table-cell">Kategorija</th>
-                        <th className="py-2.5 px-2 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Stanje</th>
-                        <th className="py-2.5 px-2 text-right text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Cijena</th>
-                        <th className="py-2.5 pl-2 pr-4 text-right text-[11px] font-semibold text-gray-400 uppercase tracking-wider"></th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {loading
-                        ? Array(perPage).fill(0).map((_, i) => <SkeletonRow key={i} />)
-                        : displayed.length === 0
-                        ? (
-                          <tr><td colSpan={6} className="py-16 text-center text-gray-400 text-[13px]">
-                            <Package size={28} className="mx-auto mb-2 opacity-30" />
-                            Nema artikala
-                            <br />
-                            <button onClick={() => { onGrupaSelect(null); setFilterStock(false) }}
-                              className="mt-2 text-emerald-700 underline text-[12px]">
-                              Prikaži sve
-                            </button>
-                          </td></tr>
-                        )
-                        : displayed.map(a => (
-                          <ProductRow key={a.id} artikal={a} stanje={stanje[a.id]} />
-                        ))
-                      }
-                    </tbody>
-                  </table>
-                </div>
-              ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-                  {loading
-                    ? Array(perPage).fill(0).map((_, i) => (
-                      <div key={i} className="bg-white border border-gray-200 rounded-lg overflow-hidden animate-pulse">
-                        <div className="pt-[72%] bg-gray-100" />
-                        <div className="p-3 space-y-2">
-                          <div className="h-3 bg-gray-100 rounded w-2/3" />
-                          <div className="h-3 bg-gray-100 rounded w-1/2" />
-                          <div className="h-8 bg-gray-100 rounded mt-2" />
-                        </div>
-                      </div>
-                    ))
-                    : displayed.length === 0
-                    ? (
-                      <div className="col-span-full py-16 text-center text-gray-400 text-[13px]">
-                        <Package size={28} className="mx-auto mb-2 opacity-30" />
-                        Nema artikala
-                        <br />
-                        <button onClick={() => { onGrupaSelect(null); setFilterStock(false) }}
-                          className="mt-2 text-emerald-700 underline text-[12px]">
-                          Prikaži sve
-                        </button>
-                      </div>
-                    )
-                    : displayed.map(a => (
-                      <ProductCard key={a.id} artikal={a} stanje={stanje[a.id]} slika={(a as any).slika_url} />
-                    ))
-                  }
-                </div>
-              )}
-
-              {/* Pagination */}
-              {totalPages > 1 && (
-                <div className="flex items-center justify-center gap-1.5 mt-6 flex-wrap">
-                  <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page <= 1}
-                    className="px-3 py-1.5 text-[12px] bg-white border border-gray-200 rounded text-gray-600 hover:bg-gray-50 disabled:opacity-40 transition-colors">
-                    ← Prethodna
-                  </button>
-                  {Array.from({ length: Math.min(7, totalPages) }, (_, i) => {
-                    let p: number
-                    if (totalPages <= 7) p = i + 1
-                    else if (page <= 4) p = i + 1
-                    else if (page >= totalPages - 3) p = totalPages - 6 + i
-                    else p = page - 3 + i
-                    return (
-                      <button key={p} onClick={() => setPage(p)}
-                        className={`w-8 h-8 text-[12px] rounded border transition-colors ${
-                          p === page
-                            ? 'bg-emerald-700 text-white border-emerald-700 font-semibold'
-                            : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
-                        }`}>
-                        {p}
-                      </button>
-                    )
-                  })}
-                  <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page >= totalPages}
-                    className="px-3 py-1.5 text-[12px] bg-white border border-gray-200 rounded text-gray-600 hover:bg-gray-50 disabled:opacity-40 transition-colors">
-                    Sljedeća →
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        </main>
-
-        <footer className="border-t border-gray-200 bg-white py-6 px-6">
-          <div className="max-w-[1280px] mx-auto flex justify-between items-center flex-wrap gap-4 text-[12px] text-gray-400">
-            <div>
-              <span className="font-semibold text-gray-600">{siteConfig.name}</span>
-              <span className="mx-2">·</span>
-              B2B webshop · Powered by NIBIS ERP
-            </div>
-            <div className="flex gap-5">
-              <span>Pon–Pet 08:00–16:00</span>
-              {siteConfig.contactEmail && (
-                <a href={`mailto:${siteConfig.contactEmail}`} className="text-emerald-700 hover:underline">
-                  {siteConfig.contactEmail}
-                </a>
-              )}
-            </div>
-          </div>
-        </footer>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      <div>
+        <h1 style={{ fontSize: '20px', fontWeight: 600, margin: 0, color: 'var(--text)' }}>Kategorije</h1>
+        <p style={{ fontSize: '14px', color: 'var(--text-muted)', margin: '4px 0 0' }}>
+          Postavi boje, ikone i izgled sidebara
+        </p>
       </div>
-    </AuthGuard>
+
+      {/* ── Sidebar konfiguracija ── */}
+      <div style={{ background: 'white', border: '1px solid var(--border)', borderRadius: '14px', overflow: 'hidden' }}>
+        <div style={{ padding: '14px 20px', background: 'var(--surface)', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text)' }}>Izgled sidebara</span>
+          {configChanged && (
+            <button onClick={sacuvajConfig} style={{
+              display: 'flex', alignItems: 'center', gap: '6px', padding: '7px 16px',
+              fontSize: '13px', fontWeight: 500, background: configSaved ? '#059669' : 'var(--brand)',
+              color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontFamily: 'inherit',
+            }}>
+              <Save size={13} />{configSaved ? 'Sačuvano ✓' : 'Sačuvaj'}
+            </button>
+          )}
+        </div>
+
+        <div style={{ padding: '20px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+          {/* Širina */}
+          <div>
+            <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              Širina — {sirina}px
+            </label>
+            <input type="range" min={180} max={420} step={10} value={sirina}
+              onChange={e => { setSirina(parseInt(e.target.value)); setConfigChanged(true) }}
+              style={{ width: '100%', accentColor: 'var(--brand)' }} />
+          </div>
+
+          {/* Visina reda */}
+          <div>
+            <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              Visina reda — {visina}px
+            </label>
+            <input type="range" min={36} max={90} step={2} value={visina}
+              onChange={e => { setVisina(parseInt(e.target.value)); setConfigChanged(true) }}
+              style={{ width: '100%', accentColor: 'var(--brand)' }} />
+          </div>
+
+          {/* Boja pozadine */}
+          <div>
+            <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              Boja pozadine sidebara
+            </label>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <input type="color" value={bojaPozadine}
+                onChange={e => { setBojaPozadine(e.target.value); setConfigChanged(true); setSlikaUrl('') }}
+                style={{ width: '40px', height: '36px', border: 'none', borderRadius: '8px', cursor: 'pointer', padding: '2px' }} />
+              <span style={{ fontSize: '12px', fontFamily: 'monospace', color: 'var(--text-muted)' }}>{bojaPozadine}</span>
+              <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>— ili dodaj sliku ispod</span>
+            </div>
+          </div>
+
+          {/* Slika pozadine */}
+          <div>
+            <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              Slika pozadine (URL) — preuzima prioritet
+            </label>
+            <div style={{ display: 'flex', gap: '6px' }}>
+              <input type="text" value={slikaUrl} placeholder="https://..."
+                onChange={e => { setSlikaUrl(e.target.value); setConfigChanged(true) }}
+                style={{ flex: 1, padding: '8px 10px', fontSize: '12px', border: '1px solid var(--border)', borderRadius: '8px', outline: 'none', fontFamily: 'inherit' }} />
+              {slikaUrl && (
+                <button onClick={() => { setSlikaUrl(''); setConfigChanged(true) }}
+                  style={{ padding: '8px', background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: '8px', cursor: 'pointer', color: '#DC2626', display: 'flex', alignItems: 'center' }}>
+                  <X size={14} />
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Live preview */}
+        <div style={{ padding: '0 20px 20px' }}>
+          <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+            Preview
+          </div>
+          <div style={{
+            width: sirina + 'px',
+            borderRadius: '10px',
+            overflow: 'hidden',
+            border: '1px solid var(--border)',
+            background: slikaUrl ? `url(${slikaUrl}) center/cover` : bojaPozadine,
+            boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+            maxWidth: '100%',
+          }}>
+            {/* Header */}
+            <div style={{ padding: '8px 12px', background: 'rgba(0,0,0,0.06)', borderBottom: '1px solid rgba(0,0,0,0.08)' }}>
+              <span style={{ fontSize: '10px', fontWeight: 700, color: slikaUrl ? 'white' : '#6B7280', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Kategorije</span>
+            </div>
+            {/* Sample rows */}
+            {roots.slice(0, 4).map(root => {
+              const boja = root.boja || '#6B7280'
+              return (
+                <div key={root.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '4px 6px', height: visina + 'px' }}>
+                  <div style={{
+                    width: ikonaSize + 'px', height: ikonaSize + 'px', borderRadius: '7px', flexShrink: 0,
+                    background: boja, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    boxShadow: `0 2px 6px ${boja}50`,
+                  }}>
+                    {root.ikona_url ? (
+                      <img src={root.ikona_url} alt="" style={{ width: Math.round(ikonaSize * 0.58) + 'px', height: Math.round(ikonaSize * 0.58) + 'px', objectFit: 'contain', filter: 'brightness(0) invert(1)' }} />
+                    ) : (
+                      <div style={{ width: Math.round(ikonaSize * 0.38) + 'px', height: Math.round(ikonaSize * 0.38) + 'px', borderRadius: '3px', background: 'rgba(255,255,255,0.8)' }} />
+                    )}
+                  </div>
+                  <span style={{ fontSize: '12px', color: slikaUrl ? 'white' : '#374151', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
+                    {root.naziv}
+                  </span>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* ── Pretraga ── */}
+      <div style={{ position: 'relative', maxWidth: '320px' }}>
+        <Search size={14} style={{ position: 'absolute', left: '11px', top: '50%', transform: 'translateY(-50%)', color: '#9CACA6', pointerEvents: 'none' }} />
+        <input type="text" placeholder="Pretraži kategorije..." value={search} onChange={e => setSearch(e.target.value)}
+          style={{ paddingLeft: '34px', paddingRight: '12px', height: '38px', fontSize: '13px', background: 'white', border: '1px solid var(--border)', borderRadius: '9px', outline: 'none', fontFamily: 'inherit', width: '100%' }} />
+      </div>
+
+      {/* ── Lista kategorija ── */}
+      {loading ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          {[1,2,3,4].map(i => <div key={i} style={{ height: '72px', background: 'white', border: '1px solid var(--border)', borderRadius: '12px', animation: 'pulse 1.5s infinite' }} />)}
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          {roots.map(root => (
+            <div key={root.id}>
+              <GrupaRow grupa={root} onUpdate={update} onSave={sacuvajGrupu}
+                saving={saving === root.id} saved={saved === root.id} hasChanges={!!izmjene[root.id]} presetBoje={PRESET_BOJE} />
+              {getChildren(root.id).map(child => (
+                <div key={child.id} style={{ marginLeft: '20px', marginTop: '4px' }}>
+                  <GrupaRow grupa={child} onUpdate={update} onSave={sacuvajGrupu}
+                    saving={saving === child.id} saved={saved === child.id} hasChanges={!!izmjene[child.id]} presetBoje={PRESET_BOJE} isChild />
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function GrupaRow({ grupa, onUpdate, onSave, saving, saved, hasChanges, presetBoje, isChild }: {
+  grupa: Grupa
+  onUpdate: (id: number, field: 'boja' | 'ikona_url', value: string) => void
+  onSave: (id: number) => void
+  saving: boolean; saved: boolean; hasChanges: boolean
+  presetBoje: string[]; isChild?: boolean
+}) {
+  const [showPicker, setShowPicker] = useState(false)
+  const boja = grupa.boja || '#0F6E56'
+
+  return (
+    <div style={{
+      background: 'white', border: '1px solid var(--border)', borderRadius: '12px',
+      padding: '12px 16px', display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap',
+    }}>
+      {/* Preview ikone */}
+      <div style={{
+        width: '40px', height: '40px', borderRadius: '10px', background: boja, flexShrink: 0,
+        display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 2px 8px ${boja}40`,
+      }}>
+        {grupa.ikona_url ? (
+          <img src={grupa.ikona_url} alt="" style={{ width: '22px', height: '22px', objectFit: 'contain', filter: 'brightness(0) invert(1)' }} />
+        ) : (
+          <Palette size={16} style={{ color: 'white', opacity: 0.8 }} />
+        )}
+      </div>
+
+      {/* Naziv */}
+      <div style={{ flex: 1, minWidth: '100px' }}>
+        <div style={{ fontSize: isChild ? '13px' : '14px', fontWeight: 500, color: 'var(--text)' }}>{grupa.naziv}</div>
+        <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'monospace' }}>{grupa.sifra}</div>
+      </div>
+
+      {/* Boja */}
+      <div style={{ position: 'relative' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Boja</span>
+          <button onClick={() => setShowPicker(!showPicker)} style={{
+            width: '26px', height: '26px', borderRadius: '6px', background: boja,
+            border: '2px solid white', boxShadow: '0 0 0 1px var(--border)', cursor: 'pointer',
+            transition: 'transform 0.15s',
+          }}
+            onMouseEnter={e => (e.currentTarget as HTMLElement).style.transform = 'scale(1.1)'}
+            onMouseLeave={e => (e.currentTarget as HTMLElement).style.transform = 'none'}
+          />
+        </div>
+
+        {showPicker && (
+          <>
+            <div style={{ position: 'fixed', inset: 0, zIndex: 10 }} onClick={() => setShowPicker(false)} />
+            <div style={{
+              position: 'absolute', top: 'calc(100% + 8px)', left: 0, zIndex: 20,
+              background: 'white', border: '1px solid var(--border)', borderRadius: '12px',
+              padding: '14px', boxShadow: '0 8px 24px rgba(0,0,0,0.12)', width: '200px',
+            }}>
+              <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px' }}>Brzi odabir</div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '12px' }}>
+                {presetBoje.map(c => (
+                  <button key={c} onClick={() => { onUpdate(grupa.id, 'boja', c); setShowPicker(false) }}
+                    style={{
+                      width: '24px', height: '24px', borderRadius: '6px', background: c, cursor: 'pointer',
+                      border: boja === c ? '2px solid #1a202c' : '2px solid transparent',
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.2)', transition: 'transform 0.1s',
+                    }}
+                    onMouseEnter={e => (e.currentTarget as HTMLElement).style.transform = 'scale(1.15)'}
+                    onMouseLeave={e => (e.currentTarget as HTMLElement).style.transform = 'none'}
+                  />
+                ))}
+              </div>
+              <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>Prilagođena</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <input type="color" value={boja} onChange={e => onUpdate(grupa.id, 'boja', e.target.value)}
+                  style={{ width: '36px', height: '32px', border: 'none', padding: 0, cursor: 'pointer', borderRadius: '6px' }} />
+                <input type="text" value={boja}
+                  onChange={e => { if (/^#[0-9A-Fa-f]{6}$/.test(e.target.value)) onUpdate(grupa.id, 'boja', e.target.value) }}
+                  style={{ flex: 1, padding: '6px 8px', fontSize: '12px', fontFamily: 'monospace', border: '1px solid var(--border)', borderRadius: '6px', outline: 'none' }} />
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* Ikona URL */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+        <span style={{ fontSize: '11px', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>Ikona URL</span>
+        <input type="text" value={grupa.ikona_url || ''} onChange={e => onUpdate(grupa.id, 'ikona_url', e.target.value)}
+          placeholder="https://..."
+          style={{ width: '160px', padding: '6px 10px', fontSize: '12px', border: '1px solid var(--border)', borderRadius: '8px', outline: 'none', fontFamily: 'inherit' }}
+          onFocus={e => { e.target.style.borderColor = 'var(--brand-light)'; e.target.style.boxShadow = '0 0 0 3px rgba(29,158,117,0.1)' }}
+          onBlur={e => { e.target.style.borderColor = 'var(--border)'; e.target.style.boxShadow = 'none' }}
+        />
+        {grupa.ikona_url && (
+          <img src={grupa.ikona_url} alt="" style={{ width: '24px', height: '24px', objectFit: 'contain', borderRadius: '4px', border: '1px solid var(--border)' }} />
+        )}
+      </div>
+
+      {/* Sačuvaj */}
+      {hasChanges && (
+        <button onClick={() => onSave(grupa.id)} disabled={saving}
+          style={{
+            display: 'flex', alignItems: 'center', gap: '6px', padding: '7px 14px', fontSize: '12px', fontWeight: 500,
+            background: saved ? '#059669' : 'var(--brand)', color: 'white', border: 'none', borderRadius: '8px',
+            cursor: saving ? 'not-allowed' : 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap',
+          }}>
+          <Save size={12} />{saving ? 'Čuvam...' : saved ? 'Sačuvano ✓' : 'Sačuvaj'}
+        </button>
+      )}
+    </div>
   )
 }

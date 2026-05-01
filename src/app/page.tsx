@@ -25,9 +25,10 @@ function CategorySidebar({ grupe, activeId, onSelect, sirina = 240, sidebarConfi
   const [open, setOpen] = useState<Record<number, boolean>>({})
   const roots = grupe.filter(g => !g.parentId)
   const visinaKat = sidebarConfig?.visinaKategorije ?? 52
-  // Ikona zauzima 75% visine reda — proporcionalna i visini i širini
-  const ikonaSize = Math.round(Math.min(visinaKat * 0.78, sirina * 0.35))
-  const ikonaImgSize = Math.round(ikonaSize * 0.58)
+  // Ikona = 84% visine reda, ali ne više od 38% širine sidebara
+  const ikonaSize = Math.round(Math.min(visinaKat * 0.84, sirina * 0.38))
+  const ikonaImgSize = Math.round(ikonaSize * 0.60)
+  const ikonaRadius = Math.round(ikonaSize * 0.22)
   const fontSize = sirina > 300 ? '13px' : sirina > 220 ? '12px' : '11px'
   const hasBgSlika = !!(sidebarConfig?.slikaUrl?.trim())
   const bgStyle = hasBgSlika
