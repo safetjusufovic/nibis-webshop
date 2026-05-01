@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
-import { Save, Monitor, Palette, Type, Layout, ChevronDown } from 'lucide-react'
+import { Save, Monitor, Palette, Type, Layout } from 'lucide-react'
 
 // ─── Ključevi moraju biti isti kao u bazi ─────────────────────────────────────
 interface Theme {
@@ -51,68 +51,47 @@ const PRESET_BOJE = [
   '#F8FAFA', '#F1F5F9', '#E5E7EB', '#ffffff',
 ]
 
-// ─── Inline Color Picker (kao na kategorijama) ────────────────────────────────
+// ─── Color Picker — uvijek vidljiv ───────────────────────────────────────────
 function BojaInput({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
-  const [open, setOpen] = useState(false)
-
   return (
     <div>
       <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
         {label}
       </label>
-      <div style={{ position: 'relative' }}>
-        <button onClick={() => setOpen(!open)} style={{
-          display: 'flex', alignItems: 'center', gap: '8px',
-          padding: '8px 12px', background: 'white', border: '1px solid var(--border)',
-          borderRadius: '9px', cursor: 'pointer', fontFamily: 'inherit', width: '100%',
-          transition: 'border-color 0.15s',
-        }}
-          onMouseEnter={e => (e.currentTarget as HTMLElement).style.borderColor = '#B8D4CB'}
-          onMouseLeave={e => (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)'}
-        >
-          <span style={{ width: '22px', height: '22px', borderRadius: '6px', background: value, border: '1px solid rgba(0,0,0,0.12)', flexShrink: 0 }} />
-          <span style={{ fontSize: '12px', fontFamily: 'monospace', color: 'var(--text)', flex: 1, textAlign: 'left' }}>{value}</span>
-          <ChevronDown size={12} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
-        </button>
-
-        {open && (
-          <>
-            <div style={{ position: 'fixed', inset: 0, zIndex: 40 }} onClick={() => setOpen(false)} />
-            <div style={{
-              position: 'absolute', top: 'calc(100% + 6px)', left: 0, zIndex: 50,
-              background: 'white', border: '1px solid var(--border)', borderRadius: '12px',
-              padding: '14px', boxShadow: '0 12px 32px rgba(0,0,0,0.15)', width: '230px',
-            }}>
-              <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px' }}>
-                Brzi odabir
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '5px', marginBottom: '12px' }}>
-                {PRESET_BOJE.map(c => (
-                  <button key={c} onClick={() => { onChange(c); setOpen(false) }}
-                    style={{
-                      width: '100%', aspectRatio: '1', borderRadius: '6px', background: c, cursor: 'pointer',
-                      border: value === c ? '2px solid var(--brand)' : '1px solid rgba(0,0,0,0.1)',
-                      transition: 'transform 0.1s',
-                    }}
-                    onMouseEnter={e => (e.currentTarget as HTMLElement).style.transform = 'scale(1.15)'}
-                    onMouseLeave={e => (e.currentTarget as HTMLElement).style.transform = 'none'}
-                  />
-                ))}
-              </div>
-              <div style={{ height: '1px', background: 'var(--border)', marginBottom: '12px' }} />
-              <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px' }}>
-                Prilagođena
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <input type="color" value={value} onChange={e => onChange(e.target.value)}
-                  style={{ width: '38px', height: '34px', border: 'none', borderRadius: '6px', cursor: 'pointer', padding: '2px', flexShrink: 0 }} />
-                <input type="text" value={value}
-                  onChange={e => { if (/^#[0-9A-Fa-f]{0,6}$/.test(e.target.value)) onChange(e.target.value) }}
-                  style={{ flex: 1, padding: '7px 8px', fontSize: '12px', fontFamily: 'monospace', border: '1px solid var(--border)', borderRadius: '6px', outline: 'none' }} />
-              </div>
-            </div>
-          </>
-        )}
+      <div style={{ background: 'white', border: '1px solid var(--border)', borderRadius: '10px', padding: '12px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        {/* Preset boje */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '5px' }}>
+          {PRESET_BOJE.map(c => (
+            <button key={c} onClick={() => onChange(c)}
+              title={c}
+              style={{
+                width: '100%', aspectRatio: '1', borderRadius: '6px', background: c, cursor: 'pointer',
+                border: value === c ? '2px solid #1a202c' : '1px solid rgba(0,0,0,0.1)',
+                transition: 'transform 0.1s', padding: 0,
+              }}
+              onMouseEnter={e => (e.currentTarget as HTMLElement).style.transform = 'scale(1.15)'}
+              onMouseLeave={e => (e.currentTarget as HTMLElement).style.transform = 'none'}
+            />
+          ))}
+        </div>
+        {/* Slobodan odabir */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingTop: '6px', borderTop: '1px solid var(--border)' }}>
+          <input
+            type="color"
+            value={value}
+            onChange={e => onChange(e.target.value)}
+            style={{ width: '40px', height: '36px', border: '1px solid var(--border)', borderRadius: '8px', cursor: 'pointer', padding: '2px', flexShrink: 0 }}
+          />
+          <input
+            type="text"
+            value={value}
+            onChange={e => { if (/^#[0-9A-Fa-f]{0,6}$/.test(e.target.value)) onChange(e.target.value) }}
+            style={{ flex: 1, padding: '7px 8px', fontSize: '12px', fontFamily: 'monospace', border: '1px solid var(--border)', borderRadius: '8px', outline: 'none' }}
+            onFocus={e => e.target.style.borderColor = 'var(--brand-light)'}
+            onBlur={e => e.target.style.borderColor = 'var(--border)'}
+          />
+          <span style={{ width: '28px', height: '28px', borderRadius: '6px', background: value, border: '1px solid rgba(0,0,0,0.12)', flexShrink: 0, display: 'inline-block' }} />
+        </div>
       </div>
     </div>
   )
