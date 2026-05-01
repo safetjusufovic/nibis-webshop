@@ -2,7 +2,8 @@
 
 import Link from 'next/link'
 import { ShoppingCart, Menu, X, ChevronDown, User, Search, Bell } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import { useCart } from '@/hooks/useCart'
 import { useAuth } from '@/hooks/useAuth'
@@ -13,6 +14,17 @@ import { siteConfig } from '@/lib/config'
 
 export default function Header({ onSearch }: { onSearch?: (q: string) => void }) {
   const { totalQty } = useCart()
+  const [postavke, setPostavke] = useState<Record<string, string>>({})
+
+  useEffect(() => {
+    supabase.from('postavke').select('kljuc, vrijednost')
+      .in('kljuc', ['announcement_bar', 'baner_boja_pozadine', 'baner_boja_teksta', 'shop_naziv'])
+      .then(({ data }) => {
+        const map: Record<string, string> = {}
+        data?.forEach(p => { map[p.kljuc] = p.vrijednost })
+        setPostavke(map)
+      })
+  }, [])
   const { user, profil, isAdmin, signOut } = useAuth()
   const [cartOpen, setCartOpen] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
@@ -37,21 +49,18 @@ export default function Header({ onSearch }: { onSearch?: (q: string) => void })
   return (
     <>
       {/* Announcement bar */}
-      <div style={{
-        background: 'var(--brand-dark)',
-        color: 'rgba(255,255,255,0.75)',
-        fontSize: '12px',
-        textAlign: 'center',
-        padding: '7px 16px',
-        letterSpacing: '0.01em',
-      }}>
-        <span style={{ color: 'rgba(255,255,255,0.45)', marginRight: '8px' }}>●</span>
-        Radimo pon–pet 08:00–16:00
-        <span style={{ margin: '0 12px', opacity: 0.3 }}>|</span>
-        Narudžbe do 14h — isporuka narednog radnog dana
-        <span style={{ margin: '0 12px', opacity: 0.3 }}>|</span>
-        {siteConfig.orgJedNaziv}
-      </div>
+      {(postavke.announcement_bar || true) && (
+        <div style={{
+          background: postavke.baner_boja_pozadine || 'var(--brand-dark)',
+          color: postavke.baner_boja_teksta || 'rgba(255,255,255,0.75)',
+          fontSize: '12px',
+          textAlign: 'center',
+          padding: '7px 16px',
+          letterSpacing: '0.01em',
+        }}>
+          {postavke.announcement_bar || `Radimo pon–pet 08:00–16:00 | ${siteConfig.orgJedNaziv}`}
+        </div>
+      )}
 
       <header style={{
         position: 'sticky',

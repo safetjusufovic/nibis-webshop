@@ -301,6 +301,34 @@ function SkeletonRow() {
   )
 }
 
+// ─── Footer ───────────────────────────────────────────────────────────────────
+function Footer() {
+  const [p, setP] = useState<Record<string, string>>({})
+  useEffect(() => {
+    fetch('/api/postavke?kljuci=shop_naziv,shop_email,shop_telefon,theme_footer_tekst,theme_footer_boja')
+      .then(r => r.json()).then(setP).catch(() => {})
+  }, [])
+  return (
+    <footer style={{ borderTop: '1px solid #E5E7EB', background: p.theme_footer_boja || 'white', padding: '24px' }}>
+      <div style={{ maxWidth: '1280px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', fontSize: '12px', color: '#6B7280' }}>
+        <div>
+          <span style={{ fontWeight: 600, color: '#374151' }}>{p.shop_naziv || siteConfig.name}</span>
+          <span style={{ margin: '0 6px' }}>·</span>
+          {p.theme_footer_tekst || 'B2B webshop · Powered by NIBIS ERP'}
+        </div>
+        <div style={{ display: 'flex', gap: '20px' }}>
+          {p.shop_telefon && <span>{p.shop_telefon}</span>}
+          {(p.shop_email || siteConfig.contactEmail) && (
+            <a href={`mailto:${p.shop_email || siteConfig.contactEmail}`} style={{ color: 'var(--brand)', textDecoration: 'none' }}>
+              {p.shop_email || siteConfig.contactEmail}
+            </a>
+          )}
+        </div>
+      </div>
+    </footer>
+  )
+}
+
 // ─── Main Page ─────────────────────────────────────────────────────────────────
 export default function HomePage() {
   const [grupe, setGrupe] = useState<ArtikalGrupa[]>([])
@@ -595,23 +623,7 @@ export default function HomePage() {
           </div>
         </main>
 
-        <footer className="border-t border-gray-200 bg-white py-6 px-6">
-          <div className="max-w-[1280px] mx-auto flex justify-between items-center flex-wrap gap-4 text-[12px] text-gray-400">
-            <div>
-              <span className="font-semibold text-gray-600">{siteConfig.name}</span>
-              <span className="mx-2">·</span>
-              B2B webshop · Powered by NIBIS ERP
-            </div>
-            <div className="flex gap-5">
-              <span>Pon–Pet 08:00–16:00</span>
-              {siteConfig.contactEmail && (
-                <a href={`mailto:${siteConfig.contactEmail}`} className="text-emerald-700 hover:underline">
-                  {siteConfig.contactEmail}
-                </a>
-              )}
-            </div>
-          </div>
-        </footer>
+        <Footer />
       </div>
     </AuthGuard>
   )
