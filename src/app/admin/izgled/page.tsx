@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
-import { Save, Monitor, Palette, Type, Layout, Sliders, Square, AlignLeft, Smartphone, Undo2, Download, Upload, Image as ImageIcon, Globe, ShoppingBag } from 'lucide-react'
+import { Save, Monitor, Palette, Type, Layout, Sliders, Square, AlignLeft, Smartphone, Undo2, Download, Upload, Image as ImageIcon, Globe, ShoppingBag, GripVertical, Eye, EyeOff } from 'lucide-react'
 
 // ─── Preset teme ──────────────────────────────────────────────────────────────
 const PRESET_TEME = [
@@ -61,6 +61,15 @@ interface Theme {
   nacini_placanja: string; korpa_napomena: string; korpa_pdv_prikaz: string; min_narudzba: string
   registracija_otvorena: string; registracija_poruka: string
   email_potvrda_narudzba: string; email_admin_narudzba: string; email_admin_registracija: string
+  theme_custom_css: string
+  theme_google_font_naslov: string
+  theme_google_font_tijelo: string
+  theme_gradient_primary: string
+  theme_gradient_boja2: string
+  theme_gradient_ugao: string
+  theme_sekcije_redosljed: string
+  theme_publish_status: string
+  theme_draft: string
 }
 
 const DEFAULTS: Theme = {
@@ -87,6 +96,15 @@ const DEFAULTS: Theme = {
   nacini_placanja: 'Virman,Gotovina,Kartica', korpa_napomena: 'true', korpa_pdv_prikaz: 'true', min_narudzba: '0',
   registracija_otvorena: 'true', registracija_poruka: 'Vaš zahtjev je primljen.',
   email_potvrda_narudzba: 'true', email_admin_narudzba: 'true', email_admin_registracija: 'true',
+  theme_custom_css: '',
+  theme_google_font_naslov: '',
+  theme_google_font_tijelo: '',
+  theme_gradient_primary: 'false',
+  theme_gradient_boja2: '#059669',
+  theme_gradient_ugao: '135',
+  theme_sekcije_redosljed: 'hero,akcije,katalog',
+  theme_publish_status: 'published',
+  theme_draft: '',
 }
 
 // ─── Komponente ───────────────────────────────────────────────────────────────
@@ -272,6 +290,92 @@ function LivePreview({ t, mobile }: { t: Theme; mobile: boolean }) {
   )
 }
 
+// ─── Google Fonts Loader ─────────────────────────────────────────────────────
+function GoogleFontsLoader({ naslov, tijelo }: { naslov: string; tijelo: string }) {
+  useEffect(() => {
+    const fonts = [naslov, tijelo].filter(Boolean)
+    if (!fonts.length) return
+    const id = 'google-fonts-preview'
+    document.getElementById(id)?.remove()
+    const link = document.createElement('link')
+    link.id = id
+    link.rel = 'stylesheet'
+    link.href = `https://fonts.googleapis.com/css2?${fonts.map(f => `family=${f.replace(/ /g, '+')}:wght@400;500;600;700`).join('&')}&display=swap`
+    document.head.appendChild(link)
+    return () => document.getElementById(id)?.remove()
+  }, [naslov, tijelo])
+  return null
+}
+
+// ─── Sekcije Editor ───────────────────────────────────────────────────────────
+const SVE_SEKCIJE = [
+  { id: 'hero', naziv: 'Hero banner', opis: 'Velika slika/boja sa naslovom' },
+  { id: 'akcije', naziv: 'Akcije slider', opis: 'Artikli na popustu' },
+  { id: 'katalog', naziv: 'Katalog', opis: 'Lista artikala sa filterima' },
+]
+
+function SekcijeEditor({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const aktivne = value.split(',').filter(Boolean)
+  const neaktivne = SVE_SEKCIJE.filter(s => !aktivne.includes(s.id))
+
+  function toggle(id: string) {
+    if (aktivne.includes(id)) {
+      onChange(aktivne.filter(a => a !== id).join(','))
+    } else {
+      onChange([...aktivne, id].join(','))
+    }
+  }
+
+  function moveUp(i: number) {
+    if (i === 0) return
+    const arr = [...aktivne]
+    ;[arr[i-1], arr[i]] = [arr[i], arr[i-1]]
+    onChange(arr.join(','))
+  }
+
+  function moveDown(i: number) {
+    if (i === aktivne.length - 1) return
+    const arr = [...aktivne]
+    ;[arr[i], arr[i+1]] = [arr[i+1], arr[i]]
+    onChange(arr.join(','))
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+      {aktivne.map((id, i) => {
+        const s = SVE_SEKCIJE.find(x => x.id === id)
+        if (!s) return null
+        return (
+          <div key={id} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px', background: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: '10px' }}>
+            <GripVertical size={14} style={{ color: '#9CA3AF', flexShrink: 0 }} />
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: '13px', fontWeight: 600, color: '#111827' }}>{s.naziv}</div>
+              <div style={{ fontSize: '11px', color: '#6B7280' }}>{s.opis}</div>
+            </div>
+            <div style={{ display: 'flex', gap: '4px' }}>
+              <button onClick={() => moveUp(i)} style={{ padding: '3px 6px', border: '1px solid #E5E7EB', borderRadius: '5px', background: 'white', cursor: 'pointer', fontSize: '11px' }}>↑</button>
+              <button onClick={() => moveDown(i)} style={{ padding: '3px 6px', border: '1px solid #E5E7EB', borderRadius: '5px', background: 'white', cursor: 'pointer', fontSize: '11px' }}>↓</button>
+              <button onClick={() => toggle(id)} style={{ padding: '3px 8px', border: '1px solid #FECACA', borderRadius: '5px', background: '#FEF2F2', cursor: 'pointer', fontSize: '11px', color: '#DC2626' }}>Sakrij</button>
+            </div>
+          </div>
+        )
+      })}
+      {neaktivne.length > 0 && (
+        <div style={{ marginTop: '6px' }}>
+          <div style={{ fontSize: '11px', fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>Skrivene sekcije</div>
+          {neaktivne.map(s => (
+            <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 12px', background: '#F9FAFB', border: '1px dashed #E5E7EB', borderRadius: '8px', marginBottom: '4px', opacity: 0.7 }}>
+              <EyeOff size={13} style={{ color: '#9CA3AF' }} />
+              <div style={{ flex: 1, fontSize: '13px', color: '#6B7280' }}>{s.naziv}</div>
+              <button onClick={() => toggle(s.id)} style={{ padding: '3px 10px', border: '1px solid #BBF7D0', borderRadius: '5px', background: '#F0FDF4', cursor: 'pointer', fontSize: '11px', color: '#059669', fontFamily: 'inherit' }}>+ Prikaži</button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ─── TABS ─────────────────────────────────────────────────────────────────────
 const TABS = [
   { id: 'teme', label: 'Teme', icon: <Palette size={13} /> },
@@ -284,6 +388,10 @@ const TABS = [
   { id: 'dugmad', label: 'Dugmad', icon: <Square size={13} /> },
   { id: 'spacing', label: 'Spacing', icon: <Sliders size={13} /> },
   { id: 'shop', label: 'Shop', icon: <ShoppingBag size={13} /> },
+  { id: 'fontovi', label: 'Google Fonts', icon: <Type size={13} /> },
+  { id: 'gradient', label: 'Gradient', icon: <Palette size={13} /> },
+  { id: 'sekcije', label: 'Sekcije', icon: <Layout size={13} /> },
+  { id: 'css', label: 'Custom CSS', icon: <Square size={13} /> },
 ]
 
 // ─── MAIN ─────────────────────────────────────────────────────────────────────
@@ -730,6 +838,126 @@ export default function AdminIzgledPage() {
             </Section>
           </>
         )}
+
+        {tab === 'fontovi' && (
+          <>
+            <Section title="Google Fonts — Naslov">
+              <TInput label="Naziv Google fonta za naslove (npr. Playfair Display)" value={theme.theme_google_font_naslov} onChange={v => set('theme_google_font_naslov', v)} placeholder="Playfair Display" />
+              <div style={{ fontSize: '12px', color: '#6B7280', padding: '8px 10px', background: '#F9FAFB', borderRadius: '8px' }}>
+                Pretraži fontove na <a href="https://fonts.google.com" target="_blank" style={{ color: '#0F6E56' }}>fonts.google.com</a> i upiši tačan naziv. Npr: Playfair Display, Merriweather, Oswald, Bebas Neue
+              </div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                {['Playfair Display', 'Merriweather', 'Oswald', 'Bebas Neue', 'Cormorant', 'Abril Fatface', 'Cinzel', 'Libre Baskerville'].map(f => (
+                  <button key={f} onClick={() => set('theme_google_font_naslov', f)} style={{
+                    padding: '5px 10px', border: theme.theme_google_font_naslov === f ? '2px solid #0F6E56' : '1px solid #E5E7EB',
+                    borderRadius: '20px', cursor: 'pointer', fontSize: '12px', fontFamily: 'inherit',
+                    background: theme.theme_google_font_naslov === f ? '#F0FDF4' : 'white',
+                    color: theme.theme_google_font_naslov === f ? '#0F6E56' : '#374151',
+                  }}>{f}</button>
+                ))}
+              </div>
+            </Section>
+            <Section title="Google Fonts — Tijelo teksta">
+              <TInput label="Naziv Google fonta za tijelo (npr. Source Serif 4)" value={theme.theme_google_font_tijelo} onChange={v => set('theme_google_font_tijelo', v)} placeholder="Source Serif 4" />
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                {['Inter', 'Plus Jakarta Sans', 'DM Sans', 'Outfit', 'Syne', 'Space Grotesk', 'Urbanist', 'Figtree'].map(f => (
+                  <button key={f} onClick={() => set('theme_google_font_tijelo', f)} style={{
+                    padding: '5px 10px', border: theme.theme_google_font_tijelo === f ? '2px solid #0F6E56' : '1px solid #E5E7EB',
+                    borderRadius: '20px', cursor: 'pointer', fontSize: '12px', fontFamily: 'inherit',
+                    background: theme.theme_google_font_tijelo === f ? '#F0FDF4' : 'white',
+                    color: theme.theme_google_font_tijelo === f ? '#0F6E56' : '#374151',
+                  }}>{f}</button>
+                ))}
+              </div>
+            </Section>
+            <GoogleFontsLoader naslov={theme.theme_google_font_naslov} tijelo={theme.theme_google_font_tijelo} />
+          </>
+        )}
+
+        {tab === 'gradient' && (
+          <>
+            <Section title="Gradient primarne boje">
+              <Toggle label="Koristiti gradient umjesto solid boje" value={theme.theme_gradient_primary} onChange={v => set('theme_gradient_primary', v)} desc="Primjenjuje se na dugmad, sidebar aktivnu kategoriju i ostale primarne elemente" />
+              {theme.theme_gradient_primary === 'true' && (
+                <>
+                  <Grid2>
+                    <BojaInput label="Boja 1 (primarna)" value={theme.theme_primary_boja} onChange={v => set('theme_primary_boja', v)} />
+                    <BojaInput label="Boja 2" value={theme.theme_gradient_boja2} onChange={v => set('theme_gradient_boja2', v)} />
+                  </Grid2>
+                  <Slider label="Ugao gradienta" value={theme.theme_gradient_ugao} onChange={v => set('theme_gradient_ugao', v)} min={0} max={360} unit="°" />
+                  <div style={{ padding: '20px', borderRadius: '10px', background: `linear-gradient(${theme.theme_gradient_ugao}deg, ${theme.theme_primary_boja}, ${theme.theme_gradient_boja2})`, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
+                    <span style={{ color: 'white', fontSize: '14px', fontWeight: 600 }}>Preview gradienta</span>
+                    <div style={{ background: 'white', color: theme.theme_primary_boja, fontSize: '13px', fontWeight: 700, padding: '8px 16px', borderRadius: parseInt(theme.theme_border_radius) + 'px' }}>Dugme</div>
+                  </div>
+                </>
+              )}
+            </Section>
+          </>
+        )}
+
+        {tab === 'sekcije' && (
+          <>
+            <Section title="Redosljed sekcija na glavnoj stranici">
+              <p style={{ fontSize: '13px', color: '#6B7280', margin: 0 }}>Odaberi koje sekcije se prikazuju i kojim redoslijedom:</p>
+              <SekcijeEditor value={theme.theme_sekcije_redosljed} onChange={v => set('theme_sekcije_redosljed', v)} />
+            </Section>
+            <Section title="Objavi / Radna verzija">
+              <div style={{ display: 'flex', gap: '10px' }}>
+                {[{ v: 'published', l: '✅ Objavljeno', d: 'Korisnici vide trenutnu temu' }, { v: 'draft', l: '📝 Radna verzija', d: 'Temu vide samo admini' }].map(o => (
+                  <button key={o.v} onClick={() => set('theme_publish_status', o.v)} style={{
+                    flex: 1, padding: '12px', border: theme.theme_publish_status === o.v ? '2px solid #0F6E56' : '1px solid #E5E7EB',
+                    borderRadius: '10px', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left',
+                    background: theme.theme_publish_status === o.v ? '#F0FDF4' : 'white',
+                  }}>
+                    <div style={{ fontSize: '14px', fontWeight: 600, color: '#111827', marginBottom: '4px' }}>{o.l}</div>
+                    <div style={{ fontSize: '12px', color: '#6B7280' }}>{o.d}</div>
+                  </button>
+                ))}
+              </div>
+            </Section>
+          </>
+        )}
+
+        {tab === 'css' && (
+          <>
+            <Section title="Custom CSS">
+              <p style={{ fontSize: '12px', color: '#6B7280', margin: 0 }}>
+                Napredno: upiši vlastiti CSS koji se dodaje na kraj stylesheets. Koristi CSS varijable kao <code style={{ background: '#F3F4F6', padding: '1px 4px', borderRadius: '3px' }}>var(--brand)</code>, <code style={{ background: '#F3F4F6', padding: '1px 4px', borderRadius: '3px' }}>var(--surface)</code> itd.
+              </p>
+              <textarea
+                value={theme.theme_custom_css}
+                onChange={e => set('theme_custom_css', e.target.value)}
+                placeholder={`/* Primjer */
+.btn-primary {
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.card {
+  transition: transform 0.2s;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+}`}
+                spellCheck={false}
+                rows={16}
+                style={{
+                  width: '100%', fontFamily: 'DM Mono, Courier New, monospace', fontSize: '13px',
+                  border: '1px solid #E5E7EB', borderRadius: '10px', padding: '12px',
+                  outline: 'none', resize: 'vertical', boxSizing: 'border-box',
+                  background: '#0F172A', color: '#E2E8F0', lineHeight: 1.6,
+                }}
+                onFocus={e => e.target.style.borderColor = '#0F6E56'}
+                onBlur={e => e.target.style.borderColor = '#E5E7EB'}
+              />
+              <div style={{ fontSize: '11px', color: '#6B7280' }}>
+                CSS varijable: <code>--brand</code>, <code>--surface</code>, <code>--border</code>, <code>--text</code>, <code>--text-muted</code>, <code>--radius</code>
+              </div>
+            </Section>
+          </>
+        )}
+
       </div>
 
       {/* RIGHT: Preview */}
