@@ -376,6 +376,124 @@ function SekcijeEditor({ value, onChange }: { value: string; onChange: (v: strin
   )
 }
 
+
+// ─── CSS Preset Teme ─────────────────────────────────────────────────────────
+const CSS_PRESET_TEME = [
+  {
+    naziv: 'Axiom',
+    emoji: '⬛',
+    opis: 'Enterprise · Monochrome · Zero noise',
+    css: `/* AXIOM — Enterprise B2B */
+* { -webkit-font-smoothing: antialiased !important; text-rendering: optimizeLegibility !important; }
+body { background: #f7f7f5 !important; color: #1a1a18 !important; }
+header { background: #ffffff !important; border-bottom: 1px solid #e8e8e4 !important; box-shadow: none !important; }
+article { background: #ffffff !important; border: 1px solid #e8e8e4 !important; border-radius: 4px !important; box-shadow: none !important; transition: border-color 0.15s ease, box-shadow 0.15s ease !important; }
+article:hover { border-color: #1a1a18 !important; box-shadow: 0 0 0 1px #1a1a18 !important; transform: none !important; }
+aside > div { background: #ffffff !important; border: 1px solid #e8e8e4 !important; border-radius: 4px !important; box-shadow: none !important; }
+table > thead > tr { background: transparent !important; border-bottom: 2px solid #1a1a18 !important; }
+table > thead > tr > th { color: #1a1a18 !important; font-size: 10px !important; font-weight: 700 !important; letter-spacing: 0.1em !important; text-transform: uppercase !important; }
+table > tbody > tr:hover { background: #f7f7f5 !important; }
+button[style*="var(--brand)"], .btn-primary { background: #1a1a18 !important; border: 1px solid #1a1a18 !important; border-radius: 2px !important; box-shadow: none !important; font-size: 11px !important; font-weight: 700 !important; letter-spacing: 0.08em !important; text-transform: uppercase !important; animation: none !important; }
+button[style*="var(--brand)"]:hover, .btn-primary:hover { background: #333330 !important; transform: none !important; box-shadow: none !important; }
+input, select, textarea { background: #ffffff !important; border: 1px solid #d0d0cc !important; border-radius: 2px !important; box-shadow: none !important; }
+input:focus, select:focus { border-color: #1a1a18 !important; box-shadow: none !important; }
+footer { background: #1a1a18 !important; border-top: none !important; }
+footer * { color: rgba(255,255,255,0.5) !important; }
+::selection { background: #1a1a18 !important; color: #ffffff !important; }
+::-webkit-scrollbar { width: 4px; } ::-webkit-scrollbar-thumb { background: #d0d0cc; border-radius: 0; }`,
+  },
+  {
+    naziv: 'Dark Neon',
+    emoji: '🟢',
+    opis: 'Dark glass · Neon glow · Animated',
+    css: `/* DARK NEON */
+@keyframes gradientShift { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+@keyframes neonPulse { 0%,100% { box-shadow: 0 0 10px rgba(15,110,86,0.5),0 0 20px rgba(15,110,86,0.3); } 50% { box-shadow: 0 0 20px rgba(15,110,86,0.8),0 0 40px rgba(15,110,86,0.5); } }
+@keyframes shimmer { 0% { left: -100%; } 100% { left: 200%; } }
+body { background: linear-gradient(-45deg,#0a1628,#0d2137,#0a2e1f,#0d1f2d) !important; background-size: 400% 400% !important; animation: gradientShift 15s ease infinite !important; }
+header { background: rgba(10,22,40,0.7) !important; backdrop-filter: blur(24px) !important; border-bottom: 1px solid rgba(255,255,255,0.08) !important; box-shadow: 0 4px 30px rgba(0,0,0,0.3) !important; }
+article { background: rgba(255,255,255,0.04) !important; backdrop-filter: blur(10px) !important; border: 1px solid rgba(255,255,255,0.08) !important; color: #e2e8f0 !important; transition: all 0.4s cubic-bezier(0.175,0.885,0.32,1.275) !important; }
+article:hover { background: rgba(255,255,255,0.08) !important; border-color: rgba(15,110,86,0.5) !important; transform: translateY(-6px) !important; box-shadow: 0 20px 40px rgba(0,0,0,0.4),0 0 30px rgba(15,110,86,0.1) !important; }
+aside > div { background: rgba(255,255,255,0.04) !important; backdrop-filter: blur(20px) !important; border: 1px solid rgba(255,255,255,0.08) !important; }
+h1,h2,h3,p,span,td,th,label,div { color: #e2e8f0; }
+button[style*="var(--brand)"],.btn-primary { background: linear-gradient(135deg,#0F6E56,#059669,#0891B2) !important; box-shadow: 0 0 15px rgba(15,110,86,0.4) !important; position: relative !important; overflow: hidden !important; animation: neonPulse 3s ease-in-out infinite !important; }
+button[style*="var(--brand)"]:hover,.btn-primary:hover { transform: translateY(-3px) scale(1.03) !important; box-shadow: 0 0 30px rgba(15,110,86,0.7),0 0 60px rgba(15,110,86,0.3) !important; }
+input,select,textarea { background: rgba(255,255,255,0.05) !important; border: 1px solid rgba(255,255,255,0.1) !important; color: #e2e8f0 !important; }
+input:focus,select:focus { background: rgba(15,110,86,0.1) !important; border-color: rgba(15,110,86,0.6) !important; }
+::-webkit-scrollbar { width: 4px; } ::-webkit-scrollbar-thumb { background: linear-gradient(180deg,#0F6E56,#0891B2); }
+::selection { background: rgba(15,110,86,0.4) !important; color: #f0fdf4 !important; }`,
+  },
+  {
+    naziv: 'Bento Mesh',
+    emoji: '🎨',
+    opis: 'Mesh gradient · Soft shadows · Pill buttons',
+    css: `/* BENTO MESH */
+body { background-color: #fafaf9 !important; background-image: radial-gradient(at 20% 20%,rgba(134,239,172,0.3) 0px,transparent 50%),radial-gradient(at 80% 10%,rgba(147,197,253,0.25) 0px,transparent 50%),radial-gradient(at 60% 80%,rgba(196,181,253,0.2) 0px,transparent 50%) !important; background-attachment: fixed !important; }
+header { background: rgba(255,255,255,0.92) !important; backdrop-filter: blur(20px) saturate(180%) !important; border-bottom: 1px solid rgba(0,0,0,0.06) !important; box-shadow: 0 1px 40px rgba(0,0,0,0.06) !important; }
+article { background: white !important; border: 1px solid rgba(0,0,0,0.06) !important; border-radius: 20px !important; box-shadow: 0 2px 4px rgba(0,0,0,0.04),0 12px 24px rgba(0,0,0,0.06) !important; transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1) !important; }
+article:hover { transform: translateY(-6px) !important; box-shadow: 0 4px 8px rgba(0,0,0,0.04),0 24px 48px rgba(0,0,0,0.1) !important; border-color: rgba(0,0,0,0.1) !important; }
+aside > div { background: rgba(255,255,255,0.85) !important; backdrop-filter: blur(16px) !important; border: 1px solid rgba(0,0,0,0.06) !important; border-radius: 20px !important; box-shadow: 0 4px 24px rgba(0,0,0,0.06) !important; }
+button[style*="var(--brand)"],.btn-primary { background: linear-gradient(135deg,#0F6E56,#059669) !important; border-radius: 100px !important; font-weight: 600 !important; box-shadow: 0 4px 12px rgba(15,110,86,0.35) !important; transition: all 0.25s cubic-bezier(0.34,1.56,0.64,1) !important; animation: none !important; }
+button[style*="var(--brand)"]:hover,.btn-primary:hover { transform: translateY(-2px) scale(1.04) !important; box-shadow: 0 8px 20px rgba(15,110,86,0.45) !important; }
+input,select { background: #f9fafb !important; border: 1.5px solid #e5e7eb !important; border-radius: 12px !important; }
+input:focus,select:focus { background: white !important; border-color: #0F6E56 !important; box-shadow: 0 0 0 4px rgba(15,110,86,0.1) !important; }
+::selection { background: rgba(15,110,86,0.15) !important; color: #065f46 !important; }
+::-webkit-scrollbar { width: 5px; } ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 10px; }`,
+  },
+  {
+    naziv: 'Glassmorphism',
+    emoji: '🔮',
+    opis: 'Glass cards · Blur · Frosted UI',
+    css: `/* GLASSMORPHISM */
+body { background: linear-gradient(135deg,#f0fff4 0%,#e0f2fe 50%,#faf5ff 100%) !important; background-attachment: fixed !important; }
+header { background: rgba(255,255,255,0.7) !important; backdrop-filter: blur(20px) saturate(180%) !important; border-bottom: 1px solid rgba(255,255,255,0.5) !important; box-shadow: 0 4px 20px rgba(0,0,0,0.04) !important; }
+article { background: rgba(255,255,255,0.6) !important; backdrop-filter: blur(12px) !important; border: 1px solid rgba(255,255,255,0.8) !important; box-shadow: 0 8px 32px rgba(0,0,0,0.08),inset 0 1px 0 rgba(255,255,255,0.9) !important; transition: all 0.4s cubic-bezier(0.34,1.56,0.64,1) !important; }
+article:hover { transform: translateY(-8px) scale(1.01) !important; box-shadow: 0 24px 48px rgba(0,0,0,0.15),inset 0 1px 0 rgba(255,255,255,0.9) !important; }
+aside > div { background: rgba(255,255,255,0.6) !important; backdrop-filter: blur(16px) !important; border: 1px solid rgba(255,255,255,0.8) !important; }
+button[style*="var(--brand)"],.btn-primary { background: linear-gradient(135deg,var(--brand),var(--brand)cc) !important; box-shadow: 0 4px 15px rgba(15,110,86,0.4) !important; position: relative !important; overflow: hidden !important; animation: none !important; }
+button[style*="var(--brand)"]:hover,.btn-primary:hover { box-shadow: 0 8px 25px rgba(15,110,86,0.6),0 0 40px rgba(15,110,86,0.2) !important; transform: translateY(-2px) !important; }
+input:focus,select:focus { box-shadow: 0 0 0 3px rgba(15,110,86,0.15),0 0 20px rgba(15,110,86,0.1) !important; border-color: var(--brand) !important; }
+::selection { background: rgba(15,110,86,0.2) !important; color: var(--brand) !important; }`,
+  },
+  {
+    naziv: 'Minimal White',
+    emoji: '⬜',
+    opis: 'Ultra clean · Maximum whitespace · Apple-like',
+    css: `/* MINIMAL WHITE */
+* { -webkit-font-smoothing: antialiased !important; }
+body { background: #ffffff !important; }
+header { background: rgba(255,255,255,0.95) !important; backdrop-filter: blur(10px) !important; border-bottom: 1px solid #f0f0f0 !important; box-shadow: none !important; }
+article { background: #ffffff !important; border: 1px solid #f0f0f0 !important; border-radius: 16px !important; box-shadow: 0 2px 20px rgba(0,0,0,0.06) !important; transition: box-shadow 0.2s ease !important; }
+article:hover { box-shadow: 0 8px 40px rgba(0,0,0,0.12) !important; transform: none !important; border-color: #e0e0e0 !important; }
+aside > div { background: #fafafa !important; border: none !important; border-radius: 16px !important; box-shadow: none !important; }
+button[style*="var(--brand)"],.btn-primary { background: #000000 !important; border-radius: 100px !important; font-weight: 600 !important; font-size: 13px !important; letter-spacing: 0 !important; text-transform: none !important; box-shadow: none !important; animation: none !important; transition: opacity 0.15s ease !important; }
+button[style*="var(--brand)"]:hover,.btn-primary:hover { background: #333333 !important; transform: none !important; box-shadow: none !important; opacity: 0.85 !important; }
+input,select { border: 1px solid #e0e0e0 !important; border-radius: 10px !important; background: #fafafa !important; }
+input:focus,select:focus { border-color: #000000 !important; box-shadow: 0 0 0 3px rgba(0,0,0,0.08) !important; background: white !important; }
+table > thead > tr { border-bottom: 1px solid #000000 !important; }
+table > thead > tr > th { font-size: 11px !important; font-weight: 600 !important; letter-spacing: 0.05em !important; color: #666666 !important; }
+footer { background: #000000 !important; } footer * { color: rgba(255,255,255,0.6) !important; }
+::selection { background: rgba(0,0,0,0.1) !important; }
+::-webkit-scrollbar { width: 4px; } ::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 4px; }`,
+  },
+  {
+    naziv: 'Aurora',
+    emoji: '🌅',
+    opis: 'Warm gradient · Soft · Premium feel',
+    css: `/* AURORA */
+@keyframes aurora { 0%,100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+body { background: linear-gradient(-45deg,#fff7ed,#fef3c7,#f0fdf4,#eff6ff) !important; background-size: 400% 400% !important; animation: aurora 20s ease infinite !important; }
+header { background: rgba(255,255,255,0.85) !important; backdrop-filter: blur(20px) !important; border-bottom: 1px solid rgba(255,255,255,0.6) !important; box-shadow: 0 2px 20px rgba(0,0,0,0.05) !important; }
+article { background: rgba(255,255,255,0.75) !important; backdrop-filter: blur(8px) !important; border: 1px solid rgba(255,255,255,0.9) !important; border-radius: 16px !important; box-shadow: 0 4px 24px rgba(0,0,0,0.06) !important; transition: all 0.3s ease !important; }
+article:hover { transform: translateY(-4px) !important; box-shadow: 0 12px 40px rgba(0,0,0,0.1) !important; }
+aside > div { background: rgba(255,255,255,0.75) !important; backdrop-filter: blur(12px) !important; border: 1px solid rgba(255,255,255,0.9) !important; border-radius: 16px !important; }
+button[style*="var(--brand)"],.btn-primary { background: linear-gradient(135deg,#d97706,#f59e0b) !important; border-radius: 12px !important; font-weight: 600 !important; box-shadow: 0 4px 14px rgba(217,119,6,0.4) !important; animation: none !important; color: white !important; }
+button[style*="var(--brand)"]:hover,.btn-primary:hover { transform: translateY(-2px) !important; box-shadow: 0 8px 24px rgba(217,119,6,0.5) !important; }
+input:focus,select:focus { border-color: #d97706 !important; box-shadow: 0 0 0 3px rgba(217,119,6,0.15) !important; }
+::selection { background: rgba(217,119,6,0.2) !important; }`,
+  },
+]
+
 // ─── TABS ─────────────────────────────────────────────────────────────────────
 const TABS = [
   { id: 'teme', label: 'Teme', icon: <Palette size={13} /> },
@@ -920,7 +1038,36 @@ export default function AdminIzgledPage() {
 
         {tab === 'css' && (
           <>
-            <Section title="Custom CSS">
+            <Section title="Gotove CSS teme — klikni za primjenu">
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
+                {CSS_PRESET_TEME.map(p => (
+                  <button key={p.naziv} onClick={() => set('theme_custom_css', p.css)}
+                    style={{
+                      padding: '12px', border: theme.theme_custom_css === p.css ? '2px solid #0F6E56' : '1px solid #E5E7EB',
+                      borderRadius: '10px', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left',
+                      background: theme.theme_custom_css === p.css ? '#F0FDF4' : 'white',
+                      transition: 'all 0.15s',
+                    }}
+                    onMouseEnter={e => { if (theme.theme_custom_css !== p.css) { (e.currentTarget as HTMLElement).style.borderColor = '#0F6E56'; (e.currentTarget as HTMLElement).style.boxShadow = '0 4px 12px rgba(15,110,86,0.1)' } }}
+                    onMouseLeave={e => { if (theme.theme_custom_css !== p.css) { (e.currentTarget as HTMLElement).style.borderColor = '#E5E7EB'; (e.currentTarget as HTMLElement).style.boxShadow = 'none' } }}
+                  >
+                    <div style={{ fontSize: '20px', marginBottom: '6px' }}>{p.emoji}</div>
+                    <div style={{ fontSize: '13px', fontWeight: 700, color: '#111827', marginBottom: '3px' }}>{p.naziv}</div>
+                    <div style={{ fontSize: '11px', color: '#6B7280', lineHeight: 1.4 }}>{p.opis}</div>
+                    {theme.theme_custom_css === p.css && (
+                      <div style={{ marginTop: '6px', fontSize: '10px', fontWeight: 700, color: '#0F6E56', textTransform: 'uppercase', letterSpacing: '0.05em' }}>✓ Aktivno</div>
+                    )}
+                  </button>
+                ))}
+                <button onClick={() => set('theme_custom_css', '')}
+                  style={{ padding: '12px', border: !theme.theme_custom_css ? '2px solid #E5E7EB' : '1px solid #E5E7EB', borderRadius: '10px', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left', background: !theme.theme_custom_css ? '#F9FAFB' : 'white' }}>
+                  <div style={{ fontSize: '20px', marginBottom: '6px' }}>🔄</div>
+                  <div style={{ fontSize: '13px', fontWeight: 700, color: '#111827', marginBottom: '3px' }}>Standardno</div>
+                  <div style={{ fontSize: '11px', color: '#6B7280' }}>Ukloni custom CSS</div>
+                </button>
+              </div>
+            </Section>
+            <Section title="Custom CSS — napiši vlastiti">
               <p style={{ fontSize: '12px', color: '#6B7280', margin: 0 }}>
                 Napredno: upiši vlastiti CSS koji se dodaje na kraj stylesheets. Koristi CSS varijable kao <code style={{ background: '#F3F4F6', padding: '1px 4px', borderRadius: '3px' }}>var(--brand)</code>, <code style={{ background: '#F3F4F6', padding: '1px 4px', borderRadius: '3px' }}>var(--surface)</code> itd.
               </p>
