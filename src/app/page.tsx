@@ -438,6 +438,11 @@ export default function HomePage() {
   const [searchInput, setSearchInput] = useState('')
   const [filterStock, setFilterStock] = useState(false)
   const [mobileFilters, setMobileFilters] = useState(false)
+  const [pageSekcije, setPageSekcije] = useState<{id: string; aktivan: boolean; instanceId?: string}[]>([
+    { id: 'hero', aktivan: true },
+    { id: 'akcije', aktivan: true },
+    { id: 'katalog', aktivan: true },
+  ])
   const [sortBy, setSortBy] = useState('naziv')
   const [sidebarSirina, setSidebarSirina] = useState(240)
   const [sidebarConfig, setSidebarConfig] = useState<{
@@ -503,6 +508,15 @@ export default function HomePage() {
   useEffect(() => { loadArtikli() }, [loadArtikli])
 
   useEffect(() => {
+    fetch('/api/postavke?kljuci=page_sekcije')
+      .then(r => r.json()).then(d => {
+        if (d.page_sekcije) {
+          try { setPageSekcije(JSON.parse(d.page_sekcije)) } catch {}
+        }
+      }).catch(() => {})
+  }, [])
+
+  useEffect(() => {
     const t = setTimeout(() => { setSearch(searchInput); setPage(1) }, 350)
     return () => clearTimeout(t)
   }, [searchInput])
@@ -518,21 +532,6 @@ export default function HomePage() {
     : artikli
 
   const totalPages = Math.ceil(total / perPage)
-
-  const [pageSekcije, setPageSekcije] = useState([
-    { id: 'hero', aktivan: true },
-    { id: 'akcije', aktivan: true },
-    { id: 'katalog', aktivan: true },
-  ])
-
-  useEffect(() => {
-    fetch('/api/postavke?kljuci=page_sekcije')
-      .then(r => r.json()).then(d => {
-        if (d.page_sekcije) {
-          try { setPageSekcije(JSON.parse(d.page_sekcije)) } catch {}
-        }
-      }).catch(() => {})
-  }, [])
 
   return (
     <AuthGuard>
