@@ -397,6 +397,29 @@ function NewsletterSekcija() {
   )
 }
 
+// ─── Page Builder Output ──────────────────────────────────────────────────────
+function PageBuilderOutput() {
+  const [html, setHtml] = useState('')
+  const [css, setCss] = useState('')
+
+  useEffect(() => {
+    fetch('/api/postavke?kljuci=page_builder_html,page_builder_css')
+      .then(r => r.json()).then(d => {
+        if (d.page_builder_html) setHtml(d.page_builder_html)
+        if (d.page_builder_css) setCss(d.page_builder_css)
+      }).catch(() => {})
+  }, [])
+
+  if (!html) return null
+
+  return (
+    <>
+      {css && <style dangerouslySetInnerHTML={{ __html: css }} />}
+      <div dangerouslySetInnerHTML={{ __html: html }} />
+    </>
+  )
+}
+
 // ─── Footer ───────────────────────────────────────────────────────────────────
 function Footer() {
   const [p, setP] = useState<Record<string, string>>({})
@@ -740,8 +763,10 @@ export default function HomePage() {
           </div>
         </main>
 
-        <Footer />
         )}
+        <Footer />
+        {/* Page Builder sadržaj */}
+        <PageBuilderOutput />
       </div>
     </AuthGuard>
   )
