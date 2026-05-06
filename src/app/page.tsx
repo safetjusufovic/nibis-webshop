@@ -284,6 +284,7 @@ function ProductRow({ artikal, stanje }: { artikal: Artikal; stanje: StanjeSklad
         </div>
       </td>
     </tr>
+<<<<<<< HEAD
   )
 }
 
@@ -298,6 +299,141 @@ function SkeletonRow() {
       <td className="py-3 px-2"><div className="h-4 bg-gray-100 rounded w-20 ml-auto animate-pulse" /></td>
       <td className="py-3 pl-2 pr-4"><div className="h-7 bg-gray-100 rounded w-16 ml-auto animate-pulse" /></td>
     </tr>
+=======
+  )
+}
+
+// ─── Skeleton Row ──────────────────────────────────────────────────────────────
+function SkeletonRow() {
+  return (
+    <tr className="border-b border-gray-100">
+      <td className="py-3 pl-4 pr-2"><div className="h-3.5 bg-gray-100 rounded w-3/4 animate-pulse" /></td>
+      <td className="py-3 px-2"><div className="h-3 bg-gray-100 rounded w-16 animate-pulse" /></td>
+      <td className="py-3 px-2 hidden lg:table-cell"><div className="h-3 bg-gray-100 rounded w-20 animate-pulse" /></td>
+      <td className="py-3 px-2"><div className="h-5 bg-gray-100 rounded-full w-16 animate-pulse" /></td>
+      <td className="py-3 px-2"><div className="h-4 bg-gray-100 rounded w-20 ml-auto animate-pulse" /></td>
+      <td className="py-3 pl-2 pr-4"><div className="h-7 bg-gray-100 rounded w-16 ml-auto animate-pulse" /></td>
+    </tr>
+  )
+}
+
+// ─── Features sekcija ────────────────────────────────────────────────────────
+function FeaturesSekcija() {
+  const [naslov, setNaslov] = useState('Zašto mi?')
+  const [items, setItems] = useState([
+    { ikona: '🚀', naslov: 'Brza isporuka', opis: 'Naredni radni dan' },
+    { ikona: '💎', naslov: 'Kvalitet', opis: 'Provjereni dobavljači' },
+    { ikona: '🔒', naslov: 'Sigurnost', opis: 'Zaštićene transakcije' },
+  ])
+
+  useEffect(() => {
+    fetch('/api/postavke?kljuci=sekcija_features_naslov,sekcija_features_items')
+      .then(r => r.json()).then(d => {
+        if (d.sekcija_features_naslov) setNaslov(d.sekcija_features_naslov)
+        if (d.sekcija_features_items) {
+          try { setItems(JSON.parse(d.sekcija_features_items)) } catch {}
+        }
+      }).catch(() => {})
+  }, [])
+
+  return (
+    <div style={{ background: 'white', borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)', padding: '48px 24px' }}>
+      <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
+        {naslov && <h2 style={{ fontSize: '24px', fontWeight: 700, color: 'var(--text)', textAlign: 'center', marginBottom: '32px' }}>{naslov}</h2>}
+        <div style={{ display: 'grid', gridTemplateColumns: `repeat(${items.length}, 1fr)`, gap: '24px' }}>
+          {items.map((item, i) => (
+            <div key={i} style={{ textAlign: 'center', padding: '24px 16px' }}>
+              <div style={{ fontSize: '40px', marginBottom: '12px' }}>{item.ikona}</div>
+              <div style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text)', marginBottom: '6px' }}>{item.naslov}</div>
+              <div style={{ fontSize: '14px', color: 'var(--text-muted)' }}>{item.opis}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ─── Promo Banner sekcija ──────────────────────────────────────────────────────
+function PromoBanner() {
+  const [cfg, setCfg] = useState({ tekst: '', podnaslov: '', dugme: '', boja: 'var(--brand)' })
+
+  useEffect(() => {
+    fetch('/api/postavke?kljuci=sekcija_banner_tekst,sekcija_banner_podnaslov,sekcija_banner_dugme,sekcija_banner_boja')
+      .then(r => r.json()).then(d => {
+        setCfg({ tekst: d.sekcija_banner_tekst || '', podnaslov: d.sekcija_banner_podnaslov || '', dugme: d.sekcija_banner_dugme || '', boja: d.sekcija_banner_boja || 'var(--brand)' })
+      }).catch(() => {})
+  }, [])
+
+  if (!cfg.tekst) return null
+
+  return (
+    <div style={{ background: cfg.boja, padding: '40px 24px', textAlign: 'center' }}>
+      <div style={{ maxWidth: '700px', margin: '0 auto' }}>
+        <h2 style={{ fontSize: '24px', fontWeight: 800, color: 'white', marginBottom: '8px' }}>{cfg.tekst}</h2>
+        {cfg.podnaslov && <p style={{ fontSize: '15px', color: 'rgba(255,255,255,0.8)', marginBottom: '20px' }}>{cfg.podnaslov}</p>}
+        {cfg.dugme && (
+          <button style={{ background: 'white', color: cfg.boja, border: 'none', padding: '12px 28px', borderRadius: 'var(--radius)', fontSize: '15px', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
+            {cfg.dugme}
+          </button>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// ─── Newsletter sekcija ────────────────────────────────────────────────────────
+function NewsletterSekcija() {
+  const [cfg, setCfg] = useState({ naslov: '', podnaslov: '' })
+  const [email, setEmail] = useState('')
+
+  useEffect(() => {
+    fetch('/api/postavke?kljuci=sekcija_newsletter_naslov,sekcija_newsletter_podnaslov')
+      .then(r => r.json()).then(d => {
+        setCfg({ naslov: d.sekcija_newsletter_naslov || '', podnaslov: d.sekcija_newsletter_podnaslov || '' })
+      }).catch(() => {})
+  }, [])
+
+  if (!cfg.naslov) return null
+
+  return (
+    <div style={{ background: 'var(--surface)', borderTop: '1px solid var(--border)', padding: '48px 24px', textAlign: 'center' }}>
+      <div style={{ maxWidth: '500px', margin: '0 auto' }}>
+        <h2 style={{ fontSize: '22px', fontWeight: 700, color: 'var(--text)', marginBottom: '8px' }}>{cfg.naslov}</h2>
+        {cfg.podnaslov && <p style={{ fontSize: '14px', color: 'var(--text-muted)', marginBottom: '20px' }}>{cfg.podnaslov}</p>}
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="vas@email.ba"
+            style={{ flex: 1, padding: '10px 14px', border: '1px solid var(--border)', borderRadius: 'var(--radius)', fontSize: '14px', outline: 'none', fontFamily: 'inherit' }} />
+          <button style={{ padding: '10px 20px', background: 'var(--brand)', color: 'white', border: 'none', borderRadius: 'var(--radius)', fontSize: '14px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' }}>
+            Prijavi se
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ─── Page Builder Output ──────────────────────────────────────────────────────
+function PageBuilderOutput() {
+  const [html, setHtml] = useState('')
+  const [css, setCss] = useState('')
+
+  useEffect(() => {
+    fetch('/api/postavke?kljuci=page_builder_html,page_builder_css')
+      .then(r => r.json()).then(d => {
+        if (d.page_builder_html) setHtml(d.page_builder_html)
+        if (d.page_builder_css) setCss(d.page_builder_css)
+      }).catch(() => {})
+  }, [])
+
+  if (!html) return null
+
+  return (
+    <>
+      {css && <style dangerouslySetInnerHTML={{ __html: css }} />}
+      <div dangerouslySetInnerHTML={{ __html: html }} />
+    </>
+>>>>>>> 7faf540edfe964fb8f97957a297ee722a4f51e2c
   )
 }
 
@@ -342,6 +478,14 @@ export default function HomePage() {
   const [searchInput, setSearchInput] = useState('')
   const [filterStock, setFilterStock] = useState(false)
   const [mobileFilters, setMobileFilters] = useState(false)
+<<<<<<< HEAD
+=======
+  const [pageSekcije, setPageSekcije] = useState<{id: string; aktivan: boolean; instanceId?: string}[]>([
+    { id: 'hero', aktivan: true },
+    { id: 'akcije', aktivan: true },
+    { id: 'katalog', aktivan: true },
+  ])
+>>>>>>> 7faf540edfe964fb8f97957a297ee722a4f51e2c
   const [sortBy, setSortBy] = useState('naziv')
   const [sidebarSirina, setSidebarSirina] = useState(240)
   const [sidebarConfig, setSidebarConfig] = useState<{
@@ -407,6 +551,15 @@ export default function HomePage() {
   useEffect(() => { loadArtikli() }, [loadArtikli])
 
   useEffect(() => {
+    fetch('/api/postavke?kljuci=page_sekcije')
+      .then(r => r.json()).then(d => {
+        if (d.page_sekcije) {
+          try { setPageSekcije(JSON.parse(d.page_sekcije)) } catch {}
+        }
+      }).catch(() => {})
+  }, [])
+
+  useEffect(() => {
     const t = setTimeout(() => { setSearch(searchInput); setPage(1) }, 350)
     return () => clearTimeout(t)
   }, [searchInput])
@@ -427,9 +580,22 @@ export default function HomePage() {
     <AuthGuard>
       <div className="min-h-screen bg-gray-50">
         <Header onSearch={q => setSearchInput(q)} />
+<<<<<<< HEAD
         <HeroBanner />
         <AkcijeSlider />
 
+=======
+        {pageSekcije.filter(s => s.aktivan).map(s => {
+          if (s.id === 'hero') return <HeroBanner key={s.id} />
+          if (s.id === 'akcije') return <AkcijeSlider key={s.id} />
+          if (s.id === 'features') return <FeaturesSekcija key={s.id} />
+          if (s.id === 'banner') return <PromoBanner key={s.id} />
+          if (s.id === 'newsletter') return <NewsletterSekcija key={s.id} />
+          return null
+        })}
+
+        {pageSekcije.find(s => s.id === 'katalog')?.aktivan !== false && (
+>>>>>>> 7faf540edfe964fb8f97957a297ee722a4f51e2c
         <main className="max-w-[1280px] mx-auto px-4 sm:px-6 py-5 pb-16">
           {/* Toolbar */}
           <div className="flex items-center gap-2 mb-4 flex-wrap">
@@ -623,7 +789,14 @@ export default function HomePage() {
           </div>
         </main>
 
+<<<<<<< HEAD
         <Footer />
+=======
+        )}
+        <Footer />
+        {/* Page Builder sadržaj */}
+        <PageBuilderOutput />
+>>>>>>> 7faf540edfe964fb8f97957a297ee722a4f51e2c
       </div>
     </AuthGuard>
   )
