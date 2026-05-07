@@ -47,7 +47,7 @@ function CategorySidebar({ grupe, activeId, onSelect, sirina = 240, sidebarConfi
             onClick={() => onSelect(null)}
             className={`w-full text-left px-3 py-2 text-[12px] rounded-md mb-1 transition-all duration-150 flex items-center gap-2 ${
               activeId === null
-                ? 'bg-emerald-700 text-white font-semibold shadow-sm'
+                ? 'text-white font-semibold shadow-sm brand-bg'
                 : 'text-gray-600 hover:bg-gray-100'
             }`}
           >
@@ -212,7 +212,7 @@ function ProductRow({ artikal, stanje, dugmeTekst = 'Dodaj' }: { artikal: Artika
   return (
     <tr className="border-b border-gray-100 hover:bg-slate-50/60 transition-all duration-150 group">
       <td className="py-2.5 pl-4 pr-2">
-        <Link href={`/proizvod/${artikal.id}`} className="text-[13px] font-medium text-gray-800 hover:text-emerald-700 transition-colors leading-snug block">
+        <Link href={`/proizvod/${artikal.id}`} className="text-[13px] font-medium text-gray-800 hover:text-[var(--brand)] transition-colors leading-snug block">
           {artikal.naziv}
         </Link>
         {artikal.naziv2 && <span className="text-[11px] text-gray-400">{artikal.naziv2}</span>}
@@ -235,15 +235,15 @@ function ProductRow({ artikal, stanje, dugmeTekst = 'Dodaj' }: { artikal: Artika
             <span className="w-1.5 h-1.5 rounded-full bg-amber-400 inline-block" />{stanje.raspolozivaKolicina} kom
           </span>
         ) : (
-          <span className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />Na stanju
+          <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", fontSize: "11px", fontWeight: 500, color: "var(--brand)", background: "var(--brand-pale)", padding: "2px 8px", borderRadius: "100px" }}>
+            <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "var(--brand)", display: "inline-block" }} />Na stanju
           </span>
         )}
       </td>
       <td className="py-2.5 px-2 whitespace-nowrap text-right">
         <div className="text-[14px] font-bold text-gray-900">{formatCijena(cijena)}</div>
         {popust > 0 && <div className="text-[11px] text-gray-400 line-through">{formatCijena(cijenaBase)}</div>}
-        {inCart > 0 && <div className="text-[10px] text-emerald-600 font-medium">{inCart} u korpi</div>}
+        {inCart > 0 && <div className="text-[10px] font-medium" style={{ color: "var(--brand)" }}">{inCart} u korpi</div>}
       </td>
       <td className="py-2 pl-2 pr-3 whitespace-nowrap">
         <div className="flex items-center gap-1.5 justify-end">
@@ -262,16 +262,13 @@ function ProductRow({ artikal, stanje, dugmeTekst = 'Dodaj' }: { artikal: Artika
             value={qty}
             onChange={e => setQty(Math.max(1, Math.min(maxQty, parseInt(e.target.value) || 1)))}
             disabled={!canAdd}
-            className="w-14 h-7 text-center text-[12px] font-medium bg-white border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 transition-all duration-200 disabled:opacity-40 shadow-sm"
+            className="w-14 h-7 text-center text-[12px] font-medium bg-white border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-[var(--brand-pale)] focus:border-[var(--brand)] transition-all duration-200 disabled:opacity-40 shadow-sm"
           />
           <button
             onClick={handleAdd}
             disabled={!canAdd || inCart + qty > maxQty}
-            className={`flex items-center gap-1.5 text-[12px] font-semibold px-3 py-1.5 rounded-lg transition-all duration-300 shadow-sm ${
-              canAdd && inCart + qty <= maxQty
-                ? 'bg-gradient-to-r from-emerald-700 to-emerald-600 text-white hover:from-emerald-600 hover:to-emerald-500 hover:shadow-emerald-500/25 hover:shadow-md hover:scale-[1.02] ring-1 ring-emerald-600/50 active:scale-95'
-                : 'bg-gray-100 text-gray-300 cursor-not-allowed'
-            }`}
+            style={{ background: canAdd && inCart + qty <= maxQty ? 'var(--brand)' : '#F3F4F6', color: canAdd && inCart + qty <= maxQty ? 'white' : '#D1D5DB', cursor: canAdd && inCart + qty <= maxQty ? 'pointer' : 'not-allowed' }}
+          className="flex items-center gap-1.5 text-[12px] font-semibold px-3 py-1.5 rounded-lg transition-all duration-300 shadow-sm hover:scale-[1.02] active:scale-95" 
           >
             <ShoppingCart size={11} />
             {inCart > 0 ? dugmeTekst + ' još' : dugmeTekst}
@@ -553,12 +550,27 @@ function Footer() {
         </div>
       )}
 
-      {/* Social mreže */}
-      {(p.footer_social_facebook || p.footer_social_instagram || p.footer_social_linkedin) && (
-        <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 24px 16px', display: 'flex', gap: '12px' }}>
-          {p.footer_social_facebook && <a href={p.footer_social_facebook} target="_blank" rel="noopener noreferrer" style={{ fontSize: '12px', color: 'var(--brand)', textDecoration: 'none', padding: '4px 10px', border: '1px solid var(--border)', borderRadius: '6px' }}>Facebook</a>}
-          {p.footer_social_instagram && <a href={p.footer_social_instagram} target="_blank" rel="noopener noreferrer" style={{ fontSize: '12px', color: 'var(--brand)', textDecoration: 'none', padding: '4px 10px', border: '1px solid var(--border)', borderRadius: '6px' }}>Instagram</a>}
-          {p.footer_social_linkedin && <a href={p.footer_social_linkedin} target="_blank" rel="noopener noreferrer" style={{ fontSize: '12px', color: 'var(--brand)', textDecoration: 'none', padding: '4px 10px', border: '1px solid var(--border)', borderRadius: '6px' }}>LinkedIn</a>}
+      {/* Social mreže s ikonama */}
+      {(p.footer_social_facebook || p.footer_social_instagram || p.footer_social_linkedin || p.footer_social_twitter || p.footer_social_youtube || p.footer_social_tiktok || p.footer_social_whatsapp || p.footer_social_viber) && (
+        <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 24px 16px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+          {[
+            { key: 'footer_social_facebook', label: 'Facebook', color: '#1877F2', icon: 'f' },
+            { key: 'footer_social_instagram', label: 'Instagram', color: '#E4405F', icon: '📷' },
+            { key: 'footer_social_linkedin', label: 'LinkedIn', color: '#0A66C2', icon: 'in' },
+            { key: 'footer_social_twitter', label: 'X (Twitter)', color: '#000000', icon: '𝕏' },
+            { key: 'footer_social_youtube', label: 'YouTube', color: '#FF0000', icon: '▶' },
+            { key: 'footer_social_tiktok', label: 'TikTok', color: '#000000', icon: '♪' },
+            { key: 'footer_social_whatsapp', label: 'WhatsApp', color: '#25D366', icon: '💬' },
+            { key: 'footer_social_viber', label: 'Viber', color: '#7360F2', icon: '📞' },
+          ].filter(s => p[s.key as keyof typeof p]).map(s => (
+            <a key={s.key} href={p[s.key as keyof typeof p] as string} target="_blank" rel="noopener noreferrer"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '6px 12px', background: s.color, color: 'white', borderRadius: '8px', textDecoration: 'none', fontSize: '12px', fontWeight: 600, transition: 'opacity 0.15s' }}
+              onMouseEnter={e => (e.currentTarget as HTMLElement).style.opacity = '0.85'}
+              onMouseLeave={e => (e.currentTarget as HTMLElement).style.opacity = '1'}
+            >
+              <span style={{ fontSize: '13px' }}>{s.icon}</span> {s.label}
+            </a>
+          ))}
         </div>
       )}
 
@@ -727,7 +739,7 @@ export default function HomePage() {
               <div className="flex-1 min-w-0 flex items-center gap-1.5 text-[13px]">
                 {activeGrupa ? (
                   <>
-                    <button onClick={() => onGrupaSelect(null)} className="text-gray-400 hover:text-emerald-700 transition-colors">
+                    <button onClick={() => onGrupaSelect(null)} className="text-gray-400 hover:text-[var(--brand)] transition-colors">
                       Sve kategorije
                     </button>
                     <ChevronRight size={12} className="text-gray-300" />
@@ -744,7 +756,7 @@ export default function HomePage() {
 
               {/* Controls */}
               <label className="flex items-center gap-1.5 text-[12px] text-gray-500 cursor-pointer select-none">
-                <input type="checkbox" checked={filterStock} onChange={e => setFilterStock(e.target.checked)} className="accent-emerald-700 w-3.5 h-3.5" />
+                <input type="checkbox" checked={filterStock} onChange={e => setFilterStock(e.target.checked)} style={{ accentColor: "var(--brand)", width: "14px", height: "14px" }} />
                 Samo na stanju
               </label>
 
@@ -785,14 +797,14 @@ export default function HomePage() {
                 <button
                   onClick={() => setViewMode('table')}
                   title="Tabelarni prikaz"
-                  className={`p-1.5 transition-colors ${viewMode === 'table' ? 'bg-emerald-700 text-white' : 'text-gray-400 hover:bg-gray-50'}`}
+                  style={{ background: viewMode === 'table' ? 'var(--brand)' : 'transparent', color: viewMode === 'table' ? 'white' : '#9CA3AF', padding: '6px', transition: 'all 0.15s', cursor: 'pointer', border: 'none' }}
                 >
                   <LayoutList size={15} />
                 </button>
                 <button
                   onClick={() => setViewMode('grid')}
                   title="Grid prikaz"
-                  className={`p-1.5 transition-colors ${viewMode === 'grid' ? 'bg-emerald-700 text-white' : 'text-gray-400 hover:bg-gray-50'}`}
+                  style={{ background: viewMode === 'grid' ? 'var(--brand)' : 'transparent', color: viewMode === 'grid' ? 'white' : '#9CA3AF', padding: '6px', transition: 'all 0.15s', cursor: 'pointer', border: 'none' }}
                 >
                   <LayoutGrid size={15} />
                 </button>
@@ -835,7 +847,7 @@ export default function HomePage() {
                               Nema artikala
                               <br />
                               <button onClick={() => { onGrupaSelect(null); setFilterStock(false) }}
-                                className="mt-2 text-emerald-700 underline text-[12px]">
+                                className="mt-2 underline" style={{ color: "var(--brand)" }} text-[12px]">
                                 Prikaži sve
                               </button>
                             </td></tr>
@@ -867,7 +879,7 @@ export default function HomePage() {
                           Nema artikala
                           <br />
                           <button onClick={() => { onGrupaSelect(null); setFilterStock(false) }}
-                            className="mt-2 text-emerald-700 underline text-[12px]">
+                            className="mt-2 underline" style={{ color: "var(--brand)" }} text-[12px]">
                             Prikaži sve
                           </button>
                         </div>
@@ -896,7 +908,7 @@ export default function HomePage() {
                         <button key={p} onClick={() => setPage(p)}
                           className={`w-8 h-8 text-[12px] rounded border transition-colors ${
                             p === page
-                              ? 'bg-emerald-700 text-white border-emerald-700 font-semibold'
+                              ? 'text-white border-transparent font-semibold'
                               : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
                           }`}>
                           {p}

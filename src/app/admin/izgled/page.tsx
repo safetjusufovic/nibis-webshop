@@ -17,6 +17,8 @@ const DEFAULTS: Postavke = {
   theme_logo_url: '', theme_favicon_url: '',
   seo_naslov: '', seo_opis: '', seo_og_slika: '',
   footer_social_facebook: '', footer_social_instagram: '', footer_social_linkedin: '',
+  footer_social_twitter: '', footer_social_youtube: '', footer_social_tiktok: '',
+  footer_social_whatsapp: '', footer_social_viber: '',
   theme_primary_boja: '#0F6E56', theme_bg_stranica: '#F8FAFA',
   theme_bg_kartica: '#ffffff', theme_border_boja: '#E8EDEB',
   theme_tekst_boja: '#0D1F1A', theme_tekst_muted: '#6B8279',
@@ -648,10 +650,23 @@ export default function IzgledPage() {
               <Textarea label="Opis (Google pretraga)" value={p.seo_opis || ''} onChange={v => set('seo_opis', v)} placeholder="Kratki opis..." rows={2} />
               <ImageInput label="OG slika za dijeljenje (1200×630px)" value={p.seo_og_slika || ''} onChange={v => set('seo_og_slika', v)} hint="Prikazuje se na Viber, Facebook, LinkedIn..." />
             </Sec>
-            <Sec title="Društvene mreže">
-              <Input label="Facebook" value={p.footer_social_facebook || ''} onChange={v => set('footer_social_facebook', v)} placeholder="https://facebook.com/vasafirma" />
-              <Input label="Instagram" value={p.footer_social_instagram || ''} onChange={v => set('footer_social_instagram', v)} placeholder="https://instagram.com/vasafirma" />
-              <Input label="LinkedIn" value={p.footer_social_linkedin || ''} onChange={v => set('footer_social_linkedin', v)} placeholder="https://linkedin.com/company/vasafirma" />
+            <Sec title="Društvene mreže i kontakt" desc="Unesite URL, ostavite prazno da sakrijete">
+              <Row>
+                <Input label="📘 Facebook" value={p.footer_social_facebook || ''} onChange={v => set('footer_social_facebook', v)} placeholder="https://facebook.com/..." />
+                <Input label="📷 Instagram" value={p.footer_social_instagram || ''} onChange={v => set('footer_social_instagram', v)} placeholder="https://instagram.com/..." />
+              </Row>
+              <Row>
+                <Input label="💼 LinkedIn" value={p.footer_social_linkedin || ''} onChange={v => set('footer_social_linkedin', v)} placeholder="https://linkedin.com/..." />
+                <Input label="𝕏 Twitter/X" value={p.footer_social_twitter || ''} onChange={v => set('footer_social_twitter', v)} placeholder="https://x.com/..." />
+              </Row>
+              <Row>
+                <Input label="▶ YouTube" value={p.footer_social_youtube || ''} onChange={v => set('footer_social_youtube', v)} placeholder="https://youtube.com/..." />
+                <Input label="♪ TikTok" value={p.footer_social_tiktok || ''} onChange={v => set('footer_social_tiktok', v)} placeholder="https://tiktok.com/..." />
+              </Row>
+              <Row>
+                <Input label="💬 WhatsApp" value={p.footer_social_whatsapp || ''} onChange={v => set('footer_social_whatsapp', v)} placeholder="https://wa.me/38733..." />
+                <Input label="📞 Viber" value={p.footer_social_viber || ''} onChange={v => set('footer_social_viber', v)} placeholder="viber://chat?number=..." />
+              </Row>
             </Sec>
           </AccordionSec>
 

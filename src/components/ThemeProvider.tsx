@@ -10,6 +10,7 @@ const KEYS = [
   'theme_animacije_speed', 'theme_font_body_size',
   'theme_custom_css', 'theme_google_font_naslov', 'theme_google_font_tijelo',
   'theme_gradient_primary', 'theme_gradient_boja2', 'theme_gradient_ugao',
+  'theme_cijena_boja', 'theme_akcija_boja', 'theme_header_boja', 'theme_header_tekst_boja',
 ]
 
 export default function ThemeProvider({ children }: { children: React.ReactNode }) {
@@ -63,6 +64,19 @@ function apply(m: Record<string, string>) {
     link.rel = 'stylesheet'
     link.href = `https://fonts.googleapis.com/css2?${fonts.map(f => `family=${f!.replace(/ /g, '+')}:wght@400;500;600;700`).join('&')}&display=swap`
     document.head.appendChild(link)
+  }
+
+  if (m.theme_cijena_boja) r.style.setProperty('--cijena', m.theme_cijena_boja)
+  if (m.theme_akcija_boja) r.style.setProperty('--akcija', m.theme_akcija_boja)
+  if (m.theme_header_boja) {
+    document.querySelectorAll('header').forEach((h: any) => {
+      h.style.setProperty('background', m.theme_header_boja, 'important')
+    })
+  }
+  if (m.theme_header_tekst_boja) {
+    document.querySelectorAll('header').forEach((h: any) => {
+      h.style.setProperty('color', m.theme_header_tekst_boja, 'important')
+    })
   }
 
   // Custom CSS
