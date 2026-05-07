@@ -171,7 +171,7 @@ function Divider() {
 function Toggle({ label, value, onChange, desc }: { label: string; value: string; onChange: (v: string) => void; desc?: string }) {
   const on = value === 'true'
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: on ? '#F0FDF4' : '#F9FAFB', borderRadius: '10px', border: `1px solid ${on ? '#BBF7D0' : '#E5E7EB'}`, gap: '10px' }}>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: on ? '#F0FDF4' : '#F9FAFB', borderRadius: '10px', border: on ? '1px solid #BBF7D0' : '1px solid #E5E7EB', gap: '10px' }}>
       <div>
         <div style={{ fontSize: '13px', fontWeight: 500, color: '#111827' }}>{label}</div>
         {desc && <div style={{ fontSize: '11px', color: '#6B7280', marginTop: '2px' }}>{desc}</div>}
@@ -272,7 +272,7 @@ function ImageInput({ label, value, onChange, hint }: { label: string; value: st
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
       )
       const ext = file.name.split('.').pop()
-      const filename = `uploads/${Date.now()}.${ext}`
+      const filename = 'uploads/' + Date.now() + '.' + ext
       const { error } = await sb.storage.from('slike').upload(filename, file, { upsert: true })
       if (error) throw error
       const { data } = sb.storage.from('slike').getPublicUrl(filename)
@@ -327,7 +327,7 @@ function ImageInput({ label, value, onChange, hint }: { label: string; value: st
           {hint && <div style={{ fontSize: '11px', color: '#9CA3AF' }}>{hint}</div>}
         </div>
       </div>
-      <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
+      <style dangerouslySetInnerHTML={{ __html: "@keyframes spin { to { transform: rotate(360deg) } }" }} />
     </div>
   )
 }
@@ -339,7 +339,7 @@ function ChoiceGroup({ label, value, onChange, options }: { label: string; value
       <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
         {options.map(o => (
           <button key={o.v} onClick={() => onChange(o.v)}
-            style={{ padding: '7px 14px', fontSize: '12px', fontWeight: 500, border: `1.5px solid ${value === o.v ? '#0F6E56' : '#E5E7EB'}`, borderRadius: '8px', cursor: 'pointer', fontFamily: 'inherit', background: value === o.v ? '#F0FDF4' : 'white', color: value === o.v ? '#0F6E56' : '#374151', transition: 'all 0.15s' }}>
+            style={{ padding: '7px 14px', fontSize: '12px', fontWeight: 500, border: value === o.v ? '1.5px solid #0F6E56' : '1.5px solid #E5E7EB', borderRadius: '8px', cursor: 'pointer', fontFamily: 'inherit', background: value === o.v ? '#F0FDF4' : 'white', color: value === o.v ? '#0F6E56' : '#374151', transition: 'all 0.15s' }}>
             {o.icon && <span style={{ marginRight: '5px' }}>{o.icon}</span>}{o.l}
           </button>
         ))}
@@ -377,7 +377,7 @@ function PanelContent({ p, set, applyPreset }: { p: any; set: (k: string, v: str
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
             {PRESET_TEME.map(t => (
               <button key={t.naziv} onClick={() => applyPreset(t)}
-                style={{ padding: '12px 8px', border: `2px solid ${p.theme_primary_boja === t.boje.theme_primary_boja ? '#0F6E56' : '#E5E7EB'}`, borderRadius: '10px', cursor: 'pointer', fontFamily: 'inherit', background: p.theme_primary_boja === t.boje.theme_primary_boja ? '#F0FDF4' : 'white', transition: 'all 0.15s', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
+                style={{ padding: '12px 8px', border: p.theme_primary_boja === t.boje.theme_primary_boja ? '2px solid #0F6E56' : '2px solid #E5E7EB', borderRadius: '10px', cursor: 'pointer', fontFamily: 'inherit', background: p.theme_primary_boja === t.boje.theme_primary_boja ? '#F0FDF4' : 'white', transition: 'all 0.15s', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
                 <div style={{ display: 'flex', gap: '3px' }}>
                   {[t.boje.theme_primary_boja, t.boje.theme_bg_kartica, t.boje.header_boja].map((c, i) => (
                     <div key={i} style={{ width: '14px', height: '14px', borderRadius: '3px', background: c, border: '1px solid rgba(0,0,0,0.1)' }} />
@@ -444,7 +444,7 @@ function PanelContent({ p, set, applyPreset }: { p: any; set: (k: string, v: str
               { v: 'centered', l: 'Centrirani', desc: 'Logo centar, search ispod', emoji: '⊟' },
             ].map(o => (
               <button key={o.v} onClick={() => set('header_layout', o.v)}
-                style={{ padding: '12px', border: `2px solid ${p.header_layout === o.v ? '#0F6E56' : '#E5E7EB'}`, borderRadius: '10px', cursor: 'pointer', fontFamily: 'inherit', background: p.header_layout === o.v ? '#F0FDF4' : 'white', textAlign: 'center', transition: 'all 0.15s' }}>
+                style={{ padding: '12px', border: p.header_layout === o.v ? '2px solid #0F6E56' : '2px solid #E5E7EB', borderRadius: '10px', cursor: 'pointer', fontFamily: 'inherit', background: p.header_layout === o.v ? '#F0FDF4' : 'white', textAlign: 'center', transition: 'all 0.15s' }}>
                 <div style={{ fontSize: '22px', marginBottom: '4px' }}>{o.emoji}</div>
                 <div style={{ fontSize: '12px', fontWeight: 700, color: p.header_layout === o.v ? '#0F6E56' : '#374151' }}>{o.l}</div>
                 <div style={{ fontSize: '10px', color: '#9CA3AF', marginTop: '2px' }}>{o.desc}</div>
@@ -729,14 +729,14 @@ function PanelContent({ p, set, applyPreset }: { p: any; set: (k: string, v: str
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px' }}>
             {CSS_PRESET_TEME.map(t => (
               <button key={t.naziv} onClick={() => set('theme_custom_css', t.css)}
-                style={{ padding: '10px 12px', border: `1.5px solid ${p.theme_custom_css === t.css ? '#0F6E56' : '#E5E7EB'}`, borderRadius: '10px', cursor: 'pointer', fontFamily: 'inherit', background: p.theme_custom_css === t.css ? '#F0FDF4' : 'white', textAlign: 'left', transition: 'all 0.15s' }}>
+                style={{ padding: '10px 12px', border: p.theme_custom_css === t.css ? '1.5px solid #0F6E56' : '1.5px solid #E5E7EB', borderRadius: '10px', cursor: 'pointer', fontFamily: 'inherit', background: p.theme_custom_css === t.css ? '#F0FDF4' : 'white', textAlign: 'left', transition: 'all 0.15s' }}>
                 <div style={{ fontSize: '18px', marginBottom: '4px' }}>{t.emoji}</div>
                 <div style={{ fontSize: '12px', fontWeight: 700, color: p.theme_custom_css === t.css ? '#0F6E56' : '#111827' }}>{t.naziv}</div>
                 <div style={{ fontSize: '10px', color: '#9CA3AF', marginTop: '2px', lineHeight: 1.3 }}>{t.opis}</div>
               </button>
             ))}
             <button onClick={() => set('theme_custom_css', '')}
-              style={{ padding: '10px 12px', border: `1.5px solid ${!p.theme_custom_css ? '#0F6E56' : '#E5E7EB'}`, borderRadius: '10px', cursor: 'pointer', fontFamily: 'inherit', background: !p.theme_custom_css ? '#F0FDF4' : 'white', textAlign: 'left', transition: 'all 0.15s' }}>
+              style={{ padding: '10px 12px', border: !p.theme_custom_css ? '1.5px solid #0F6E56' : '1.5px solid #E5E7EB', borderRadius: '10px', cursor: 'pointer', fontFamily: 'inherit', background: !p.theme_custom_css ? '#F0FDF4' : 'white', textAlign: 'left', transition: 'all 0.15s' }}>
               <div style={{ fontSize: '18px', marginBottom: '4px' }}>✨</div>
               <div style={{ fontSize: '12px', fontWeight: 700, color: !p.theme_custom_css ? '#0F6E56' : '#111827' }}>Bez CSS teme</div>
               <div style={{ fontSize: '10px', color: '#9CA3AF', marginTop: '2px' }}>Default izgled</div>
@@ -816,7 +816,7 @@ export default function IzgledPage() {
     if (key === 'theme_border_radius') r.style.setProperty('--radius', value + 'px')
     if (key === 'theme_font_body_size') document.body.style.fontSize = value + 'px'
     if (key === 'theme_font' || key === 'theme_google_font_tijelo') {
-      document.body.style.fontFamily = `'${value}', DM Sans, system-ui, sans-serif`
+      document.body.style.fontFamily = "'" + value + "', DM Sans, system-ui, sans-serif"
     }
     if (key === 'theme_custom_css') {
       let el = document.getElementById('admin-preview-css')
@@ -912,7 +912,7 @@ export default function IzgledPage() {
             <input type="file" accept=".json" onChange={importJSON} style={{ display: 'none' }} />
           </label>
           <button onClick={() => setPreview(!preview)}
-            style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '7px 12px', border: `1px solid ${preview ? '#0F6E56' : '#E5E7EB'}`, borderRadius: '8px', background: preview ? '#F0FDF4' : 'white', cursor: 'pointer', fontSize: '12px', fontWeight: 500, color: preview ? '#0F6E56' : '#374151', fontFamily: 'inherit' }}>
+            style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '7px 12px', border: preview ? '1px solid #0F6E56' : '1px solid #E5E7EB', borderRadius: '8px', background: preview ? '#F0FDF4' : 'white', cursor: 'pointer', fontSize: '12px', fontWeight: 500, color: preview ? '#0F6E56' : '#374151', fontFamily: 'inherit' }}>
             {preview ? <EyeOff size={13} /> : <Eye size={13} />}
             {preview ? 'Sakrij' : 'Preview'}
           </button>
