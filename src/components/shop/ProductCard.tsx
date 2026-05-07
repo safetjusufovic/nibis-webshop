@@ -172,7 +172,7 @@ export default function ProductCard({ artikal, stanje, slika }: Props) {
               position: 'absolute',
               top: '10px',
               left: '10px',
-              background: akcijaAktivna ? '#DC2626' : '#0F6E56',
+              background: akcijaAktivna ? 'var(--akcija, #DC2626)' : 'var(--brand)',
               color: 'white',
               fontSize: '10px',
               fontWeight: 700,

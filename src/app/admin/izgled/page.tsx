@@ -82,31 +82,60 @@ const DEFAULTS: Postavke = {
 }
 
 const PRESET_TEME = [
-  { naziv: 'Emerald', primary: '#0F6E56', bg: '#F8FAFA', kartica: '#ffffff', border: '#E8EDEB', tekst: '#0D1F1A', header: '#ffffff', hero: '#0F6E56' },
-  { naziv: 'Ocean', primary: '#0369A1', bg: '#F0F9FF', kartica: '#ffffff', border: '#BAE6FD', tekst: '#0C4A6E', header: '#ffffff', hero: '#0369A1' },
-  { naziv: 'Dark', primary: '#10B981', bg: '#111827', kartica: '#1F2937', border: '#374151', tekst: '#F9FAFB', header: '#1F2937', hero: '#064E3B' },
-  { naziv: 'Violet', primary: '#7C3AED', bg: '#FAF5FF', kartica: '#ffffff', border: '#E9D5FF', tekst: '#2E1065', header: '#ffffff', hero: '#7C3AED' },
-  { naziv: 'Corporate', primary: '#1e3a5f', bg: '#F8FAFC', kartica: '#ffffff', border: '#E2E8F0', tekst: '#0F172A', header: '#1e3a5f', hero: '#1e3a5f' },
-  { naziv: 'Rose', primary: '#E11D48', bg: '#FFF1F2', kartica: '#ffffff', border: '#FECDD3', tekst: '#881337', header: '#ffffff', hero: '#E11D48' },
+  { naziv: 'Emerald', emoji: '🟢', primary: '#0F6E56', bg: '#F8FAFA', kartica: '#ffffff', border: '#E8EDEB', tekst: '#0D1F1A', muted: '#6B8279', header: '#ffffff', hero: '#0F6E56' },
+  { naziv: 'Ocean', emoji: '🔵', primary: '#0369A1', bg: '#F0F9FF', kartica: '#ffffff', border: '#BAE6FD', tekst: '#0C4A6E', muted: '#4B88A2', header: '#ffffff', hero: '#0369A1' },
+  { naziv: 'Midnight', emoji: '⚫', primary: '#6366F1', bg: '#0F172A', kartica: '#1E293B', border: '#334155', tekst: '#F1F5F9', muted: '#94A3B8', header: '#1E293B', hero: '#312E81' },
+  { naziv: 'Violet', emoji: '🟣', primary: '#7C3AED', bg: '#FAF5FF', kartica: '#ffffff', border: '#E9D5FF', tekst: '#2E1065', muted: '#7C3AED', header: '#ffffff', hero: '#7C3AED' },
+  { naziv: 'Corporate', emoji: '🔷', primary: '#1e3a5f', bg: '#F8FAFC', kartica: '#ffffff', border: '#E2E8F0', tekst: '#0F172A', muted: '#64748B', header: '#1e3a5f', hero: '#1e3a5f' },
+  { naziv: 'Rose', emoji: '🌹', primary: '#E11D48', bg: '#FFF1F2', kartica: '#ffffff', border: '#FECDD3', tekst: '#881337', muted: '#BE123C', header: '#ffffff', hero: '#E11D48' },
+  { naziv: 'Sunset', emoji: '🌅', primary: '#EA580C', bg: '#FFF7ED', kartica: '#ffffff', border: '#FED7AA', tekst: '#431407', muted: '#9A3412', header: '#ffffff', hero: '#C2410C' },
+  { naziv: 'Forest', emoji: '🌲', primary: '#166534', bg: '#F0FDF4', kartica: '#ffffff', border: '#BBF7D0', tekst: '#052E16', muted: '#15803D', header: '#14532D', hero: '#166534' },
+  { naziv: 'Gold', emoji: '✨', primary: '#B45309', bg: '#FFFBEB', kartica: '#ffffff', border: '#FDE68A', tekst: '#451A03', muted: '#92400E', header: '#ffffff', hero: '#92400E' },
+  { naziv: 'Slate', emoji: '🩶', primary: '#475569', bg: '#F8FAFC', kartica: '#ffffff', border: '#E2E8F0', tekst: '#0F172A', muted: '#64748B', header: '#1E293B', hero: '#334155' },
+  { naziv: 'Sakura', emoji: '🌸', primary: '#DB2777', bg: '#FDF2F8', kartica: '#ffffff', border: '#FBCFE8', tekst: '#500724', muted: '#BE185D', header: '#ffffff', hero: '#BE185D' },
+  { naziv: 'Arctic', emoji: '🧊', primary: '#0891B2', bg: '#ECFEFF', kartica: '#ffffff', border: '#A5F3FC', tekst: '#164E63', muted: '#0E7490', header: '#083344', hero: '#0E7490' },
 ]
 
 const CSS_PRESET_TEME = [
   { naziv: 'Glassmorphism', emoji: '🪟', opis: 'Mutno staklo, blur efekti',
-    css: '* { backdrop-filter: none; }\nheader { backdrop-filter: blur(20px) !important; background: rgba(255,255,255,0.85) !important; }\n.min-h-screen { background: linear-gradient(135deg, #667eea22, #764ba233) !important; }' },
+    css: 'header { backdrop-filter: blur(20px) !important; background: rgba(255,255,255,0.8) !important; border-bottom: 1px solid rgba(255,255,255,0.3) !important; }' },
   { naziv: 'Flat Design', emoji: '📐', opis: 'Bez sjena, minimalistično',
-    css: '* { box-shadow: none !important; }\nheader { box-shadow: none !important; border-bottom: 2px solid var(--border) !important; }' },
-  { naziv: 'Dark Mode', emoji: '🌙', opis: 'Tamna tema, neon akcenti',
-    css: ':root { --surface: #1a1a2e !important; --bg-kartica: #16213e !important; --border: #0f3460 !important; --text: #e0e0e0 !important; }\nbody { background: #0d0d1a !important; color: #e0e0e0 !important; }\nheader { background: #1a1a2e !important; }' },
-  { naziv: 'Gradient Wave', emoji: '🌊', opis: 'Gradient header, živopisno',
-    css: 'header { background: linear-gradient(90deg, var(--brand) 0%, #059669 100%) !important; color: white !important; }\nheader * { color: white !important; }' },
-  { naziv: 'Brutalist', emoji: '⬛', opis: 'Crne linije, bez zaobljenosti',
-    css: '* { border-radius: 0 !important; }\nbutton { border: 2px solid #000 !important; box-shadow: 4px 4px 0 #000 !important; }\nheader { border-bottom: 3px solid #000 !important; }' },
+    css: '* { box-shadow: none !important; border-radius: 4px !important; }
+header { box-shadow: none !important; border-bottom: 2px solid var(--border) !important; }' },
+  { naziv: 'Dark Neon', emoji: '🌃', opis: 'Tamna pozadina, neon akcenti',
+    css: 'body, .min-h-screen { background: #0a0a0f !important; }
+header { background: #0d0d1a !important; }' },
+  { naziv: 'Gradient Header', emoji: '🌈', opis: 'Gradient zaglavlje, živopisno',
+    css: 'header { background: linear-gradient(135deg, var(--brand) 0%, var(--brand-dark) 100%) !important; color: white !important; }
+header * { color: white !important; }' },
+  { naziv: 'Brutalist', emoji: '⬛', opis: 'Crne linije, raw izgled',
+    css: '* { border-radius: 0 !important; }
+button { border: 2px solid #000 !important; box-shadow: 3px 3px 0 #000 !important; }
+header { border-bottom: 3px solid #000 !important; box-shadow: none !important; }' },
   { naziv: 'Premium Serif', emoji: '🎩', opis: 'Elegantno, serif fontovi',
-    css: "h1, h2, h3 { font-family: Georgia, serif !important; }\nbody { font-family: 'Times New Roman', serif !important; }" },
-  { naziv: 'Retro 90s', emoji: '💾', opis: 'Nostalgičan izgled',
-    css: "* { border-radius: 0 !important; font-family: 'Courier New', monospace !important; }\nheader { background: #000080 !important; color: white !important; border-bottom: 3px solid #ffff00 !important; }\nheader * { color: white !important; }\n.min-h-screen { background: #008080 !important; }" },
-  { naziv: 'Neumorphism', emoji: '🔘', opis: 'Meke sjene, 3D plastika',
-    css: ':root { --surface: #e0e5ec !important; --bg-kartica: #e0e5ec !important; }\nbody { background: #e0e5ec !important; }' },
+    css: 'h1, h2, h3, h4 { font-family: Georgia, serif !important; letter-spacing: -0.02em; }' },
+  { naziv: 'Retro 90s', emoji: '💾', opis: 'Nostalgičan Windows izgled',
+    css: "* { border-radius: 0 !important; }
+header { background: #000080 !important; border-bottom: 3px solid #ffff00 !important; }
+header * { color: white !important; }
+.min-h-screen { background: #008080 !important; }" },
+  { naziv: 'Neumorphism', emoji: '🔘', opis: 'Soft UI, 3D efekt',
+    css: ':root { --surface: #e0e5ec !important; --bg-kartica: #e0e5ec !important; }
+body, .min-h-screen { background: #e0e5ec !important; }' },
+  { naziv: 'Pastel Soft', emoji: '🍭', opis: 'Pastelne boje, mekan izgled',
+    css: '.min-h-screen { background: linear-gradient(135deg, #ffecd2 0%, #e8f5ff 100%) !important; }
+header { background: rgba(255,255,255,0.92) !important; }' },
+  { naziv: 'Magazine', emoji: '📰', opis: 'Novinski, bold tipografija',
+    css: 'h1, h2, h3 { font-family: Impact, Arial Black, sans-serif !important; text-transform: uppercase !important; }
+header { border-bottom: 4px solid var(--brand) !important; }' },
+  { naziv: 'Minimal White', emoji: '⬜', opis: 'Ultra minimalan, čisto bijelo',
+    css: ':root { --border: #f0f0f0 !important; }
+* { box-shadow: none !important; }
+header { border-bottom: 1px solid #f0f0f0 !important; box-shadow: none !important; }' },
+  { naziv: 'Cyberpunk', emoji: '🤖', opis: 'Futuristično, neon na crnoj',
+    css: 'body, .min-h-screen { background: #0d001a !important; }
+header { background: #0d001a !important; border-bottom: 1px solid rgba(255,0,255,0.3) !important; }
+button { box-shadow: 0 0 8px rgba(255,0,255,0.3) !important; }' },
 ]
 
 const GOOGLE_FONTS = ['DM Sans', 'Inter', 'Roboto', 'Open Sans', 'Lato', 'Poppins', 'Nunito', 'Montserrat', 'Raleway', 'Merriweather', 'Playfair Display', 'Source Sans 3']
@@ -400,7 +429,8 @@ export default function IzgledPage() {
     const updates = {
       theme_primary_boja: t.primary, theme_bg_stranica: t.bg,
       theme_bg_kartica: t.kartica, theme_border_boja: t.border,
-      theme_tekst_boja: t.tekst, header_boja: t.header,
+      theme_tekst_boja: t.tekst, theme_tekst_muted: (t as any).muted || t.tekst,
+      theme_cijena_boja: t.primary, header_boja: t.header,
       hero_boja_pozadine: t.hero,
     }
     setP(prev => ({ ...prev, ...updates }))
@@ -514,20 +544,21 @@ export default function IzgledPage() {
           {/* ── BRZE TEME ── */}
           <AccordionSec title="Izgled i boje" icon={<Palette size={18} />} defaultOpen={true}>
             <Sec title="Brze teme" desc="Klikni za trenutnu primjenu">
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px' }}>
                 {PRESET_TEME.map(t => (
                   <button key={t.naziv} onClick={() => applyPreset(t)} style={{
-                    padding: '10px 8px', border: '2px solid ' + (p.theme_primary_boja === t.primary ? '#0F6E56' : '#E5E7EB'),
+                    padding: '8px 6px', border: '2px solid ' + (p.theme_primary_boja === t.primary && p.theme_bg_stranica === t.bg ? '#0F6E56' : '#E5E7EB'),
                     borderRadius: '10px', cursor: 'pointer', fontFamily: 'inherit',
-                    background: p.theme_primary_boja === t.primary ? '#F0FDF4' : 'white',
-                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px',
+                    background: p.theme_primary_boja === t.primary && p.theme_bg_stranica === t.bg ? '#F0FDF4' : 'white',
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px',
+                    transition: 'all 0.15s',
                   }}>
-                    <div style={{ display: 'flex', gap: '3px' }}>
-                      {[t.primary, t.kartica, t.header].map((c, i) => (
-                        <div key={i} style={{ width: '14px', height: '14px', borderRadius: '3px', background: c, border: '1px solid rgba(0,0,0,0.1)' }} />
+                    <div style={{ display: 'flex', gap: '2px', marginBottom: '2px' }}>
+                      {[t.primary, t.bg, t.header].map((c, i) => (
+                        <div key={i} style={{ width: '12px', height: '12px', borderRadius: '3px', background: c, border: '1px solid rgba(0,0,0,0.08)' }} />
                       ))}
                     </div>
-                    <span style={{ fontSize: '11px', fontWeight: 600, color: '#374151' }}>{t.naziv}</span>
+                    <span style={{ fontSize: '10px', fontWeight: 600, color: '#374151' }}>{(t as any).emoji} {t.naziv}</span>
                   </button>
                 ))}
               </div>
@@ -860,7 +891,7 @@ export default function IzgledPage() {
           {/* ── CSS TEME ── */}
           <AccordionSec title="CSS teme i napredne postavke" icon={<Type size={18} />} badge="Dev">
             <Sec title="Gotove CSS teme">
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
                 {CSS_PRESET_TEME.map(t => (
                   <button key={t.naziv} onClick={() => set('theme_custom_css', t.css)} style={{
                     padding: '10px 12px', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left' as const,

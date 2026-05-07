@@ -20,7 +20,7 @@ export default function LangSwitcher({ current }: { current: string }) {
           onClick={() => switchLang(lang)}
           className={`text-xs px-2 py-0.5 rounded font-medium transition-colors ${
             current === lang
-              ? 'bg-teal-50 text-teal-700'
+              ? 'bg-[var(--brand-pale)] text-[var(--brand)]'
               : 'text-gray-400 hover:text-gray-600'
           }`}
         >

@@ -42,7 +42,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   <Link
                     key={href}
                     href={href}
-                    className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${active ? 'bg-teal-50 text-teal-700 font-medium' : 'text-gray-600 hover:bg-gray-50'}`}
+                    className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${active ? 'bg-[var(--brand-pale)] text-[var(--brand)] font-medium' : 'text-gray-600 hover:bg-gray-50'}`}
                   >
                     <Icon size={15} />
                     <span style={{ flex: 1 }}>{label}</span>

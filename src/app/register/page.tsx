@@ -64,8 +64,8 @@ export default function RegisterPage() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
         <div className="w-full max-w-sm text-center">
           <div className="bg-white border border-gray-100 rounded-xl p-8 shadow-sm">
-            <div className="w-12 h-12 bg-teal-50 rounded-full flex items-center justify-center mx-auto mb-4">
-              <span className="text-teal-600 text-xl">✓</span>
+            <div className="w-12 h-12 bg-[var(--brand-pale)] rounded-full flex items-center justify-center mx-auto mb-4">
+              <span className="text-[var(--brand)] text-xl">✓</span>
             </div>
             <h2 className="text-lg font-medium text-gray-900 mb-2">Zahtjev poslan!</h2>
             <p className="text-sm text-gray-500 mb-6">
@@ -135,7 +135,7 @@ export default function RegisterPage() {
 
           <p className="text-center text-sm text-gray-500 mt-4">
             Već imate račun?{' '}
-            <Link href="/login" className="text-teal-600 hover:underline font-medium">Prijavite se</Link>
+            <Link href="/login" className="text-[var(--brand)] hover:underline font-medium">Prijavite se</Link>
           </p>
         </div>
 

@@ -88,7 +88,7 @@ export default function LoginPage() {
 
           <p className="text-center text-sm text-gray-500 mt-4">
             Nemate račun?{' '}
-            <Link href="/register" className="text-teal-600 hover:underline font-medium">
+            <Link href="/register" className="text-[var(--brand)] hover:underline font-medium">
               Registrujte se
             </Link>
           </p>

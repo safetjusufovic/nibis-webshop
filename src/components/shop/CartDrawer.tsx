@@ -108,22 +108,22 @@ export default function CartDrawer({ open, onClose }: CartDrawerProps) {
 
         {/* Rabat banner */}
         {rabat > 0 && (
-          <div className="flex items-center gap-2 px-4 py-2 bg-teal-50 border-b border-teal-100">
-            <Tag size={13} className="text-teal-600" />
-            <span className="text-xs text-teal-700 font-medium">Vaš rabat: {rabat}% — cijene su već umanjene</span>
+          <div className="flex items-center gap-2 px-4 py-2 bg-[var(--brand-pale)] border-b border-[var(--brand-pale)]">
+            <Tag size={13} className="text-[var(--brand)]" />
+            <span className="text-xs text-[var(--brand)] font-medium">Vaš rabat: {rabat}% — cijene su već umanjene</span>
           </div>
         )}
 
         {/* Success state */}
         {status === 'success' ? (
           <div className="flex-1 flex flex-col items-center justify-center p-6 text-center gap-4">
-            <div className="w-14 h-14 rounded-full bg-teal-50 flex items-center justify-center">
-              <ShoppingBag size={24} className="text-teal-600" />
+            <div className="w-14 h-14 rounded-full bg-[var(--brand-pale)] flex items-center justify-center">
+              <ShoppingBag size={24} className="text-[var(--brand)]" />
             </div>
             <div>
               <h3 className="font-medium text-gray-900 mb-1">Narudžba kreirana!</h3>
               <p className="text-sm text-gray-500 mb-3">Uspješno poslana u ERP sistem.</p>
-              <span className="font-mono text-xs bg-teal-50 text-teal-700 px-3 py-1.5 rounded-lg">{orderRef}</span>
+              <span className="font-mono text-xs bg-[var(--brand-pale)] text-[var(--brand)] px-3 py-1.5 rounded-lg">{orderRef}</span>
             </div>
             <button className="btn-secondary mt-2" onClick={handleClose}>Nastavi kupovinu</button>
           </div>
@@ -176,7 +176,7 @@ export default function CartDrawer({ open, onClose }: CartDrawerProps) {
                     <span>PDV</span><span>{formatCijena(totals.ukupnoPorez)}</span>
                   </div>
                   {rabat > 0 && (
-                    <div className="flex justify-between text-teal-600 text-xs">
+                    <div className="flex justify-between text-[var(--brand)] text-xs">
                       <span>Ušteda (rabat {rabat}%)</span>
                       <span>-{formatCijena(
                         items.reduce((s, i) => s + i.cijena * i.qty, 0) -
