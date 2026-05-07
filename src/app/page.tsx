@@ -25,7 +25,6 @@ function CategorySidebar({ grupe, activeId, onSelect, sirina = 240, sidebarConfi
   const [open, setOpen] = useState<Record<number, boolean>>({})
   const roots = grupe.filter(g => !g.parentId)
   const visinaKat = sidebarConfig?.visinaKategorije ?? 52
-  // Ikona = 84% visine reda, ali ne više od 38% širine sidebara
   const ikonaSize = Math.round(Math.min(visinaKat * 0.84, sirina * 0.38))
   const ikonaImgSize = Math.round(ikonaSize * 0.60)
   const ikonaRadius = Math.round(ikonaSize * 0.22)
@@ -44,7 +43,6 @@ function CategorySidebar({ grupe, activeId, onSelect, sirina = 240, sidebarConfi
           <span style={{ fontSize: '11px', fontWeight: 600, color: hasBgSlika ? 'white' : '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Kategorije</span>
         </div>
         <div style={{ padding: '6px' }}>
-          {/* Sve kategorije */}
           <button
             onClick={() => onSelect(null)}
             className={`w-full text-left px-3 py-2 text-[12px] rounded-md mb-1 transition-all duration-150 flex items-center gap-2 ${
@@ -103,7 +101,6 @@ function CategorySidebar({ grupe, activeId, onSelect, sirina = 240, sidebarConfi
                       backdropFilter: hasBgSlika ? 'blur(4px)' : 'none',
                     }}
                   >
-                    {/* Ikona — uvijek prikazana u boji kategorije */}
                     <span style={{
                       width: ikonaSize + 'px',
                       height: ikonaSize + 'px',
@@ -258,7 +255,6 @@ function ProductRow({ artikal, stanje }: { artikal: Artikal; stanje: StanjeSklad
               <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
             </svg>
           </button>
-          {/* Qty input */}
           <input
             type="number"
             min={1}
@@ -268,7 +264,6 @@ function ProductRow({ artikal, stanje }: { artikal: Artikal; stanje: StanjeSklad
             disabled={!canAdd}
             className="w-14 h-7 text-center text-[12px] font-medium bg-white border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 transition-all duration-200 disabled:opacity-40 shadow-sm"
           />
-          {/* Dodaj button */}
           <button
             onClick={handleAdd}
             disabled={!canAdd || inCart + qty > maxQty}
@@ -284,22 +279,6 @@ function ProductRow({ artikal, stanje }: { artikal: Artikal; stanje: StanjeSklad
         </div>
       </td>
     </tr>
-<<<<<<< HEAD
-  )
-}
-
-// ─── Skeleton Row ──────────────────────────────────────────────────────────────
-function SkeletonRow() {
-  return (
-    <tr className="border-b border-gray-100">
-      <td className="py-3 pl-4 pr-2"><div className="h-3.5 bg-gray-100 rounded w-3/4 animate-pulse" /></td>
-      <td className="py-3 px-2"><div className="h-3 bg-gray-100 rounded w-16 animate-pulse" /></td>
-      <td className="py-3 px-2 hidden lg:table-cell"><div className="h-3 bg-gray-100 rounded w-20 animate-pulse" /></td>
-      <td className="py-3 px-2"><div className="h-5 bg-gray-100 rounded-full w-16 animate-pulse" /></td>
-      <td className="py-3 px-2"><div className="h-4 bg-gray-100 rounded w-20 ml-auto animate-pulse" /></td>
-      <td className="py-3 pl-2 pr-4"><div className="h-7 bg-gray-100 rounded w-16 ml-auto animate-pulse" /></td>
-    </tr>
-=======
   )
 }
 
@@ -433,7 +412,6 @@ function PageBuilderOutput() {
       {css && <style dangerouslySetInnerHTML={{ __html: css }} />}
       <div dangerouslySetInnerHTML={{ __html: html }} />
     </>
->>>>>>> 7faf540edfe964fb8f97957a297ee722a4f51e2c
   )
 }
 
@@ -478,14 +456,11 @@ export default function HomePage() {
   const [searchInput, setSearchInput] = useState('')
   const [filterStock, setFilterStock] = useState(false)
   const [mobileFilters, setMobileFilters] = useState(false)
-<<<<<<< HEAD
-=======
-  const [pageSekcije, setPageSekcije] = useState<{id: string; aktivan: boolean; instanceId?: string}[]>([
+  const [pageSekcije, setPageSekcije] = useState<{ id: string; aktivan: boolean; instanceId?: string }[]>([
     { id: 'hero', aktivan: true },
     { id: 'akcije', aktivan: true },
     { id: 'katalog', aktivan: true },
   ])
->>>>>>> 7faf540edfe964fb8f97957a297ee722a4f51e2c
   const [sortBy, setSortBy] = useState('naziv')
   const [sidebarSirina, setSidebarSirina] = useState(240)
   const [sidebarConfig, setSidebarConfig] = useState<{
@@ -505,6 +480,7 @@ export default function HomePage() {
       })
       .catch(() => {})
   }, [])
+
   const [cijenaDo, setCijenaDo] = useState('')
   const [cijenaOd, setCijenaOd] = useState('')
   const [viewMode, setViewMode] = useState<'table' | 'grid'>('table')
@@ -580,12 +556,9 @@ export default function HomePage() {
     <AuthGuard>
       <div className="min-h-screen bg-gray-50">
         <Header onSearch={q => setSearchInput(q)} />
-<<<<<<< HEAD
-        <HeroBanner />
-        <AkcijeSlider />
 
-=======
-        {pageSekcije.filter(s => s.aktivan).map(s => {
+        {/* Dinamičke sekcije iznad kataloga */}
+        {pageSekcije.filter(s => s.aktivan && s.id !== 'katalog').map(s => {
           if (s.id === 'hero') return <HeroBanner key={s.id} />
           if (s.id === 'akcije') return <AkcijeSlider key={s.id} />
           if (s.id === 'features') return <FeaturesSekcija key={s.id} />
@@ -594,209 +567,204 @@ export default function HomePage() {
           return null
         })}
 
+        {/* Katalog sekcija */}
         {pageSekcije.find(s => s.id === 'katalog')?.aktivan !== false && (
->>>>>>> 7faf540edfe964fb8f97957a297ee722a4f51e2c
-        <main className="max-w-[1280px] mx-auto px-4 sm:px-6 py-5 pb-16">
-          {/* Toolbar */}
-          <div className="flex items-center gap-2 mb-4 flex-wrap">
-            {/* Breadcrumb */}
-            <div className="flex-1 min-w-0 flex items-center gap-1.5 text-[13px]">
-              {activeGrupa ? (
-                <>
-                  <button onClick={() => onGrupaSelect(null)} className="text-gray-400 hover:text-emerald-700 transition-colors">
-                    Sve kategorije
-                  </button>
-                  <ChevronRight size={12} className="text-gray-300" />
-                  <span className="text-gray-700 font-medium truncate">
-                    {grupe.find(g => g.id === activeGrupa)?.naziv}
+          <main className="max-w-[1280px] mx-auto px-4 sm:px-6 py-5 pb-16">
+            {/* Toolbar */}
+            <div className="flex items-center gap-2 mb-4 flex-wrap">
+              {/* Breadcrumb */}
+              <div className="flex-1 min-w-0 flex items-center gap-1.5 text-[13px]">
+                {activeGrupa ? (
+                  <>
+                    <button onClick={() => onGrupaSelect(null)} className="text-gray-400 hover:text-emerald-700 transition-colors">
+                      Sve kategorije
+                    </button>
+                    <ChevronRight size={12} className="text-gray-300" />
+                    <span className="text-gray-700 font-medium truncate">
+                      {grupe.find(g => g.id === activeGrupa)?.naziv}
+                    </span>
+                  </>
+                ) : (
+                  <span className="text-gray-400">
+                    {search ? `Pretraga: "${search}"` : 'Svi artikli'}
                   </span>
-                </>
-              ) : (
-                <span className="text-gray-400">
-                  {search ? `Pretraga: "${search}"` : 'Svi artikli'}
-                </span>
-              )}
-            </div>
+                )}
+              </div>
 
-            {/* Controls */}
-            <label className="flex items-center gap-1.5 text-[12px] text-gray-500 cursor-pointer select-none">
-              <input type="checkbox" checked={filterStock} onChange={e => setFilterStock(e.target.checked)} className="accent-emerald-700 w-3.5 h-3.5" />
-              Samo na stanju
-            </label>
+              {/* Controls */}
+              <label className="flex items-center gap-1.5 text-[12px] text-gray-500 cursor-pointer select-none">
+                <input type="checkbox" checked={filterStock} onChange={e => setFilterStock(e.target.checked)} className="accent-emerald-700 w-3.5 h-3.5" />
+                Samo na stanju
+              </label>
 
-            <button
-              className="md:hidden flex items-center gap-1 text-[12px] px-3 py-1.5 bg-white border border-gray-200 rounded text-gray-600"
-              onClick={() => setMobileFilters(!mobileFilters)}
-            >
-              <SlidersHorizontal size={12} /> Kategorije
-            </button>
-
-            <select
-              value={sortBy}
-              onChange={e => { setSortBy(e.target.value); setPage(1) }}
-              className="h-8 text-[12px] bg-white border border-gray-200 rounded px-2 text-gray-600 outline-none cursor-pointer"
-            >
-              <option value="naziv">Naziv A-Z</option>
-              <option value="naziv_desc">Naziv Z-A</option>
-              <option value="cijena_asc">Cijena ↑</option>
-              <option value="cijena_desc">Cijena ↓</option>
-            </select>
-
-            <div className="flex items-center gap-1">
-              <input type="number" placeholder="Od" value={cijenaOd}
-                onChange={e => { setCijenaOd(e.target.value); setPage(1) }}
-                className="w-16 h-8 text-[12px] px-2 bg-white border border-gray-200 rounded outline-none" />
-              <span className="text-gray-300 text-xs">–</span>
-              <input type="number" placeholder="Do KM" value={cijenaDo}
-                onChange={e => { setCijenaDo(e.target.value); setPage(1) }}
-                className="w-20 h-8 text-[12px] px-2 bg-white border border-gray-200 rounded outline-none" />
-            </div>
-
-            <span className="text-[12px] text-gray-400 bg-white border border-gray-200 px-3 py-1.5 rounded whitespace-nowrap">
-              {total.toLocaleString()} artikala
-            </span>
-
-            {/* View switcher */}
-            <div className="flex border border-gray-200 rounded overflow-hidden bg-white">
               <button
-                onClick={() => setViewMode('table')}
-                title="Tabelarni prikaz"
-                className={`p-1.5 transition-colors ${viewMode === 'table' ? 'bg-emerald-700 text-white' : 'text-gray-400 hover:bg-gray-50'}`}
+                className="md:hidden flex items-center gap-1 text-[12px] px-3 py-1.5 bg-white border border-gray-200 rounded text-gray-600"
+                onClick={() => setMobileFilters(!mobileFilters)}
               >
-                <LayoutList size={15} />
+                <SlidersHorizontal size={12} /> Kategorije
               </button>
-              <button
-                onClick={() => setViewMode('grid')}
-                title="Grid prikaz"
-                className={`p-1.5 transition-colors ${viewMode === 'grid' ? 'bg-emerald-700 text-white' : 'text-gray-400 hover:bg-gray-50'}`}
-              >
-                <LayoutGrid size={15} />
-              </button>
-            </div>
-          </div>
 
-          {/* Mobile filters */}
-          {mobileFilters && (
-            <div className="md:hidden mb-4">
+              <select
+                value={sortBy}
+                onChange={e => { setSortBy(e.target.value); setPage(1) }}
+                className="h-8 text-[12px] bg-white border border-gray-200 rounded px-2 text-gray-600 outline-none cursor-pointer"
+              >
+                <option value="naziv">Naziv A-Z</option>
+                <option value="naziv_desc">Naziv Z-A</option>
+                <option value="cijena_asc">Cijena ↑</option>
+                <option value="cijena_desc">Cijena ↓</option>
+              </select>
+
+              <div className="flex items-center gap-1">
+                <input type="number" placeholder="Od" value={cijenaOd}
+                  onChange={e => { setCijenaOd(e.target.value); setPage(1) }}
+                  className="w-16 h-8 text-[12px] px-2 bg-white border border-gray-200 rounded outline-none" />
+                <span className="text-gray-300 text-xs">–</span>
+                <input type="number" placeholder="Do KM" value={cijenaDo}
+                  onChange={e => { setCijenaDo(e.target.value); setPage(1) }}
+                  className="w-20 h-8 text-[12px] px-2 bg-white border border-gray-200 rounded outline-none" />
+              </div>
+
+              <span className="text-[12px] text-gray-400 bg-white border border-gray-200 px-3 py-1.5 rounded whitespace-nowrap">
+                {total.toLocaleString()} artikala
+              </span>
+
+              {/* View switcher */}
+              <div className="flex border border-gray-200 rounded overflow-hidden bg-white">
+                <button
+                  onClick={() => setViewMode('table')}
+                  title="Tabelarni prikaz"
+                  className={`p-1.5 transition-colors ${viewMode === 'table' ? 'bg-emerald-700 text-white' : 'text-gray-400 hover:bg-gray-50'}`}
+                >
+                  <LayoutList size={15} />
+                </button>
+                <button
+                  onClick={() => setViewMode('grid')}
+                  title="Grid prikaz"
+                  className={`p-1.5 transition-colors ${viewMode === 'grid' ? 'bg-emerald-700 text-white' : 'text-gray-400 hover:bg-gray-50'}`}
+                >
+                  <LayoutGrid size={15} />
+                </button>
+              </div>
+            </div>
+
+            {/* Mobile filters */}
+            {mobileFilters && (
+              <div className="md:hidden mb-4">
+                <CategorySidebar grupe={grupe} activeId={activeGrupa} onSelect={onGrupaSelect} sirina={sidebarSirina} sidebarConfig={sidebarConfig} />
+              </div>
+            )}
+
+            {/* Layout */}
+            <div className="flex gap-5 items-start">
               <CategorySidebar grupe={grupe} activeId={activeGrupa} onSelect={onGrupaSelect} sirina={sidebarSirina} sidebarConfig={sidebarConfig} />
-            </div>
-          )}
 
-          {/* Layout */}
-          <div className="flex gap-5 items-start">
-            <CategorySidebar grupe={grupe} activeId={activeGrupa} onSelect={onGrupaSelect} sirina={sidebarSirina} sidebarConfig={sidebarConfig} />
-
-            {/* Table */}
-            <div className="flex-1 min-w-0">
-              {viewMode === 'table' ? (
-                <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-                  <table className="w-full border-collapse">
-                    <thead>
-                      <tr className="bg-gray-50 border-b border-gray-200">
-                        <th className="py-2.5 pl-4 pr-2 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Naziv</th>
-                        <th className="py-2.5 px-2 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Šifra</th>
-                        <th className="py-2.5 px-2 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider hidden lg:table-cell">Kategorija</th>
-                        <th className="py-2.5 px-2 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Stanje</th>
-                        <th className="py-2.5 px-2 text-right text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Cijena</th>
-                        <th className="py-2.5 pl-2 pr-4 text-right text-[11px] font-semibold text-gray-400 uppercase tracking-wider"></th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {loading
-                        ? Array(perPage).fill(0).map((_, i) => <SkeletonRow key={i} />)
-                        : displayed.length === 0
-                        ? (
-                          <tr><td colSpan={6} className="py-16 text-center text-gray-400 text-[13px]">
-                            <Package size={28} className="mx-auto mb-2 opacity-30" />
-                            Nema artikala
-                            <br />
-                            <button onClick={() => { onGrupaSelect(null); setFilterStock(false) }}
-                              className="mt-2 text-emerald-700 underline text-[12px]">
-                              Prikaži sve
-                            </button>
-                          </td></tr>
-                        )
-                        : displayed.map(a => (
-                          <ProductRow key={a.id} artikal={a} stanje={stanje[a.id]} />
-                        ))
-                      }
-                    </tbody>
-                  </table>
-                </div>
-              ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-                  {loading
-                    ? Array(perPage).fill(0).map((_, i) => (
-                      <div key={i} className="bg-white border border-gray-200 rounded-lg overflow-hidden animate-pulse">
-                        <div className="pt-[72%] bg-gray-100" />
-                        <div className="p-3 space-y-2">
-                          <div className="h-3 bg-gray-100 rounded w-2/3" />
-                          <div className="h-3 bg-gray-100 rounded w-1/2" />
-                          <div className="h-8 bg-gray-100 rounded mt-2" />
+              {/* Table / Grid */}
+              <div className="flex-1 min-w-0">
+                {viewMode === 'table' ? (
+                  <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+                    <table className="w-full border-collapse">
+                      <thead>
+                        <tr className="bg-gray-50 border-b border-gray-200">
+                          <th className="py-2.5 pl-4 pr-2 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Naziv</th>
+                          <th className="py-2.5 px-2 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Šifra</th>
+                          <th className="py-2.5 px-2 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider hidden lg:table-cell">Kategorija</th>
+                          <th className="py-2.5 px-2 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Stanje</th>
+                          <th className="py-2.5 px-2 text-right text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Cijena</th>
+                          <th className="py-2.5 pl-2 pr-4 text-right text-[11px] font-semibold text-gray-400 uppercase tracking-wider"></th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {loading
+                          ? Array(perPage).fill(0).map((_, i) => <SkeletonRow key={i} />)
+                          : displayed.length === 0
+                          ? (
+                            <tr><td colSpan={6} className="py-16 text-center text-gray-400 text-[13px]">
+                              <Package size={28} className="mx-auto mb-2 opacity-30" />
+                              Nema artikala
+                              <br />
+                              <button onClick={() => { onGrupaSelect(null); setFilterStock(false) }}
+                                className="mt-2 text-emerald-700 underline text-[12px]">
+                                Prikaži sve
+                              </button>
+                            </td></tr>
+                          )
+                          : displayed.map(a => (
+                            <ProductRow key={a.id} artikal={a} stanje={stanje[a.id]} />
+                          ))
+                        }
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                    {loading
+                      ? Array(perPage).fill(0).map((_, i) => (
+                        <div key={i} className="bg-white border border-gray-200 rounded-lg overflow-hidden animate-pulse">
+                          <div className="pt-[72%] bg-gray-100" />
+                          <div className="p-3 space-y-2">
+                            <div className="h-3 bg-gray-100 rounded w-2/3" />
+                            <div className="h-3 bg-gray-100 rounded w-1/2" />
+                            <div className="h-8 bg-gray-100 rounded mt-2" />
+                          </div>
                         </div>
-                      </div>
-                    ))
-                    : displayed.length === 0
-                    ? (
-                      <div className="col-span-full py-16 text-center text-gray-400 text-[13px]">
-                        <Package size={28} className="mx-auto mb-2 opacity-30" />
-                        Nema artikala
-                        <br />
-                        <button onClick={() => { onGrupaSelect(null); setFilterStock(false) }}
-                          className="mt-2 text-emerald-700 underline text-[12px]">
-                          Prikaži sve
+                      ))
+                      : displayed.length === 0
+                      ? (
+                        <div className="col-span-full py-16 text-center text-gray-400 text-[13px]">
+                          <Package size={28} className="mx-auto mb-2 opacity-30" />
+                          Nema artikala
+                          <br />
+                          <button onClick={() => { onGrupaSelect(null); setFilterStock(false) }}
+                            className="mt-2 text-emerald-700 underline text-[12px]">
+                            Prikaži sve
+                          </button>
+                        </div>
+                      )
+                      : displayed.map(a => (
+                        <ProductCard key={a.id} artikal={a} stanje={stanje[a.id]} slika={(a as any).slika_url} />
+                      ))
+                    }
+                  </div>
+                )}
+
+                {/* Pagination */}
+                {totalPages > 1 && (
+                  <div className="flex items-center justify-center gap-1.5 mt-6 flex-wrap">
+                    <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page <= 1}
+                      className="px-3 py-1.5 text-[12px] bg-white border border-gray-200 rounded text-gray-600 hover:bg-gray-50 disabled:opacity-40 transition-colors">
+                      ← Prethodna
+                    </button>
+                    {Array.from({ length: Math.min(7, totalPages) }, (_, i) => {
+                      let p: number
+                      if (totalPages <= 7) p = i + 1
+                      else if (page <= 4) p = i + 1
+                      else if (page >= totalPages - 3) p = totalPages - 6 + i
+                      else p = page - 3 + i
+                      return (
+                        <button key={p} onClick={() => setPage(p)}
+                          className={`w-8 h-8 text-[12px] rounded border transition-colors ${
+                            p === page
+                              ? 'bg-emerald-700 text-white border-emerald-700 font-semibold'
+                              : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
+                          }`}>
+                          {p}
                         </button>
-                      </div>
-                    )
-                    : displayed.map(a => (
-                      <ProductCard key={a.id} artikal={a} stanje={stanje[a.id]} slika={(a as any).slika_url} />
-                    ))
-                  }
-                </div>
-              )}
-
-              {/* Pagination */}
-              {totalPages > 1 && (
-                <div className="flex items-center justify-center gap-1.5 mt-6 flex-wrap">
-                  <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page <= 1}
-                    className="px-3 py-1.5 text-[12px] bg-white border border-gray-200 rounded text-gray-600 hover:bg-gray-50 disabled:opacity-40 transition-colors">
-                    ← Prethodna
-                  </button>
-                  {Array.from({ length: Math.min(7, totalPages) }, (_, i) => {
-                    let p: number
-                    if (totalPages <= 7) p = i + 1
-                    else if (page <= 4) p = i + 1
-                    else if (page >= totalPages - 3) p = totalPages - 6 + i
-                    else p = page - 3 + i
-                    return (
-                      <button key={p} onClick={() => setPage(p)}
-                        className={`w-8 h-8 text-[12px] rounded border transition-colors ${
-                          p === page
-                            ? 'bg-emerald-700 text-white border-emerald-700 font-semibold'
-                            : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
-                        }`}>
-                        {p}
-                      </button>
-                    )
-                  })}
-                  <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page >= totalPages}
-                    className="px-3 py-1.5 text-[12px] bg-white border border-gray-200 rounded text-gray-600 hover:bg-gray-50 disabled:opacity-40 transition-colors">
-                    Sljedeća →
-                  </button>
-                </div>
-              )}
+                      )
+                    })}
+                    <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page >= totalPages}
+                      className="px-3 py-1.5 text-[12px] bg-white border border-gray-200 rounded text-gray-600 hover:bg-gray-50 disabled:opacity-40 transition-colors">
+                      Sljedeća →
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-        </main>
-
-<<<<<<< HEAD
-        <Footer />
-=======
+          </main>
         )}
+
         <Footer />
-        {/* Page Builder sadržaj */}
         <PageBuilderOutput />
->>>>>>> 7faf540edfe964fb8f97957a297ee722a4f51e2c
       </div>
     </AuthGuard>
   )
