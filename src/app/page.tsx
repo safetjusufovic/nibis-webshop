@@ -184,7 +184,7 @@ function CategorySidebar({ grupe, activeId, onSelect, sirina = 240, sidebarConfi
 }
 
 // ─── Product Table Row ─────────────────────────────────────────────────────────
-function ProductRow({ artikal, stanje }: { artikal: Artikal; stanje: StanjeSkladista | null | undefined }) {
+function ProductRow({ artikal, stanje, dugmeTekst = 'Dodaj' }: { artikal: Artikal; stanje: StanjeSkladista | null | undefined; dugmeTekst?: string }) {
   const { cart, add } = useCart()
   const { rabat } = useAuth()
   const { favoriti, toggle: toggleFavorit } = useFavoriti()
@@ -274,7 +274,7 @@ function ProductRow({ artikal, stanje }: { artikal: Artikal; stanje: StanjeSklad
             }`}
           >
             <ShoppingCart size={11} />
-            {inCart > 0 ? 'Dodaj još' : 'Dodaj'}
+            {inCart > 0 ? dugmeTekst + ' još' : dugmeTekst}
           </button>
         </div>
       </td>
@@ -524,22 +524,60 @@ function PageBuilderOutput({ pozicija }: { pozicija: 'gore' | 'dole' }) {
 function Footer() {
   const [p, setP] = useState<Record<string, string>>({})
   useEffect(() => {
-    fetch('/api/postavke?kljuci=shop_naziv,shop_email,shop_telefon,theme_footer_tekst,theme_footer_boja')
+    fetch('/api/postavke?kljuci=shop_naziv,shop_email,shop_telefon,theme_footer_tekst,theme_footer_boja,theme_footer_bg_slika,theme_footer_logo_url,footer_kolone_aktivan,footer_kolona1_naslov,footer_kolona1_sadrzaj,footer_kolona2_naslov,footer_kolona2_sadrzaj,footer_kolona3_naslov,footer_kolona3_sadrzaj,footer_social_facebook,footer_social_instagram,footer_social_linkedin,shop_watermark')
       .then(r => r.json()).then(setP).catch(() => {})
   }, [])
+
+  const bgStyle: React.CSSProperties = {
+    background: p.theme_footer_bg_slika
+      ? 'url(' + p.theme_footer_bg_slika + ') center/cover no-repeat'
+      : (p.theme_footer_boja || 'white'),
+    borderTop: '1px solid #E5E7EB',
+  }
+
   return (
-    <footer style={{ borderTop: '1px solid #E5E7EB', background: p.theme_footer_boja || 'white', padding: '24px' }}>
-      <div style={{ maxWidth: '1280px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', fontSize: '12px', color: '#6B7280' }}>
-        <div>
-          <span style={{ fontWeight: 600, color: '#374151' }}>{p.shop_naziv || siteConfig.name}</span>
-          <span style={{ margin: '0 6px' }}>·</span>
-          {p.theme_footer_tekst || 'B2B webshop · Powered by NIBIS ERP'}
+    <footer style={bgStyle}>
+      {/* Kolone */}
+      {p.footer_kolone_aktivan === 'true' && (
+        <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '40px 24px 24px', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '32px' }}>
+          {[
+            { naslov: p.footer_kolona1_naslov, sadrzaj: p.footer_kolona1_sadrzaj },
+            { naslov: p.footer_kolona2_naslov, sadrzaj: p.footer_kolona2_sadrzaj },
+            { naslov: p.footer_kolona3_naslov, sadrzaj: p.footer_kolona3_sadrzaj },
+          ].map((k, i) => k.naslov ? (
+            <div key={i}>
+              <h4 style={{ fontSize: '13px', fontWeight: 700, color: '#374151', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{k.naslov}</h4>
+              <div style={{ fontSize: '13px', color: '#6B7280', lineHeight: 1.7, whiteSpace: 'pre-line' }}>{k.sadrzaj}</div>
+            </div>
+          ) : null)}
+        </div>
+      )}
+
+      {/* Social mreže */}
+      {(p.footer_social_facebook || p.footer_social_instagram || p.footer_social_linkedin) && (
+        <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 24px 16px', display: 'flex', gap: '12px' }}>
+          {p.footer_social_facebook && <a href={p.footer_social_facebook} target="_blank" rel="noopener noreferrer" style={{ fontSize: '12px', color: 'var(--brand)', textDecoration: 'none', padding: '4px 10px', border: '1px solid var(--border)', borderRadius: '6px' }}>Facebook</a>}
+          {p.footer_social_instagram && <a href={p.footer_social_instagram} target="_blank" rel="noopener noreferrer" style={{ fontSize: '12px', color: 'var(--brand)', textDecoration: 'none', padding: '4px 10px', border: '1px solid var(--border)', borderRadius: '6px' }}>Instagram</a>}
+          {p.footer_social_linkedin && <a href={p.footer_social_linkedin} target="_blank" rel="noopener noreferrer" style={{ fontSize: '12px', color: 'var(--brand)', textDecoration: 'none', padding: '4px 10px', border: '1px solid var(--border)', borderRadius: '6px' }}>LinkedIn</a>}
+        </div>
+      )}
+
+      {/* Bottom bar */}
+      <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '16px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', fontSize: '12px', color: '#6B7280', borderTop: p.footer_kolone_aktivan === 'true' ? '1px solid #E5E7EB' : 'none' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          {(p.theme_footer_logo_url) && <img src={p.theme_footer_logo_url} alt="" style={{ height: '28px', objectFit: 'contain' }} />}
+          <div>
+            <span style={{ fontWeight: 600, color: '#374151' }}>{p.shop_naziv || siteConfig.name}</span>
+            <span style={{ margin: '0 6px' }}>·</span>
+            {p.theme_footer_tekst || 'B2B webshop'}
+            {p.shop_watermark !== 'false' && <span style={{ opacity: 0.5 }}> · Powered by NIBIS</span>}
+          </div>
         </div>
         <div style={{ display: 'flex', gap: '20px' }}>
           {p.shop_telefon && <span>{p.shop_telefon}</span>}
-          {(p.shop_email || siteConfig.contactEmail) && (
-            <a href={`mailto:${p.shop_email || siteConfig.contactEmail}`} style={{ color: 'var(--brand)', textDecoration: 'none' }}>
-              {p.shop_email || siteConfig.contactEmail}
+          {p.shop_email && (
+            <a href={'mailto:' + p.shop_email} style={{ color: 'var(--brand)', textDecoration: 'none' }}>
+              {p.shop_email}
             </a>
           )}
         </div>
@@ -573,31 +611,29 @@ export default function HomePage() {
     visinaKategorije: number
   }>({ bojaPozadine: '#F8FAFA', visinaKategorije: 52 })
 
-  useEffect(() => {
-    fetch('/api/postavke?kljuci=sidebar_sirina,sidebar_boja_pozadine,sidebar_visina_kategorije')
-      .then(r => r.json())
-      .then(d => {
-        if (d.sidebar_sirina) setSidebarSirina(parseInt(d.sidebar_sirina))
-        setSidebarConfig({
-          bojaPozadine: d.sidebar_boja_pozadine || '#F8FAFA',
-          visinaKategorije: parseInt(d.sidebar_visina_kategorije || '52'),
-        })
-      })
-      .catch(() => {})
-  }, [])
+
 
   const [cijenaDo, setCijenaDo] = useState('')
   const [cijenaOd, setCijenaOd] = useState('')
   const [viewMode, setViewMode] = useState<'table' | 'grid'>('grid')
   const [perPage, setPerPage] = useState(siteConfig.perPage)
+  const [dugmeTekst, setDugmeTekst] = useState('Dodaj')
 
   // Učitaj dinamičke postavke iz baze
   useEffect(() => {
-    fetch('/api/postavke?kljuci=default_view,per_page,artikal_dugme_tekst')
+    fetch('/api/postavke?kljuci=default_view,per_page,artikal_dugme_tekst,artikal_prikaz_dvije_cijene,artikal_prikaz_sifra,artikal_prikaz_kategorija,sidebar_pozicija,sidebar_sirina,sidebar_boja_pozadine,sidebar_visina_kategorije')
       .then(r => r.json())
       .then(d => {
         if (d.default_view === 'table' || d.default_view === 'grid') setViewMode(d.default_view)
         if (d.per_page) setPerPage(parseInt(d.per_page) || siteConfig.perPage)
+        if (d.artikal_dugme_tekst) setDugmeTekst(d.artikal_dugme_tekst)
+        if (d.sidebar_sirina) setSidebarSirina(parseInt(d.sidebar_sirina))
+        if (d.sidebar_boja_pozadine || d.sidebar_visina_kategorije) {
+          setSidebarConfig(prev => ({
+            bojaPozadine: d.sidebar_boja_pozadine || prev.bojaPozadine,
+            visinaKategorije: parseInt(d.sidebar_visina_kategorije || '52'),
+          }))
+        }
       })
       .catch(() => {})
   }, [])
@@ -805,7 +841,7 @@ export default function HomePage() {
                             </td></tr>
                           )
                           : displayed.map(a => (
-                            <ProductRow key={a.id} artikal={a} stanje={stanje[a.id]} />
+                            <ProductRow key={a.id} artikal={a} stanje={stanje[a.id]} dugmeTekst={dugmeTekst} />
                           ))
                         }
                       </tbody>
