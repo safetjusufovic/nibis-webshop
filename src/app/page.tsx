@@ -588,7 +588,7 @@ export default function HomePage() {
 
   const [cijenaDo, setCijenaDo] = useState('')
   const [cijenaOd, setCijenaOd] = useState('')
-  const [viewMode, setViewMode] = useState<'table' | 'grid'>('table')
+  const [viewMode, setViewMode] = useState<'table' | 'grid'>('grid')
 
   const perPage = siteConfig.perPage
 

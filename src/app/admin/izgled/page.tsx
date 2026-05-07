@@ -61,7 +61,11 @@ const DEFAULTS: Postavke = {
   footer_kolona3_naslov: 'Radno vrijeme', footer_kolona3_sadrzaj: '',
   registracija_otvorena: 'true', registracija_poruka: '',
   email_potvrda_narudzba: 'true', email_admin_narudzba: 'true',
-  email_admin_registracija: 'true', theme_custom_css: '',
+  email_admin_registracija: 'true',
+  shop_watermark: 'true', shop_maintenance: 'false',
+  kartica_prikaz_slika: 'true', kartica_prikaz_sifra: 'true',
+  kartica_prikaz_stanje: 'true', kartica_prikaz_kategorija: 'false',
+  theme_custom_css: '',
 }
 
 const PRESET_TEME = [
@@ -764,7 +768,28 @@ export default function IzgledPage() {
             </Sec>
           </AccordionSec>
 
-          {/* ── CSS TEME ── */}
+          {/* ── REGISTRACIJA ── */}
+          <AccordionSec title="Registracija i pristup" icon={<Globe size={18} />}>
+            <Toggle label="Otvorena registracija" value={p.registracija_otvorena || 'true'} onChange={v => set('registracija_otvorena', v)} desc="Novi kupci se mogu sami registrovati" />
+            <Toggle label="Maintenance mode" value={p.shop_maintenance || 'false'} onChange={v => set('shop_maintenance', v)} desc="Sakrij shop svim osim adminu" />
+            <Input label="Poruka pri registraciji" value={p.registracija_poruka || ''} onChange={v => set('registracija_poruka', v)} placeholder="Vaš zahtjev je primljen. Kontaktirat ćemo vas u roku od 24h." />
+            <Divider />
+            <Toggle label="Email potvrda narudžbe kupcu" value={p.email_potvrda_narudzba || 'true'} onChange={v => set('email_potvrda_narudzba', v)} />
+            <Toggle label="Email adminu — nova narudžba" value={p.email_admin_narudzba || 'true'} onChange={v => set('email_admin_narudzba', v)} />
+            <Toggle label="Email adminu — nova registracija" value={p.email_admin_registracija || 'true'} onChange={v => set('email_admin_registracija', v)} />
+          </AccordionSec>
+
+          {/* ── PRIKAZ KARTICA ── */}
+          <AccordionSec title="Prikaz kartica artikala (Grid)" icon={<ShoppingBag size={18} />}>
+            <Sec title="Što se prikazuje na kartici">
+              <Toggle label="Slika artikla" value={p.kartica_prikaz_slika || 'true'} onChange={v => set('kartica_prikaz_slika', v)} />
+              <Toggle label="Šifra artikla" value={p.kartica_prikaz_sifra || 'true'} onChange={v => set('kartica_prikaz_sifra', v)} />
+              <Toggle label="Badge stanja (Na stanju / Nema)" value={p.kartica_prikaz_stanje || 'true'} onChange={v => set('kartica_prikaz_stanje', v)} />
+              <Toggle label="Kategorija na kartici" value={p.kartica_prikaz_kategorija || 'false'} onChange={v => set('kartica_prikaz_kategorija', v)} />
+            </Sec>
+          </AccordionSec>
+
+                    {/* ── CSS TEME ── */}
           <AccordionSec title="CSS teme i napredne postavke" icon={<Type size={18} />} badge="Dev">
             <Sec title="Gotove CSS teme">
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
