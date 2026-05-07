@@ -144,3 +144,38 @@
   /* ── Mono text ── */
   .mono { font-family: 'DM Mono', monospace; }
 }
+
+/* ── Brand color utility classes — koriste CSS varijablu ── */
+.brand-bg { background: var(--brand) !important; }
+.brand-text { color: var(--brand) !important; }
+.brand-border { border-color: var(--brand) !important; }
+.brand-bg-pale { background: var(--brand-pale) !important; }
+
+/* ── Overridi Tailwind emerald/teal s brand bojom ── */
+.bg-emerald-700, .bg-emerald-600, .bg-teal-600, .bg-teal-700 {
+  background-color: var(--brand) !important;
+}
+.hover\:bg-emerald-600:hover, .hover\:from-emerald-600:hover {
+  background-color: var(--brand-dark) !important;
+}
+.text-emerald-700, .text-emerald-600, .text-teal-600, .text-teal-700 {
+  color: var(--brand) !important;
+}
+.border-emerald-700, .border-teal-600 {
+  border-color: var(--brand) !important;
+}
+.bg-emerald-50, .bg-teal-50, .hover\:bg-emerald-50:hover {
+  background-color: var(--brand-pale) !important;
+}
+.ring-emerald-500\/30, .focus\:ring-emerald-500\/30 {
+  --tw-ring-color: var(--brand-pale) !important;
+}
+.from-emerald-700 {
+  --tw-gradient-from: var(--brand) !important;
+}
+.to-emerald-600 {
+  --tw-gradient-to: var(--brand-dark) !important;
+}
+.accent-emerald-700 {
+  accent-color: var(--brand) !important;
+}
