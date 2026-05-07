@@ -878,13 +878,8 @@ export default function HomePage() {
           </main>
         )}
 
-        {/* Page Builder sadržaj — pozicija 'gore' (iznad kataloga) */}
-        <PageBuilderOutput pozicija="gore" />
-
         <Footer />
 
-        {/* Page Builder sadržaj — pozicija 'dole' (ispod footera) */}
-        <PageBuilderOutput pozicija="dole" />
       </div>
     </AuthGuard>
   )

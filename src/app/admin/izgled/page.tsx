@@ -66,6 +66,17 @@ const DEFAULTS: Postavke = {
   kartica_prikaz_slika: 'true', kartica_prikaz_sifra: 'true',
   kartica_prikaz_stanje: 'true', kartica_prikaz_kategorija: 'false',
   theme_custom_css: '',
+  sekcija_features_naslov: 'Zašto mi?',
+  sekcija_banner_tekst: '', sekcija_banner_podnaslov: '', sekcija_banner_dugme: '', sekcija_banner_boja: '#0F6E56',
+  sekcija_newsletter_naslov: '', sekcija_newsletter_podnaslov: '',
+  page_sekcije: JSON.stringify([
+    { id: 'hero', naziv: 'Hero Banner', aktivan: true },
+    { id: 'akcije', naziv: 'Akcije Slider', aktivan: true },
+    { id: 'features', naziv: 'Prednosti (3 ikone)', aktivan: false },
+    { id: 'banner', naziv: 'Promo Banner', aktivan: false },
+    { id: 'newsletter', naziv: 'Newsletter', aktivan: false },
+    { id: 'katalog', naziv: 'Katalog artikala', aktivan: true },
+  ]),
 }
 
 const PRESET_TEME = [
@@ -789,7 +800,49 @@ export default function IzgledPage() {
             </Sec>
           </AccordionSec>
 
-                    {/* ── CSS TEME ── */}
+                    {/* ── SEKCIJE STRANICE ── */}
+          <AccordionSec title="Sekcije stranice" icon={<Layout size={18} />}>
+            <Sec title="Uključi / isključi sekcije" desc="Redoslijed se mijenja povlačenjem">
+              {(() => {
+                let sekcije: {id: string; naziv: string; aktivan: boolean}[] = []
+                try { sekcije = JSON.parse(p.page_sekcije || '[]') } catch {}
+                return (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    {sekcije.map((s, idx) => (
+                      <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 14px', background: s.aktivan ? '#F0FDF4' : '#F9FAFB', border: '1px solid ' + (s.aktivan ? '#BBF7D0' : '#E5E7EB'), borderRadius: '10px' }}>
+                        <span style={{ fontSize: '13px', color: '#9CA3AF', cursor: 'grab' }}>⠿</span>
+                        <span style={{ flex: 1, fontSize: '13px', fontWeight: 500, color: '#111827' }}>{s.naziv}</span>
+                        <button onClick={() => {
+                          const updated = sekcije.map((sec, i) => i === idx ? { ...sec, aktivan: !sec.aktivan } : sec)
+                          set('page_sekcije', JSON.stringify(updated))
+                        }} style={{
+                          width: '40px', height: '22px', borderRadius: '11px', border: 'none', cursor: 'pointer', flexShrink: 0,
+                          background: s.aktivan ? '#0F6E56' : '#D1D5DB', position: 'relative', transition: 'background 0.2s',
+                        }}>
+                          <span style={{ position: 'absolute', top: '2px', left: s.aktivan ? '20px' : '2px', width: '18px', height: '18px', borderRadius: '50%', background: 'white', transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )
+              })()}
+            </Sec>
+            <Sec title="Features sekcija (kad je uključena)">
+              <Input label="Naslov sekcije" value={p.sekcija_features_naslov || 'Zašto mi?'} onChange={v => set('sekcija_features_naslov', v)} />
+            </Sec>
+            <Sec title="Promo Banner (kad je uključen)">
+              <Input label="Tekst banera" value={p.sekcija_banner_tekst || ''} onChange={v => set('sekcija_banner_tekst', v)} placeholder="Posebna ponuda ovog mjeseca!" />
+              <Input label="Podnaslov" value={p.sekcija_banner_podnaslov || ''} onChange={v => set('sekcija_banner_podnaslov', v)} />
+              <Input label="Tekst dugmeta" value={p.sekcija_banner_dugme || ''} onChange={v => set('sekcija_banner_dugme', v)} placeholder="Saznaj više" />
+              <ColorPicker label="Boja banera" value={p.sekcija_banner_boja || '#0F6E56'} onChange={v => set('sekcija_banner_boja', v)} />
+            </Sec>
+            <Sec title="Newsletter (kad je uključen)">
+              <Input label="Naslov" value={p.sekcija_newsletter_naslov || ''} onChange={v => set('sekcija_newsletter_naslov', v)} placeholder="Ostanite informisani" />
+              <Input label="Podnaslov" value={p.sekcija_newsletter_podnaslov || ''} onChange={v => set('sekcija_newsletter_podnaslov', v)} />
+            </Sec>
+          </AccordionSec>
+
+          {/* ── CSS TEME ── */}
           <AccordionSec title="CSS teme i napredne postavke" icon={<Type size={18} />} badge="Dev">
             <Sec title="Gotove CSS teme">
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
