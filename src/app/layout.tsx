@@ -5,6 +5,7 @@ import { AuthProvider } from '@/hooks/useAuth'
 import ThemeProvider from '@/components/ThemeProvider'
 import { FavoritiProvider } from '@/hooks/useFavoriti'
 import { siteConfig } from '@/lib/config'
+import EditorBridge from '@/components/EditorBridge'
 import './globals.css'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -20,6 +21,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="bs">
       <body className={inter.className}>
         <ThemeProvider>
+        <EditorBridge />
       <AuthProvider>
         <FavoritiProvider>
           <CartProvider>

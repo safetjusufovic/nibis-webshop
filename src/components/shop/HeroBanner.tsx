@@ -35,14 +35,20 @@ export default function HeroBanner() {
   const hasSlika = config.hero_url_slike?.trim()
 
   return (
-    <div style={{
-      background: hasSlika
-        ? `linear-gradient(to right, ${bgColor}ee, ${bgColor}99), url(${config.hero_url_slike}) center/cover no-repeat`
-        : `linear-gradient(135deg, ${bgColor} 0%, ${bgColor}cc 100%)`,
-      padding: '48px 24px',
-      position: 'relative',
-      overflow: 'hidden',
-    }}>
+    <div
+      data-sekcija="hero"
+      data-hero-section="true"
+      data-hero-boja={bgColor}
+      data-hero-slika={config.hero_url_slike || ''}
+      data-hero-overlay="0.35"
+      style={{
+        background: hasSlika
+          ? `linear-gradient(to right, ${bgColor}ee, ${bgColor}99), url(${config.hero_url_slike}) center/cover no-repeat`
+          : `linear-gradient(135deg, ${bgColor} 0%, ${bgColor}cc 100%)`,
+        padding: '48px 24px',
+        position: 'relative',
+        overflow: 'hidden',
+      }}>
       {/* Decorative elements */}
       <div style={{
         position: 'absolute', right: '-80px', top: '-80px',
@@ -64,7 +70,7 @@ export default function HeroBanner() {
             margin: '0 0 12px',
             lineHeight: 1.2,
             letterSpacing: '-0.02em',
-          }}>
+          }} data-hero-naslov="true">
             {config.hero_naslov}
           </h1>
           {config.hero_podnaslov && (
@@ -73,7 +79,7 @@ export default function HeroBanner() {
               color: 'rgba(255,255,255,0.8)',
               margin: '0 0 28px',
               lineHeight: 1.6,
-            }}>
+            }} data-hero-podnaslov="true">
               {config.hero_podnaslov}
             </p>
           )}
@@ -92,6 +98,7 @@ export default function HeroBanner() {
               transition: 'all 0.2s',
               boxShadow: '0 4px 14px rgba(0,0,0,0.15)',
             }}
+              data-hero-dugme="true"
               onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-2px)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 8px 20px rgba(0,0,0,0.2)' }}
               onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = 'none'; (e.currentTarget as HTMLElement).style.boxShadow = '0 4px 14px rgba(0,0,0,0.15)' }}
             >

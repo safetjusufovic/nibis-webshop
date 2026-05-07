@@ -82,6 +82,55 @@ const SEKCIJE_DEF: Record<string, { naziv: string; ikona: string; opis: string; 
       { key: 'theme_custom_css', label: 'CSS', type: 'code' },
     ]
   },
+  topbar: {
+    naziv: 'Top Bar', ikona: 'ℹ️', opis: 'Info traka iznad headera',
+    polja: [
+      { key: 'topbar_aktivan', label: 'Prikaži top bar', type: 'toggle' },
+      { key: 'topbar_telefon', label: 'Telefon', type: 'text', placeholder: '+387 33 000 000' },
+      { key: 'topbar_email', label: 'Email', type: 'text', placeholder: 'info@firma.ba' },
+      { key: 'topbar_radno_vrijeme', label: 'Radno vrijeme', type: 'text', placeholder: 'Pon-Pet 08:00-16:00' },
+      { key: 'topbar_adresa', label: 'Adresa', type: 'text' },
+      { key: 'topbar_custom_tekst', label: 'Custom tekst', type: 'text' },
+      { key: 'topbar_boja', label: 'Pozadina', type: 'color' },
+      { key: 'topbar_tekst_boja', label: 'Boja teksta', type: 'color' },
+    ]
+  },
+  navkat: {
+    naziv: 'Nav Kategorija', ikona: '🧭', opis: 'Horizontalni nav ispod headera',
+    polja: [
+      { key: 'navkat_aktivan', label: 'Prikaži nav', type: 'toggle' },
+      { key: 'navkat_boja', label: 'Boja pozadine', type: 'color' },
+      { key: 'navkat_tekst_boja', label: 'Boja teksta', type: 'color' },
+      { key: 'navkat_visina', label: 'Visina', type: 'range', min: 32, max: 64 },
+      { key: 'navkat_stil', label: 'Stil', type: 'select', options: ['flat', 'pills', 'underline', 'boje_kategorija'] },
+      { key: 'navkat_akcijski_dugme', label: 'Akcijsko dugme', type: 'toggle' },
+      { key: 'navkat_akcijski_tekst', label: 'Tekst dugmeta', type: 'text' },
+      { key: 'navkat_akcijski_boja', label: 'Boja dugmeta', type: 'color' },
+    ]
+  },
+  artikal: {
+    naziv: 'Artikli', ikona: '📦', opis: 'Prikaz artikala i cijena',
+    polja: [
+      { key: 'artikal_prikaz_dvije_cijene', label: 'Dvije cijene', type: 'toggle' },
+      { key: 'artikal_velep_label', label: 'Label velep. cijene', type: 'text', placeholder: 'Veleprodajna cijena' },
+      { key: 'artikal_malop_label', label: 'Label malop. cijene', type: 'text', placeholder: 'Maloprodajna cijena' },
+      { key: 'artikal_prikaz_pdv', label: 'Prikaži +PDV', type: 'toggle' },
+      { key: 'artikal_prikaz_sifra', label: 'Prikaži šifru', type: 'toggle' },
+      { key: 'artikal_prikaz_kategorija', label: 'Prikaži kategoriju', type: 'toggle' },
+      { key: 'artikal_dugme_tekst', label: 'Tekst dugmeta', type: 'text', placeholder: 'Dodaj' },
+      { key: 'artikal_badge_stanje', label: 'Stil badge stanja', type: 'select', options: ['pill', 'square', 'dot', 'text'] },
+    ]
+  },
+  kontakt: {
+    naziv: 'Kontakt info', ikona: '📞', opis: 'Telefon, email, adresa',
+    polja: [
+      { key: 'shop_naziv', label: 'Naziv firme', type: 'text' },
+      { key: 'shop_telefon', label: 'Telefon', type: 'text' },
+      { key: 'shop_email', label: 'Email', type: 'text' },
+      { key: 'shop_adresa', label: 'Adresa', type: 'text' },
+      { key: 'shop_grad', label: 'Grad', type: 'text' },
+    ]
+  },
 }
 
 // Mapiranje element→sekcija za Fazu 3 (klik na element)
@@ -205,9 +254,16 @@ export default function VizuelniEditorPage() {
   // Slušaj poruke iz iframe-a (Faza 3 — click to edit)
   useEffect(() => {
     function onMessage(e: MessageEvent) {
+      if (e.data?.type === 'PREVIEW_READY' || e.data?.type === 'PONG') {
+        // Preview je spreman — pošalji trenutni mode
+        setTimeout(() => {
+          iframeRef.current?.contentWindow?.postMessage({ type: 'SET_EDIT_MODE', active: mode === 'click' }, '*')
+        }, 200)
+        return
+      }
       if (e.data?.type === 'ELEMENT_CLICKED') {
         const { tag, text, elementType } = e.data
-        const sekcija = ELEMENT_MAP[elementType] || ELEMENT_MAP[tag] || 'boje'
+        const sekcija = e.data.sekcija || ELEMENT_MAP[elementType] || ELEMENT_MAP[tag] || 'boje'
         setClickedElement({ tag, text, sekcija })
         setAktivnaSekcija(sekcija)
         setMode('click')
@@ -516,14 +572,20 @@ export default function VizuelniEditorPage() {
             <iframe
               key={iframeKey}
               ref={iframeRef}
-              src="/editor-preview"
+              src="/"
               style={{ width: '100%', height: '100%', border: 'none', background: 'white', cursor: mode === 'click' ? 'crosshair' : 'default' }}
               title="Webshop preview"
               onLoad={() => {
-                // Pošalji mode nakon učitavanja
+                // Čekaj da se EditorBridge mountuje pa pošalji mode
+                const tryInit = (attempts = 0) => {
+                  if (attempts > 20) return
+                  iframeRef.current?.contentWindow?.postMessage({ type: 'PING' }, '*')
+                  setTimeout(() => tryInit(attempts + 1), 300)
+                }
+                tryInit()
                 setTimeout(() => {
                   iframeRef.current?.contentWindow?.postMessage({ type: 'SET_EDIT_MODE', active: mode === 'click' }, '*')
-                }, 500)
+                }, 1500)
               }}
             />
           </div>
