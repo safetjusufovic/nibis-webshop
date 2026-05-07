@@ -97,45 +97,18 @@ const PRESET_TEME = [
 ]
 
 const CSS_PRESET_TEME = [
-  { naziv: 'Glassmorphism', emoji: '🪟', opis: 'Mutno staklo, blur efekti',
-    css: 'header { backdrop-filter: blur(20px) !important; background: rgba(255,255,255,0.8) !important; border-bottom: 1px solid rgba(255,255,255,0.3) !important; }' },
-  { naziv: 'Flat Design', emoji: '📐', opis: 'Bez sjena, minimalistično',
-    css: '* { box-shadow: none !important; border-radius: 4px !important; }
-header { box-shadow: none !important; border-bottom: 2px solid var(--border) !important; }' },
-  { naziv: 'Dark Neon', emoji: '🌃', opis: 'Tamna pozadina, neon akcenti',
-    css: 'body, .min-h-screen { background: #0a0a0f !important; }
-header { background: #0d0d1a !important; }' },
-  { naziv: 'Gradient Header', emoji: '🌈', opis: 'Gradient zaglavlje, živopisno',
-    css: 'header { background: linear-gradient(135deg, var(--brand) 0%, var(--brand-dark) 100%) !important; color: white !important; }
-header * { color: white !important; }' },
-  { naziv: 'Brutalist', emoji: '⬛', opis: 'Crne linije, raw izgled',
-    css: '* { border-radius: 0 !important; }
-button { border: 2px solid #000 !important; box-shadow: 3px 3px 0 #000 !important; }
-header { border-bottom: 3px solid #000 !important; box-shadow: none !important; }' },
-  { naziv: 'Premium Serif', emoji: '🎩', opis: 'Elegantno, serif fontovi',
-    css: 'h1, h2, h3, h4 { font-family: Georgia, serif !important; letter-spacing: -0.02em; }' },
-  { naziv: 'Retro 90s', emoji: '💾', opis: 'Nostalgičan Windows izgled',
-    css: "* { border-radius: 0 !important; }
-header { background: #000080 !important; border-bottom: 3px solid #ffff00 !important; }
-header * { color: white !important; }
-.min-h-screen { background: #008080 !important; }" },
-  { naziv: 'Neumorphism', emoji: '🔘', opis: 'Soft UI, 3D efekt',
-    css: ':root { --surface: #e0e5ec !important; --bg-kartica: #e0e5ec !important; }
-body, .min-h-screen { background: #e0e5ec !important; }' },
-  { naziv: 'Pastel Soft', emoji: '🍭', opis: 'Pastelne boje, mekan izgled',
-    css: '.min-h-screen { background: linear-gradient(135deg, #ffecd2 0%, #e8f5ff 100%) !important; }
-header { background: rgba(255,255,255,0.92) !important; }' },
-  { naziv: 'Magazine', emoji: '📰', opis: 'Novinski, bold tipografija',
-    css: 'h1, h2, h3 { font-family: Impact, Arial Black, sans-serif !important; text-transform: uppercase !important; }
-header { border-bottom: 4px solid var(--brand) !important; }' },
-  { naziv: 'Minimal White', emoji: '⬜', opis: 'Ultra minimalan, čisto bijelo',
-    css: ':root { --border: #f0f0f0 !important; }
-* { box-shadow: none !important; }
-header { border-bottom: 1px solid #f0f0f0 !important; box-shadow: none !important; }' },
-  { naziv: 'Cyberpunk', emoji: '🤖', opis: 'Futuristično, neon na crnoj',
-    css: 'body, .min-h-screen { background: #0d001a !important; }
-header { background: #0d001a !important; border-bottom: 1px solid rgba(255,0,255,0.3) !important; }
-button { box-shadow: 0 0 8px rgba(255,0,255,0.3) !important; }' },
+  { naziv: 'Glassmorphism', emoji: '🪟', opis: 'Mutno staklo, blur efekti', css: 'header { backdrop-filter: blur(20px) !important; background: rgba(255,255,255,0.8) !important; border-bottom: 1px solid rgba(255,255,255,0.3) !important; }' },
+  { naziv: 'Flat Design', emoji: '📐', opis: 'Bez sjena, minimalistično', css: '* { box-shadow: none !important; border-radius: 4px !important; } header { box-shadow: none !important; border-bottom: 2px solid var(--border) !important; }' },
+  { naziv: 'Dark Neon', emoji: '🌃', opis: 'Tamna pozadina, neon akcenti', css: 'body, .min-h-screen { background: #0a0a0f !important; } header { background: #0d0d1a !important; }' },
+  { naziv: 'Gradient Header', emoji: '🌈', opis: 'Gradient zaglavlje, živopisno', css: 'header { background: linear-gradient(135deg, var(--brand) 0%, var(--brand-dark) 100%) !important; color: white !important; } header * { color: white !important; }' },
+  { naziv: 'Brutalist', emoji: '⬛', opis: 'Crne linije, raw izgled', css: '* { border-radius: 0 !important; } button { border: 2px solid #000 !important; box-shadow: 3px 3px 0 #000 !important; } header { border-bottom: 3px solid #000 !important; box-shadow: none !important; }' },
+  { naziv: 'Premium Serif', emoji: '🎩', opis: 'Elegantno, serif fontovi', css: 'h1, h2, h3, h4 { font-family: Georgia, serif !important; letter-spacing: -0.02em; }' },
+  { naziv: 'Retro 90s', emoji: '💾', opis: 'Nostalgičan Windows izgled', css: '* { border-radius: 0 !important; } header { background: #000080 !important; border-bottom: 3px solid #ffff00 !important; } header * { color: white !important; } .min-h-screen { background: #008080 !important; }' },
+  { naziv: 'Neumorphism', emoji: '🔘', opis: 'Soft UI, 3D efekt', css: ':root { --surface: #e0e5ec !important; --bg-kartica: #e0e5ec !important; } body, .min-h-screen { background: #e0e5ec !important; }' },
+  { naziv: 'Pastel Soft', emoji: '🍭', opis: 'Pastelne boje, mekan izgled', css: '.min-h-screen { background: linear-gradient(135deg, #ffecd2 0%, #e8f5ff 100%) !important; } header { background: rgba(255,255,255,0.92) !important; }' },
+  { naziv: 'Magazine', emoji: '📰', opis: 'Novinski, bold tipografija', css: 'h1, h2, h3 { font-family: Impact, Arial Black, sans-serif !important; text-transform: uppercase !important; } header { border-bottom: 4px solid var(--brand) !important; }' },
+  { naziv: 'Minimal White', emoji: '⬜', opis: 'Ultra minimalan, čisto bijelo', css: ':root { --border: #f0f0f0 !important; } * { box-shadow: none !important; } header { border-bottom: 1px solid #f0f0f0 !important; box-shadow: none !important; }' },
+  { naziv: 'Cyberpunk', emoji: '🤖', opis: 'Futuristično, neon na crnoj', css: 'body, .min-h-screen { background: #0d001a !important; } header { background: #0d001a !important; border-bottom: 1px solid rgba(255,0,255,0.3) !important; } button { box-shadow: 0 0 8px rgba(255,0,255,0.3) !important; }' },
 ]
 
 const GOOGLE_FONTS = ['DM Sans', 'Inter', 'Roboto', 'Open Sans', 'Lato', 'Poppins', 'Nunito', 'Montserrat', 'Raleway', 'Merriweather', 'Playfair Display', 'Source Sans 3']
