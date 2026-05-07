@@ -103,7 +103,7 @@ const CSS_PRESET_TEME = [
     naziv: 'Glassmorphism', emoji: '🪟',
     opis: 'Mutno staklo, blur efekti, moderne kartice',
     css: `/* Glassmorphism */
-.bg-white, [style*="background: white"], [style*="background:#ffffff"] {
+.bg-white, [style*='background: white'], [style*='background:#ffffff'] {
   background: rgba(255,255,255,0.7) !important;
   backdrop-filter: blur(12px) !important;
   -webkit-backdrop-filter: blur(12px) !important;
@@ -118,7 +118,7 @@ header { backdrop-filter: blur(20px) !important; background: rgba(255,255,255,0.
     css: `/* Neumorphism */
 :root { --surface: #e0e5ec; --bg-kartica: #e0e5ec; }
 .min-h-screen { background: #e0e5ec !important; }
-[style*="border: 1px solid"], [style*="border:1px solid"] {
+[style*='border: 1px solid'], [style*='border:1px solid'] {
   border: none !important;
   box-shadow: 8px 8px 16px #b8bec7, -8px -8px 16px #ffffff !important;
   border-radius: 16px !important;
@@ -131,7 +131,7 @@ button:not([disabled]) { box-shadow: 4px 4px 8px #b8bec7, -4px -4px 8px #ffffff 
     css: `/* Brutalism */
 :root { --radius: 0px !important; --kartica-radius: 0px !important; }
 * { border-radius: 0 !important; }
-[style*="border"], .border, [class*="border"] {
+[style*='border'], .border, [class*='border'] {
   border: 2px solid #000 !important;
 }
 button { border: 2px solid #000 !important; box-shadow: 4px 4px 0 #000 !important; }
@@ -144,7 +144,7 @@ button:hover { transform: translate(2px, 2px) !important; box-shadow: 2px 2px 0 
 * { box-shadow: none !important; text-shadow: none !important; }
 button { box-shadow: none !important; }
 header { box-shadow: none !important; border-bottom: 2px solid var(--border) !important; }
-[style*="box-shadow"] { box-shadow: none !important; }`
+[style*='box-shadow'] { box-shadow: none !important; }`
   },
   {
     naziv: 'Gradient Wave', emoji: '🌊',
@@ -198,7 +198,7 @@ button {
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Lato:wght@300;400;700&display=swap');
 h1, h2, h3 { font-family: 'Playfair Display', Georgia, serif !important; }
 body { font-family: 'Lato', sans-serif !important; }
-button[style*="brand"], .bg-emerald { 
+button[style*='brand'], .bg-emerald { 
   background: linear-gradient(135deg, #c9a84c, #f4d03f) !important; 
   color: #1a1a1a !important; font-weight: 700 !important;
 }`
@@ -226,10 +226,6 @@ function Row({ children }: { children: React.ReactNode }) {
 
 function Row3({ children }: { children: React.ReactNode }) {
   return <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>{children}</div>
-}
-
-function Txt({ label, k, p, type = 'text', hint }: { label: string; k: string; p?: Postavke; type?: string; hint?: string }) {
-  return null // placeholder — real impl below
 }
 
 function Divider() {
