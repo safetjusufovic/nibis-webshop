@@ -16,11 +16,51 @@ export default function AdminSlikePage() {
   const [filter, setFilter] = useState<'sve' | 'sa_slikom' | 'bez_slike'>('sve')
   const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null)
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
+  const [searchModal, setSearchModal] = useState<{ artikalId: number; naziv: string } | null>(null)
+  const [googleResults, setGoogleResults] = useState<string[]>([])
+  const [googleLoading, setGoogleLoading] = useState(false)
+  const [googleQuery, setGoogleQuery] = useState('')
   const PER = 24
 
   function showToast(msg: string, ok = true) {
     setToast({ msg, ok })
     setTimeout(() => setToast(null), 3000)
+  }
+
+  async function searchGoogle(query: string) {
+    if (!query.trim()) return
+    setGoogleLoading(true)
+    setGoogleResults([])
+    try {
+      // Koristimo Google Custom Search API ili fallback na scraping
+      const apiKey = process.env.NEXT_PUBLIC_GOOGLE_API_KEY
+      const cx = process.env.NEXT_PUBLIC_GOOGLE_CX
+      if (apiKey && cx) {
+        const res = await fetch(
+          'https://www.googleapis.com/customsearch/v1?key=' + apiKey +
+          '&cx=' + cx +
+          '&q=' + encodeURIComponent(query) +
+          '&searchType=image&num=10&imgSize=medium&imgType=photo&safe=active'
+        )
+        const data = await res.json()
+        const urls = (data.items || []).map((item: any) => item.link).filter(Boolean)
+        setGoogleResults(urls)
+      } else {
+        // Fallback: Bing Image Search scraping kroz API rute
+        const res = await fetch('/api/image-search?q=' + encodeURIComponent(query))
+        if (res.ok) {
+          const data = await res.json()
+          setGoogleResults(data.images || [])
+        } else {
+          // Drugi fallback: predloži DuckDuckGo URL-ove
+          const duckUrl = 'https://duckduckgo.com/?q=' + encodeURIComponent(query + ' product') + '&iax=images&ia=images'
+          setGoogleResults(['__manual__' + duckUrl])
+        }
+      }
+    } catch {
+      setGoogleResults([])
+    }
+    setGoogleLoading(false)
   }
 
   async function load() {
@@ -223,6 +263,12 @@ export default function AdminSlikePage() {
                     style={{ padding: '5px 7px', background: '#F9FAFB', color: '#6B7280', border: '1px solid #E5E7EB', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
                     <LinkIcon size={10} />
                   </button>
+                  {/* Google pretraga */}
+                  <button onClick={() => { setSearchModal({ artikalId: a.id, naziv: a.naziv }); setGoogleQuery(a.naziv); setGoogleResults([]); }}
+                    title="Pretraži sliku na Google"
+                    style={{ padding: '5px 7px', background: '#FFF7ED', color: '#EA580C', border: '1px solid #FED7AA', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+                    <span style={{ fontSize: '10px' }}>🔍</span>
+                  </button>
                 </div>
               </div>
             </div>
@@ -309,11 +355,137 @@ export default function AdminSlikePage() {
         </div>
       )}
 
+      {/* Google Image Search Modal */}
+      {searchModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}
+          onClick={e => { if (e.target === e.currentTarget) setSearchModal(null) }}>
+          <div style={{ background: 'white', borderRadius: '16px', width: '100%', maxWidth: '720px', maxHeight: '85vh', display: 'flex', flexDirection: 'column', boxShadow: '0 24px 64px rgba(0,0,0,0.25)' }}>
+            {/* Modal header */}
+            <div style={{ padding: '16px 20px', borderBottom: '1px solid #E5E7EB', display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
+              <span style={{ fontSize: '16px' }}>🔍</span>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: '13px', fontWeight: 700, color: '#111827' }}>Pretraga slike</div>
+                <div style={{ fontSize: '11px', color: '#9CA3AF', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{searchModal.naziv}</div>
+              </div>
+              <button onClick={() => setSearchModal(null)} style={{ padding: '6px', background: '#F3F4F6', border: 'none', borderRadius: '8px', cursor: 'pointer', display: 'flex' }}>
+                <X size={14} style={{ color: '#6B7280' }} />
+              </button>
+            </div>
+
+            {/* Search input */}
+            <div style={{ padding: '14px 20px', borderBottom: '1px solid #E5E7EB', flexShrink: 0 }}>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <input
+                  type="text"
+                  value={googleQuery}
+                  onChange={e => setGoogleQuery(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter') searchGoogle(googleQuery) }}
+                  placeholder="Naziv artikla za pretragu..."
+                  style={{ flex: 1, padding: '9px 14px', fontSize: '13px', border: '1px solid #E5E7EB', borderRadius: '8px', outline: 'none', fontFamily: 'inherit' }}
+                  autoFocus
+                  onFocus={e => { e.target.style.borderColor = 'var(--brand)' }}
+                  onBlur={e => { e.target.style.borderColor = '#E5E7EB' }}
+                />
+                <button onClick={() => searchGoogle(googleQuery)} disabled={googleLoading}
+                  style={{ padding: '9px 18px', background: 'var(--brand)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: 600, fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+                  {googleLoading ? (
+                    <><span style={{ width: '14px', height: '14px', border: '2px solid white', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.7s linear infinite', display: 'inline-block' }} /> Tražim...</>
+                  ) : '🔍 Traži'}
+                </button>
+              </div>
+              <p style={{ fontSize: '11px', color: '#9CA3AF', margin: '6px 0 0' }}>
+                Klikni na sliku da je odabereš za artikal
+              </p>
+            </div>
+
+            {/* Results */}
+            <div style={{ flex: 1, overflow: 'auto', padding: '16px 20px' }}>
+              {googleLoading && (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px' }}>
+                  {Array(8).fill(0).map((_, i) => (
+                    <div key={i} style={{ aspectRatio: '1', background: '#F3F4F6', borderRadius: '8px', animation: 'pulse 1.5s infinite' }} />
+                  ))}
+                </div>
+              )}
+
+              {!googleLoading && googleResults.length === 0 && googleQuery && (
+                <div style={{ textAlign: 'center', padding: '32px', color: '#9CA3AF' }}>
+                  <div style={{ fontSize: '32px', marginBottom: '8px' }}>🔍</div>
+                  <div style={{ fontSize: '14px' }}>Klikni Traži da pretražiš slike</div>
+                </div>
+              )}
+
+              {!googleLoading && googleResults.some(r => r.startsWith('__manual__')) && (
+                <div style={{ textAlign: 'center', padding: '24px' }}>
+                  <div style={{ fontSize: '14px', color: '#374151', marginBottom: '12px', fontWeight: 500 }}>Google API nije konfigurisan</div>
+                  <p style={{ fontSize: '12px', color: '#6B7280', marginBottom: '16px', lineHeight: 1.6 }}>
+                    Otvori Google pretragu, pronadi sliku, desni klik → Kopiraj adresu slike, pa je uneси u URL polje.
+                  </p>
+                  <a href={googleResults[0].replace('__manual__', '')} target="_blank" rel="noopener noreferrer"
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '10px 20px', background: '#4285F4', color: 'white', borderRadius: '8px', textDecoration: 'none', fontSize: '13px', fontWeight: 600 }}>
+                    🌐 Otvori Google pretragu
+                  </a>
+                  <div style={{ marginTop: '20px' }}>
+                    <p style={{ fontSize: '12px', color: '#6B7280', marginBottom: '8px' }}>Ili unesi URL direktno:</p>
+                    <div style={{ display: 'flex', gap: '8px', maxWidth: '400px', margin: '0 auto' }}>
+                      <input type="text" value={urlInput[searchModal.artikalId] || ''} placeholder="https://..."
+                        onChange={e => setUrlInput(prev => ({ ...prev, [searchModal.artikalId]: e.target.value }))}
+                        style={{ flex: 1, padding: '8px 12px', fontSize: '13px', border: '1px solid #E5E7EB', borderRadius: '8px', outline: 'none', fontFamily: 'inherit' }}
+                        onKeyDown={async e => {
+                          if (e.key === 'Enter') {
+                            await saveUrlInput(searchModal.artikalId)
+                            setSearchModal(null)
+                          }
+                        }}
+                      />
+                      <button onClick={async () => { await saveUrlInput(searchModal.artikalId); setSearchModal(null) }}
+                        style={{ padding: '8px 16px', background: 'var(--brand)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: 600, fontFamily: 'inherit' }}>
+                        Sačuvaj
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {!googleLoading && googleResults.filter(r => !r.startsWith('__manual__')).length > 0 && (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px' }}>
+                  {googleResults.filter(r => !r.startsWith('__manual__')).map((url, i) => (
+                    <button key={i} onClick={async () => {
+                      await saveUrl(searchModal.artikalId, url)
+                      showToast('Slika sačuvana!')
+                      setSearchModal(null)
+                    }}
+                      style={{ padding: 0, border: '2px solid #E5E7EB', borderRadius: '10px', cursor: 'pointer', overflow: 'hidden', background: '#F9FAFB', aspectRatio: '1', transition: 'all 0.15s', position: 'relative' }}
+                      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--brand)'; (e.currentTarget as HTMLElement).style.transform = 'scale(1.02)' }}
+                      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = '#E5E7EB'; (e.currentTarget as HTMLElement).style.transform = 'none' }}
+                    >
+                      <img src={url} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain', padding: '6px' }}
+                        onError={e => { (e.currentTarget.parentElement as HTMLElement).style.display = 'none' }}
+                      />
+                      <div style={{ position: 'absolute', inset: 0, background: 'rgba(15,110,86,0)', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.15s' }}
+                        onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'rgba(15,110,86,0.15)'}
+                        onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'rgba(15,110,86,0)'}
+                      >
+                        <span style={{ background: 'var(--brand)', color: 'white', fontSize: '11px', fontWeight: 700, padding: '4px 10px', borderRadius: '100px', opacity: 0, transition: 'opacity 0.15s' }}
+                          className="select-label"
+                        >Odaberi</span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       <style>{`
         @keyframes spin { to { transform: rotate(360deg) } }
         @keyframes slideIn { from { opacity: 0; transform: translateX(10px) } to { opacity: 1; transform: none } }
+        @keyframes pulse { 0%, 100% { opacity: 1 } 50% { opacity: 0.5 } }
         .delete-btn { opacity: 0 !important; }
         div:hover > .delete-btn { opacity: 1 !important; }
+        button:hover .select-label { opacity: 1 !important; }
       `}</style>
     </div>
   )
