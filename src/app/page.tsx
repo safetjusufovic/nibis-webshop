@@ -589,8 +589,18 @@ export default function HomePage() {
   const [cijenaDo, setCijenaDo] = useState('')
   const [cijenaOd, setCijenaOd] = useState('')
   const [viewMode, setViewMode] = useState<'table' | 'grid'>('grid')
+  const [perPage, setPerPage] = useState(siteConfig.perPage)
 
-  const perPage = siteConfig.perPage
+  // Učitaj dinamičke postavke iz baze
+  useEffect(() => {
+    fetch('/api/postavke?kljuci=default_view,per_page,artikal_dugme_tekst')
+      .then(r => r.json())
+      .then(d => {
+        if (d.default_view === 'table' || d.default_view === 'grid') setViewMode(d.default_view)
+        if (d.per_page) setPerPage(parseInt(d.per_page) || siteConfig.perPage)
+      })
+      .catch(() => {})
+  }, [])
 
   useEffect(() => {
     fetch('/api/grupe')
