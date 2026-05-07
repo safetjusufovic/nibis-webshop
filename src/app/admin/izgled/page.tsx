@@ -321,21 +321,81 @@ function Select({ label, value, onChange, options }: { label: string; value: str
 }
 
 function ImageInput({ label, value, onChange, hint }: { label: string; value: string; onChange: (v: string) => void; hint?: string }) {
+  const [uploading, setUploading] = useState(false)
+
+  async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    // Provjeri veličinu (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Slika je prevelika. Maksimalno 5MB.')
+      return
+    }
+    setUploading(true)
+    try {
+      // Upload na Supabase Storage
+      const { createClient } = await import('@supabase/supabase-js')
+      const sb = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      )
+      const ext = file.name.split('.').pop()
+      const filename = `uploads/${Date.now()}.${ext}`
+      const { error } = await sb.storage.from('slike').upload(filename, file, { upsert: true })
+      if (error) throw error
+      const { data } = sb.storage.from('slike').getPublicUrl(filename)
+      onChange(data.publicUrl)
+    } catch (err) {
+      // Fallback: čitaj kao base64 data URL
+      const reader = new FileReader()
+      reader.onload = ev => onChange(ev.target?.result as string)
+      reader.readAsDataURL(file)
+    }
+    setUploading(false)
+    // Reset input
+    e.target.value = ''
+  }
+
   return (
     <div>
       <label style={{ fontSize: '11px', fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</label>
       <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
-        <div style={{ width: '56px', height: '56px', borderRadius: '8px', border: '1px solid #E5E7EB', background: '#F9FAFB', flexShrink: 0, overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          {value ? <img src={value} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }} onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} /> : <ImgIcon size={20} style={{ color: '#D1D5DB' }} />}
+        {/* Preview */}
+        <div style={{ width: '56px', height: '56px', borderRadius: '8px', border: '1px solid #E5E7EB', background: '#F9FAFB', flexShrink: 0, overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
+          {value
+            ? <img src={value} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }} onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} />
+            : <ImgIcon size={20} style={{ color: '#D1D5DB' }} />
+          }
+          {value && (
+            <button onClick={() => onChange('')}
+              title="Ukloni sliku"
+              style={{ position: 'absolute', top: '2px', right: '2px', width: '16px', height: '16px', borderRadius: '50%', background: '#EF4444', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}>
+              <X size={9} style={{ color: 'white' }} />
+            </button>
+          )}
         </div>
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '4px' }}>
+
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          {/* URL input */}
           <input type="text" value={value} onChange={e => onChange(e.target.value)} placeholder="https://..."
             style={{ width: '100%', padding: '8px 10px', fontSize: '12px', border: '1px solid #E5E7EB', borderRadius: '7px', outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box', background: 'white' }}
             onFocus={e => e.target.style.borderColor = '#0F6E56'}
             onBlur={e => e.target.style.borderColor = '#E5E7EB'} />
+
+          {/* Upload dugme */}
+          <label style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '6px 12px', background: uploading ? '#F3F4F6' : '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: '7px', cursor: uploading ? 'not-allowed' : 'pointer', fontSize: '12px', fontWeight: 500, color: '#0F6E56', width: 'fit-content' }}>
+            {uploading ? (
+              <><span style={{ width: '12px', height: '12px', border: '2px solid #0F6E56', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.7s linear infinite', display: 'inline-block' }} /> Učitavam...</>
+            ) : (
+              <><ImgIcon size={13} /> Odaberi sliku s računara</>
+            )}
+            <input type="file" accept="image/*" onChange={handleFile} style={{ display: 'none' }} disabled={uploading} />
+          </label>
+
           {hint && <div style={{ fontSize: '11px', color: '#9CA3AF' }}>{hint}</div>}
         </div>
       </div>
+      <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
     </div>
   )
 }
@@ -374,141 +434,8 @@ function AccordionSec({ title, icon, children, defaultOpen = false, badge }: { t
 }
 
 // ─── Glavni Composer ───────────────────────────────────────────────────────────
-export default function IzgledPage() {
-  const [p, setP] = useState<Postavke>(DEFAULTS)
-  const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
-  const [saved, setSaved] = useState(false)
-  const [changed, setChanged] = useState(false)
-  const [history, setHistory] = useState<Postavke[]>([])
-  const [preview, setPreview] = useState(false)
-  const iframeRef = useRef<HTMLIFrameElement>(null)
-
-  const allKeys = Object.keys(DEFAULTS)
-
-  useEffect(() => {
-    supabase.from('postavke').select('kljuc, vrijednost').in('kljuc', allKeys)
-      .then(({ data }) => {
-        const m: Postavke = { ...DEFAULTS }
-        data?.forEach(row => { m[row.kljuc] = row.vrijednost })
-        setP(m)
-        setLoading(false)
-      })
-  }, [])
-
-  // historyRef drži posljednji snapshot — ne uzrokuje re-render
-  const historyRef = useRef<Postavke[]>([])
-  const lastSnapshotRef = useRef<string>('')
-
-  function set(key: string, value: string) {
-    // Push history samo kad se promijeni ključ (ne na svaki karakter)
-    const snapshotKey = key
-    if (lastSnapshotRef.current !== snapshotKey) {
-      lastSnapshotRef.current = snapshotKey
-      historyRef.current = [...historyRef.current.slice(-30), p]
-      setHistory(historyRef.current) // sync za undo dugme (da zna da ima historije)
-    }
-    setP(prev => ({ ...prev, [key]: value }))
-    setChanged(true)
-    // Live update u iframeu
-    iframeRef.current?.contentWindow?.postMessage({ type: 'THEME_UPDATE', key, value }, '*')
-    // Update CSS varijable direktno u trenutnoj stranici (za preview bez iframe)
-    applyCSS(key, value)
-  }
-
-  function applyCSS(key: string, value: string) {
-    const r = document.documentElement
-    const cssMap: Record<string, string> = {
-      theme_primary_boja: '--brand',
-      theme_bg_stranica: '--surface',
-      theme_bg_kartica: '--bg-kartica',
-      theme_border_boja: '--border',
-      theme_tekst_boja: '--text',
-      theme_tekst_muted: '--text-muted',
-      theme_cijena_boja: '--cijena',
-      theme_akcija_boja: '--akcija',
-    }
-    if (cssMap[key]) {
-      r.style.setProperty(cssMap[key], value)
-      if (key === 'theme_primary_boja') {
-        r.style.setProperty('--brand-pale', value + '18')
-        r.style.setProperty('--brand-dark', value + 'dd')
-      }
-    }
-    if (key === 'theme_border_radius') r.style.setProperty('--radius', value + 'px')
-    if (key === 'theme_font_body_size') document.body.style.fontSize = value + 'px'
-    if (key === 'theme_font' || key === 'theme_google_font_tijelo') {
-      document.body.style.fontFamily = `'${value}', DM Sans, system-ui, sans-serif`
-    }
-    if (key === 'theme_custom_css') {
-      let el = document.getElementById('admin-preview-css')
-      if (!el) { el = document.createElement('style'); el.id = 'admin-preview-css'; document.head.appendChild(el) }
-      el.textContent = value
-    }
-  }
-
-  function undo() {
-    if (!historyRef.current.length) return
-    const prev = historyRef.current[historyRef.current.length - 1]
-    historyRef.current = historyRef.current.slice(0, -1)
-    setHistory([...historyRef.current])
-    lastSnapshotRef.current = ''
-    setP(prev)
-    setChanged(true)
-    iframeRef.current?.contentWindow?.postMessage({ type: 'THEME_FULL_RELOAD' }, '*')
-  }
-
-  function applyPreset(preset: typeof PRESET_TEME[0]) {
-    historyRef.current = [...historyRef.current.slice(-30), p]
-    setHistory([...historyRef.current])
-    lastSnapshotRef.current = ''
-    setP(prev => ({ ...prev, ...preset.boje }))
-    setChanged(true)
-    Object.entries(preset.boje).forEach(([k, v]) => {
-      iframeRef.current?.contentWindow?.postMessage({ type: 'THEME_UPDATE', key: k, value: v }, '*')
-      applyCSS(k, v)
-    })
-  }
-
-  async function save() {
-    setSaving(true)
-    await supabase.from('postavke').upsert(
-      Object.entries(p).map(([kljuc, vrijednost]) => ({ kljuc, vrijednost: vrijednost || '' })),
-      { onConflict: 'kljuc' }
-    )
-    setSaving(false); setSaved(true); setChanged(false)
-    setTimeout(() => setSaved(false), 2500)
-  }
-
-  function exportJSON() {
-    const blob = new Blob([JSON.stringify(p, null, 2)], { type: 'application/json' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a'); a.href = url; a.download = 'nibis-theme.json'; a.click()
-    URL.revokeObjectURL(url)
-  }
-
-  function importJSON(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]; if (!file) return
-    const reader = new FileReader()
-    reader.onload = ev => {
-      try {
-        const data = JSON.parse(ev.target?.result as string)
-        historyRef.current = [...historyRef.current.slice(-30), p]
-        setHistory([...historyRef.current])
-        setP(prev => ({ ...prev, ...data }))
-        setChanged(true)
-      } catch {}
-    }
-    reader.readAsText(file)
-  }
-
-  if (loading) return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-      {[1,2,3,4,5].map(i => <div key={i} style={{ height: '56px', background: '#F3F4F6', borderRadius: '12px', animation: 'pulse 1.5s infinite' }} />)}
-    </div>
-  )
-
-  const Panel = () => (
+function PanelContent({ p, set, applyPreset }: { p: any; set: (k: string, v: string) => void; applyPreset: (t: any) => void }) {
+  return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
 
       {/* ── IZGLED STRANICE ─────────────────────────────────────── */}
@@ -891,6 +818,141 @@ export default function IzgledPage() {
       </AccordionSec>
     </div>
   )
+}
+
+export default function IzgledPage() {
+  const [p, setP] = useState<Postavke>(DEFAULTS)
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
+  const [changed, setChanged] = useState(false)
+  const [history, setHistory] = useState<Postavke[]>([])
+  const [preview, setPreview] = useState(false)
+  const iframeRef = useRef<HTMLIFrameElement>(null)
+
+  const allKeys = Object.keys(DEFAULTS)
+
+  useEffect(() => {
+    supabase.from('postavke').select('kljuc, vrijednost').in('kljuc', allKeys)
+      .then(({ data }) => {
+        const m: Postavke = { ...DEFAULTS }
+        data?.forEach(row => { m[row.kljuc] = row.vrijednost })
+        setP(m)
+        setLoading(false)
+      })
+  }, [])
+
+  // historyRef drži posljednji snapshot — ne uzrokuje re-render
+  const historyRef = useRef<Postavke[]>([])
+  const lastSnapshotRef = useRef<string>('')
+
+  function set(key: string, value: string) {
+    // Push history samo kad se promijeni ključ (ne na svaki karakter)
+    const snapshotKey = key
+    if (lastSnapshotRef.current !== snapshotKey) {
+      lastSnapshotRef.current = snapshotKey
+      historyRef.current = [...historyRef.current.slice(-30), p]
+      setHistory(historyRef.current) // sync za undo dugme (da zna da ima historije)
+    }
+    setP(prev => ({ ...prev, [key]: value }))
+    setChanged(true)
+    // Live update u iframeu
+    iframeRef.current?.contentWindow?.postMessage({ type: 'THEME_UPDATE', key, value }, '*')
+    // Update CSS varijable direktno u trenutnoj stranici (za preview bez iframe)
+    applyCSS(key, value)
+  }
+
+  function applyCSS(key: string, value: string) {
+    const r = document.documentElement
+    const cssMap: Record<string, string> = {
+      theme_primary_boja: '--brand',
+      theme_bg_stranica: '--surface',
+      theme_bg_kartica: '--bg-kartica',
+      theme_border_boja: '--border',
+      theme_tekst_boja: '--text',
+      theme_tekst_muted: '--text-muted',
+      theme_cijena_boja: '--cijena',
+      theme_akcija_boja: '--akcija',
+    }
+    if (cssMap[key]) {
+      r.style.setProperty(cssMap[key], value)
+      if (key === 'theme_primary_boja') {
+        r.style.setProperty('--brand-pale', value + '18')
+        r.style.setProperty('--brand-dark', value + 'dd')
+      }
+    }
+    if (key === 'theme_border_radius') r.style.setProperty('--radius', value + 'px')
+    if (key === 'theme_font_body_size') document.body.style.fontSize = value + 'px'
+    if (key === 'theme_font' || key === 'theme_google_font_tijelo') {
+      document.body.style.fontFamily = `'${value}', DM Sans, system-ui, sans-serif`
+    }
+    if (key === 'theme_custom_css') {
+      let el = document.getElementById('admin-preview-css')
+      if (!el) { el = document.createElement('style'); el.id = 'admin-preview-css'; document.head.appendChild(el) }
+      el.textContent = value
+    }
+  }
+
+  function undo() {
+    if (!historyRef.current.length) return
+    const prev = historyRef.current[historyRef.current.length - 1]
+    historyRef.current = historyRef.current.slice(0, -1)
+    setHistory([...historyRef.current])
+    lastSnapshotRef.current = ''
+    setP(prev)
+    setChanged(true)
+    iframeRef.current?.contentWindow?.postMessage({ type: 'THEME_FULL_RELOAD' }, '*')
+  }
+
+  function applyPreset(preset: typeof PRESET_TEME[0]) {
+    historyRef.current = [...historyRef.current.slice(-30), p]
+    setHistory([...historyRef.current])
+    lastSnapshotRef.current = ''
+    setP(prev => ({ ...prev, ...preset.boje }))
+    setChanged(true)
+    Object.entries(preset.boje).forEach(([k, v]) => {
+      iframeRef.current?.contentWindow?.postMessage({ type: 'THEME_UPDATE', key: k, value: v }, '*')
+      applyCSS(k, v)
+    })
+  }
+
+  async function save() {
+    setSaving(true)
+    await supabase.from('postavke').upsert(
+      Object.entries(p).map(([kljuc, vrijednost]) => ({ kljuc, vrijednost: vrijednost || '' })),
+      { onConflict: 'kljuc' }
+    )
+    setSaving(false); setSaved(true); setChanged(false)
+    setTimeout(() => setSaved(false), 2500)
+  }
+
+  function exportJSON() {
+    const blob = new Blob([JSON.stringify(p, null, 2)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a'); a.href = url; a.download = 'nibis-theme.json'; a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  function importJSON(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]; if (!file) return
+    const reader = new FileReader()
+    reader.onload = ev => {
+      try {
+        const data = JSON.parse(ev.target?.result as string)
+        historyRef.current = [...historyRef.current.slice(-30), p]
+        setHistory([...historyRef.current])
+        setP(prev => ({ ...prev, ...data }))
+        setChanged(true)
+      } catch {}
+    }
+    reader.readAsText(file)
+  }
+
+  if (loading) return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+      {[1,2,3,4,5].map(i => <div key={i} style={{ height: '56px', background: '#F3F4F6', borderRadius: '12px', animation: 'pulse 1.5s infinite' }} />)}
+    </div>
+  )
 
   return (
     <div style={{ display: 'flex', gap: '0', height: 'calc(100vh - 60px)', overflow: 'hidden' }}>
@@ -930,7 +992,7 @@ export default function IzgledPage() {
 
         {/* Scrollable content */}
         <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px' }}>
-          <Panel />
+          <PanelContent p={p} set={set} applyPreset={applyPreset} />
         </div>
       </div>
 
