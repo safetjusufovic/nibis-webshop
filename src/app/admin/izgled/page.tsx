@@ -102,106 +102,42 @@ const CSS_PRESET_TEME = [
   {
     naziv: 'Glassmorphism', emoji: '🪟',
     opis: 'Mutno staklo, blur efekti, moderne kartice',
-    css: `/* Glassmorphism */
-.bg-white, [style*='background: white'], [style*='background:#ffffff'] {
-  background: rgba(255,255,255,0.7) !important;
-  backdrop-filter: blur(12px) !important;
-  -webkit-backdrop-filter: blur(12px) !important;
-  border: 1px solid rgba(255,255,255,0.3) !important;
-}
-header { backdrop-filter: blur(20px) !important; background: rgba(255,255,255,0.85) !important; }
-.min-h-screen { background: linear-gradient(135deg, #667eea22 0%, #764ba233 50%, #f093fb22 100%) !important; }`
+    css: "/* Glassmorphism */\n.bg-white, [style*='background: white'], [style*='background:#ffffff'] {\n  background: rgba(255,255,255,0.7) !important;\n  backdrop-filter: blur(12px) !important;\n  -webkit-backdrop-filter: blur(12px) !important;\n  border: 1px solid rgba(255,255,255,0.3) !important;\n}\nheader { backdrop-filter: blur(20px) !important; background: rgba(255,255,255,0.85) !important; }\n.min-h-screen { background: linear-gradient(135deg, #667eea22 0%, #764ba233 50%, #f093fb22 100%) !important; }"
   },
   {
     naziv: 'Neumorphism', emoji: '🔘',
     opis: 'Meke sjene, plastični 3D izgled',
-    css: `/* Neumorphism */
-:root { --surface: #e0e5ec; --bg-kartica: #e0e5ec; }
-.min-h-screen { background: #e0e5ec !important; }
-[style*='border: 1px solid'], [style*='border:1px solid'] {
-  border: none !important;
-  box-shadow: 8px 8px 16px #b8bec7, -8px -8px 16px #ffffff !important;
-  border-radius: 16px !important;
-}
-button:not([disabled]) { box-shadow: 4px 4px 8px #b8bec7, -4px -4px 8px #ffffff !important; }`
+    css: "/* Neumorphism */\n:root { --surface: #e0e5ec; --bg-kartica: #e0e5ec; }\n.min-h-screen { background: #e0e5ec !important; }\n[style*='border: 1px solid'], [style*='border:1px solid'] {\n  border: none !important;\n  box-shadow: 8px 8px 16px #b8bec7, -8px -8px 16px #ffffff !important;\n  border-radius: 16px !important;\n}\nbutton:not([disabled]) { box-shadow: 4px 4px 8px #b8bec7, -4px -4px 8px #ffffff !important; }"
   },
   {
     naziv: 'Brutalist', emoji: '⬛',
     opis: 'Crne debele linije, bez zaobljenosti',
-    css: `/* Brutalism */
-:root { --radius: 0px !important; --kartica-radius: 0px !important; }
-* { border-radius: 0 !important; }
-[style*='border'], .border, [class*='border'] {
-  border: 2px solid #000 !important;
-}
-button { border: 2px solid #000 !important; box-shadow: 4px 4px 0 #000 !important; }
-button:hover { transform: translate(2px, 2px) !important; box-shadow: 2px 2px 0 #000 !important; }`
+    css: "/* Brutalism */\n:root { --radius: 0px !important; --kartica-radius: 0px !important; }\n* { border-radius: 0 !important; }\n[style*='border'], .border, [class*='border'] {\n  border: 2px solid #000 !important;\n}\nbutton { border: 2px solid #000 !important; box-shadow: 4px 4px 0 #000 !important; }\nbutton:hover { transform: translate(2px, 2px) !important; box-shadow: 2px 2px 0 #000 !important; }"
   },
   {
     naziv: 'Flat Design', emoji: '📐',
     opis: 'Čisto, bez sjena, minimalistično',
-    css: `/* Flat Design */
-* { box-shadow: none !important; text-shadow: none !important; }
-button { box-shadow: none !important; }
-header { box-shadow: none !important; border-bottom: 2px solid var(--border) !important; }
-[style*='box-shadow'] { box-shadow: none !important; }`
+    css: "/* Flat Design */\n* { box-shadow: none !important; text-shadow: none !important; }\nbutton { box-shadow: none !important; }\nheader { box-shadow: none !important; border-bottom: 2px solid var(--border) !important; }\n[style*='box-shadow'] { box-shadow: none !important; }"
   },
   {
     naziv: 'Gradient Wave', emoji: '🌊',
     opis: 'Gradient pozadine, živopisne boje',
-    css: `/* Gradient Wave */
-.min-h-screen { 
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%) !important;
-}
-header {
-  background: linear-gradient(90deg, var(--brand) 0%, var(--brand-dark) 100%) !important;
-  color: white !important;
-}
-header * { color: white !important; }
-header input { background: rgba(255,255,255,0.2) !important; color: white !important; border-color: rgba(255,255,255,0.3) !important; }
-header input::placeholder { color: rgba(255,255,255,0.7) !important; }`
+    css: "/* Gradient Wave */\n.min-h-screen { \n  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%) !important;\n}\nheader {\n  background: linear-gradient(90deg, var(--brand) 0%, var(--brand-dark) 100%) !important;\n  color: white !important;\n}\nheader * { color: white !important; }\nheader input { background: rgba(255,255,255,0.2) !important; color: white !important; border-color: rgba(255,255,255,0.3) !important; }\nheader input::placeholder { color: rgba(255,255,255,0.7) !important; }"
   },
   {
     naziv: 'Dark Mode', emoji: '🌙',
     opis: 'Tamna tema, neon akcenti',
-    css: `/* Dark Mode */
-:root {
-  --surface: #1a1a2e !important; --bg-kartica: #16213e !important;
-  --border: #0f3460 !important; --text: #e0e0e0 !important; --text-muted: #888 !important;
-}
-.min-h-screen { background: #0d0d1a !important; }
-header { background: #1a1a2e !important; border-color: #0f3460 !important; }
-body { background: #0d0d1a !important; color: #e0e0e0 !important; }`
+    css: "/* Dark Mode */\n:root {\n  --surface: #1a1a2e !important; --bg-kartica: #16213e !important;\n  --border: #0f3460 !important; --text: #e0e0e0 !important; --text-muted: #888 !important;\n}\n.min-h-screen { background: #0d0d1a !important; }\nheader { background: #1a1a2e !important; border-color: #0f3460 !important; }\nbody { background: #0d0d1a !important; color: #e0e0e0 !important; }"
   },
   {
     naziv: 'Retro 90s', emoji: '💾',
     opis: 'Nostalgičan izgled, serif fontovi',
-    css: `/* Retro 90s */
-:root { --radius: 0px !important; }
-* { border-radius: 0 !important; font-family: 'Courier New', monospace !important; }
-header { 
-  background: #000080 !important; color: white !important;
-  border-bottom: 3px solid #ffff00 !important;
-}
-header * { color: white !important; }
-button { 
-  background: #c0c0c0 !important; color: #000 !important;
-  border: 2px solid !important;
-  border-color: #ffffff #808080 #808080 #ffffff !important;
-}
-.min-h-screen { background: #008080 !important; }`
+    css: "/* Retro 90s */\n:root { --radius: 0px !important; }\n* { border-radius: 0 !important; font-family: 'Courier New', monospace !important; }\nheader { \n  background: #000080 !important; color: white !important;\n  border-bottom: 3px solid #ffff00 !important;\n}\nheader * { color: white !important; }\nbutton { \n  background: #c0c0c0 !important; color: #000 !important;\n  border: 2px solid !important;\n  border-color: #ffffff #808080 #808080 #ffffff !important;\n}\n.min-h-screen { background: #008080 !important; }"
   },
   {
     naziv: 'Premium Serif', emoji: '🎩',
     opis: 'Elegantno, serif fontovi, zlatni akcenti',
-    css: `/* Premium Serif */
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Lato:wght@300;400;700&display=swap');
-h1, h2, h3 { font-family: 'Playfair Display', Georgia, serif !important; }
-body { font-family: 'Lato', sans-serif !important; }
-button[style*='brand'], .bg-emerald { 
-  background: linear-gradient(135deg, #c9a84c, #f4d03f) !important; 
-  color: #1a1a1a !important; font-weight: 700 !important;
-}`
+    css: "/* Premium Serif */\n@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Lato:wght@300;400;700&display=swap');\nh1, h2, h3 { font-family: 'Playfair Display', Georgia, serif !important; }\nbody { font-family: 'Lato', sans-serif !important; }\nbutton[style*='brand'], .bg-emerald { \n  background: linear-gradient(135deg, #c9a84c, #f4d03f) !important; \n  color: #1a1a1a !important; font-weight: 700 !important;\n}"
   },
 ]
 
