@@ -162,7 +162,7 @@ export default function ProductCard({ artikal, stanje, slika }: Props) {
               alignItems: 'center',
               justifyContent: 'center',
               padding: '0 6px',
-              boxShadow: '0 2px 6px rgba(15,110,86,0.3)',
+              boxShadow: '0 2px 6px var(--brand-pale)',
             }}>
               {inCart}
             </div>
@@ -269,22 +269,22 @@ export default function ProductCard({ artikal, stanje, slika }: Props) {
                 cursor: (!canAdd || inCart + qty > maxQty) ? 'not-allowed' : 'pointer',
                 transition: 'all 0.3s',
                 background: canAdd && inCart + qty <= maxQty
-                  ? 'linear-gradient(135deg, #065f46 0%, #059669 100%)'
+                  ? 'var(--brand)'
                   : '#F1F5F9',
                 color: canAdd && inCart + qty <= maxQty ? 'white' : '#94a3b8',
                 boxShadow: canAdd && inCart + qty <= maxQty
-                  ? '0 2px 8px rgba(5,150,105,0.3), inset 0 1px 0 rgba(255,255,255,0.1)'
+                  ? '0 2px 8px var(--brand-pale)'
                   : 'none',
               }}
               onMouseEnter={e => {
                 if (!canAdd || inCart + qty > maxQty) return
                 const el = e.currentTarget as HTMLElement
-                el.style.boxShadow = '0 4px 16px rgba(5,150,105,0.45), inset 0 1px 0 rgba(255,255,255,0.15)'
+                el.style.filter = 'brightness(1.1)'
                 el.style.transform = 'scale(1.02)'
               }}
               onMouseLeave={e => {
                 const el = e.currentTarget as HTMLElement
-                el.style.boxShadow = canAdd ? '0 2px 8px rgba(5,150,105,0.3), inset 0 1px 0 rgba(255,255,255,0.1)' : 'none'
+                el.style.filter = ''
                 el.style.transform = 'none'
               }}
             >

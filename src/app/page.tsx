@@ -407,12 +407,12 @@ function renderBlockHTML(block: any, device: string = 'desktop'): string {
       const h = parseInt(p.visina) || 400
       const bg = p.bgSlika
         ? `linear-gradient(rgba(0,0,0,${p.overlay||0.3}),rgba(0,0,0,${p.overlay||0.3})),url(${p.bgSlika}) center/cover no-repeat`
-        : (p.bgBoja || '#0F6E56')
+        : (p.bgBoja || 'var(--brand)')
       const align = p.tekstPozicija === 'left' ? 'flex-start' : p.tekstPozicija === 'right' ? 'flex-end' : 'center'
       return `<section style="background:${bg};min-height:${h}px;display:flex;flex-direction:column;justify-content:center;align-items:${align};padding:48px 40px;color:${p.tekstBoja||'#fff'};text-align:${p.tekstPozicija||'center'}">
         <h1 style="font-size:${parseInt(p.fontSize)||42}px;font-weight:800;margin:0 0 12px;line-height:1.15;max-width:700px">${p.naslov||''}</h1>
         ${p.podnaslov ? `<p style="font-size:${parseInt(p.podnaslovSize)||18}px;opacity:0.85;margin:0 0 24px;max-width:560px">${p.podnaslov}</p>` : ''}
-        ${p.dugmeTekst ? `<a href="${p.dugmeUrl||'/'}" style="display:inline-block;background:rgba(255,255,255,0.95);color:${p.bgBoja||'#0F6E56'};padding:12px 28px;border-radius:8px;font-weight:700;text-decoration:none;font-size:15px">${p.dugmeTekst} →</a>` : ''}
+        ${p.dugmeTekst ? `<a href="${p.dugmeUrl||'/'}" style="display:inline-block;background:rgba(255,255,255,0.95);color:${p.bgBoja||'var(--brand)'};padding:12px 28px;border-radius:8px;font-weight:700;text-decoration:none;font-size:15px">${p.dugmeTekst} →</a>` : ''}
       </section>`
     }
     case 'features': {
@@ -429,10 +429,10 @@ function renderBlockHTML(block: any, device: string = 'desktop'): string {
       </section>`
     }
     case 'promo':
-      return `<section style="background:${p.bgBoja||'#0F6E56'};padding:${p.paddingV||48}px 40px;text-align:center;color:${p.tekstBoja||'#fff'}">
+      return `<section style="background:${p.bgBoja||'var(--brand)'};padding:${p.paddingV||48}px 40px;text-align:center;color:${p.tekstBoja||'#fff'}">
         <h2 style="font-size:28px;font-weight:800;margin:0 0 10px">${p.naslov||''}</h2>
         ${p.podnaslov ? `<p style="font-size:16px;opacity:0.85;margin:0 0 22px">${p.podnaslov}</p>` : ''}
-        ${p.dugmeTekst ? `<a href="${p.dugmeUrl||'#'}" style="display:inline-block;background:${p.dugmeBgBoja||'#fff'};color:${p.dugmeTekstBoja||'#0F6E56'};padding:12px 28px;border-radius:8px;font-weight:700;text-decoration:none">${p.dugmeTekst}</a>` : ''}
+        ${p.dugmeTekst ? `<a href="${p.dugmeUrl||'#'}" style="display:inline-block;background:${p.dugmeBgBoja||'#fff'};color:${p.dugmeTekstBoja||'var(--brand)'};padding:12px 28px;border-radius:8px;font-weight:700;text-decoration:none">${p.dugmeTekst}</a>` : ''}
       </section>`
     case 'newsletter':
       return `<section style="padding:${p.paddingV||64}px 40px;background:${p.bgBoja||'#fff'};text-align:center">
@@ -440,14 +440,14 @@ function renderBlockHTML(block: any, device: string = 'desktop'): string {
         ${p.podnaslov ? `<p style="font-size:14px;color:#6b8279;margin:0 0 24px">${p.podnaslov}</p>` : ''}
         <div style="display:flex;gap:8px;max-width:400px;margin:0 auto">
           <input type="email" placeholder="${p.placeholder||'vas@email.ba'}" style="flex:1;padding:10px 14px;border:1px solid #e8edeb;border-radius:8px;font-size:14px"/>
-          <button style="padding:10px 20px;background:${p.dugmeBoja||'#0F6E56'};color:white;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap">${p.dugmeTekst||'Prijavi se'}</button>
+          <button style="padding:10px 20px;background:${p.dugmeBoja||'var(--brand)'};color:white;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap">${p.dugmeTekst||'Prijavi se'}</button>
         </div>
       </section>`
     case 'tekst_slika': {
       const imgEl = p.slikaUrl
         ? `<img src="${p.slikaUrl}" alt="${p.slikaAlt||''}" style="width:100%;height:300px;object-fit:cover;border-radius:16px"/>`
         : `<div style="background:#f0fdf4;border-radius:16px;height:300px;display:flex;align-items:center;justify-content:center;font-size:64px">${p.slikaEmoji||'🏭'}</div>`
-      const textEl = `<div><h2 style="font-size:${parseInt(p.naslovSize)||32}px;font-weight:800;color:#0d1f1a;margin:0 0 16px;line-height:1.2">${p.naslov||''}</h2><p style="font-size:${parseInt(p.tekstSize)||16}px;color:${p.tekstBoja||'#6b8279'};line-height:1.7;margin:0 0 24px">${p.tekst||''}</p>${p.dugmeTekst?`<a href="${p.dugmeUrl||'#'}" style="display:inline-block;background:#0F6E56;color:white;padding:12px 24px;border-radius:8px;font-weight:700;text-decoration:none">${p.dugmeTekst}</a>`:''}</div>`
+      const textEl = `<div><h2 style="font-size:${parseInt(p.naslovSize)||32}px;font-weight:800;color:#0d1f1a;margin:0 0 16px;line-height:1.2">${p.naslov||''}</h2><p style="font-size:${parseInt(p.tekstSize)||16}px;color:${p.tekstBoja||'#6b8279'};line-height:1.7;margin:0 0 24px">${p.tekst||''}</p>${p.dugmeTekst?`<a href="${p.dugmeUrl||'#'}" style="display:inline-block;background:var(--brand);color:white;padding:12px 24px;border-radius:8px;font-weight:700;text-decoration:none">${p.dugmeTekst}</a>`:''}</div>`
       const reversed = p.slikaPozicija === 'lijevo'
       return `<section style="padding:${p.paddingV||64}px 40px;background:${p.bgBoja||'#fff'}">
         <div style="display:grid;grid-template-columns:${isMobile?'1fr':'1fr 1fr'};gap:48px;align-items:center;max-width:1200px;margin:0 auto">
@@ -457,7 +457,7 @@ function renderBlockHTML(block: any, device: string = 'desktop'): string {
     }
     case 'statistike': {
       const stats = [[p.stat1Broj,p.stat1Label],[p.stat2Broj,p.stat2Label],[p.stat3Broj,p.stat3Label],[p.stat4Broj,p.stat4Label]]
-      return `<section style="padding:${p.paddingV||48}px 40px;background:${p.bgBoja||'#0F6E56'};color:${p.tekstBoja||'#fff'}">
+      return `<section style="padding:${p.paddingV||48}px 40px;background:${p.bgBoja||'var(--brand)'};color:${p.tekstBoja||'#fff'}">
         <div style="display:grid;grid-template-columns:repeat(${isMobile?2:4},1fr);gap:24px;max-width:900px;margin:0 auto;text-align:center">
           ${stats.map(([n,l]) => `<div><div style="font-size:${parseInt(p.brojSize)||40}px;font-weight:800;margin-bottom:6px">${n||''}</div><div style="font-size:${parseInt(p.labelSize)||14}px;opacity:0.8">${l||''}</div></div>`).join('')}
         </div>
@@ -468,8 +468,8 @@ function renderBlockHTML(block: any, device: string = 'desktop'): string {
     case 'slika':
       return p.url ? `<div style="text-align:${p.align||'center'};padding:0 40px"><img src="${p.url}" alt="${p.alt||''}" style="width:${p.sirina||100}%;height:${p.visina||300}px;object-fit:${p.objectFit||'cover'};border-radius:${p.radius||0}px"/></div>` : ''
     case 'dugme': {
-      const shadow = p.shadow !== 'false' ? `box-shadow:0 4px 14px ${p.bgBoja||'#0F6E56'}40` : ''
-      return `<div style="text-align:${p.align||'center'};padding:${p.paddingV||12}px ${p.paddingH||24}px"><a href="${p.url||'#'}" style="display:inline-block;background:${p.bgBoja||'#0F6E56'};color:${p.tekstBoja||'#fff'};padding:${p.paddingV||12}px ${p.paddingH||24}px;border-radius:${p.radius||8}px;font-size:${parseInt(p.fontSize)||15}px;font-weight:${p.fontWeight||600};text-decoration:none;${shadow}">${p.tekst||'Klikni'}</a></div>`
+      const shadow = p.shadow !== 'false' ? `box-shadow:0 4px 14px ${p.bgBoja||'var(--brand)'}40` : ''
+      return `<div style="text-align:${p.align||'center'};padding:${p.paddingV||12}px ${p.paddingH||24}px"><a href="${p.url||'#'}" style="display:inline-block;background:${p.bgBoja||'var(--brand)'};color:${p.tekstBoja||'#fff'};padding:${p.paddingV||12}px ${p.paddingH||24}px;border-radius:${p.radius||8}px;font-size:${parseInt(p.fontSize)||15}px;font-weight:${p.fontWeight||600};text-decoration:none;${shadow}">${p.tekst||'Klikni'}</a></div>`
     }
     case 'separator':
       return `<div style="padding:${p.marginV||32}px 40px"><hr style="border:none;border-top:${p.visina||1}px ${p.stil||'solid'} ${p.boja||'#e8edeb'};margin:0"/></div>`
@@ -481,7 +481,7 @@ function renderBlockHTML(block: any, device: string = 'desktop'): string {
       return `<section style="padding:${p.paddingV||48}px ${isMobile?20:parseInt(p.paddingH)||40}px;background:${p.bgBoja||'#f8fafa'}">
         ${p.naslov ? `<h2 style="font-size:24px;font-weight:700;margin:0 0 28px;color:#0d1f1a">${p.naslov}</h2>` : ''}
         <div style="display:grid;grid-template-columns:repeat(${cols},1fr);gap:12px">
-          ${cats.slice(0,Math.min(8,parseInt(p.kolone||4)*2)).map(k => `<a href="/?q=${k}" style="display:flex;flex-direction:column;align-items:center;padding:16px 12px;background:${p.katBoja||'#fff'};border-radius:${p.katRadius||12}px;border:1px solid ${p.katBorder||'#e8edeb'};text-decoration:none"><div style="width:44px;height:44px;background:#0F6E56;border-radius:10px;margin-bottom:8px"></div><span style="font-size:13px;font-weight:600;color:#0d1f1a">${k}</span></a>`).join('')}
+          ${cats.slice(0,Math.min(8,parseInt(p.kolone||4)*2)).map(k => `<a href="/?q=${k}" style="display:flex;flex-direction:column;align-items:center;padding:16px 12px;background:${p.katBoja||'#fff'};border-radius:${p.katRadius||12}px;border:1px solid ${p.katBorder||'#e8edeb'};text-decoration:none"><div style="width:44px;height:44px;background:var(--brand);border-radius:10px;margin-bottom:8px"></div><span style="font-size:13px;font-weight:600;color:#0d1f1a">${k}</span></a>`).join('')}
         </div>
       </section>`
     }

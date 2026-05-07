@@ -31,7 +31,7 @@ export default function HeroBanner() {
 
   if (!config || config.hero_aktivan !== 'true') return null
 
-  const bgColor = config.hero_boja_pozadine || '#0F6E56'
+  const bgColor = config.hero_boja_pozadine || 'var(--brand)'
   const hasSlika = config.hero_url_slike?.trim()
 
   return (
@@ -89,7 +89,7 @@ export default function HeroBanner() {
               alignItems: 'center',
               gap: '8px',
               background: 'white',
-              color: bgColor,
+              color: bgColor === 'var(--brand)' ? 'var(--brand)' : bgColor,
               fontWeight: 700,
               fontSize: '15px',
               padding: '12px 24px',

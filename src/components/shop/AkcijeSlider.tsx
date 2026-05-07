@@ -84,7 +84,7 @@ export default function AkcijeSlider() {
 
   return (
     <div style={{
-      background: 'linear-gradient(135deg, var(--brand-dark, #085041) 0%, var(--brand, #0F6E56) 100%)',
+      background: 'linear-gradient(135deg, var(--brand-dark, var(--brand)) 0%, var(--brand) 100%)',
       padding: '28px 0',
       position: 'relative',
       overflow: 'hidden',
@@ -157,8 +157,8 @@ export default function AkcijeSlider() {
           onMouseLeave={() => { if (!paused) pausedRef.current = false }}
         >
           {/* Fade edges */}
-          <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: '40px', background: 'linear-gradient(to right, var(--brand-dark, #085041), transparent)', zIndex: 2, pointerEvents: 'none' }} />
-          <div style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: '40px', background: 'linear-gradient(to left, var(--brand, #0F6E56), transparent)', zIndex: 2, pointerEvents: 'none' }} />
+          <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: '40px', background: 'linear-gradient(to right, var(--brand-dark, var(--brand)), transparent)', zIndex: 2, pointerEvents: 'none' }} />
+          <div style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: '40px', background: 'linear-gradient(to left, var(--brand), transparent)', zIndex: 2, pointerEvents: 'none' }} />
 
           {/* Scrolling track */}
           <div
