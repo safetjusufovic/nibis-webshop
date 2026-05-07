@@ -45,11 +45,12 @@ function CategorySidebar({ grupe, activeId, onSelect, sirina = 240, sidebarConfi
         <div style={{ padding: '6px' }}>
           <button
             onClick={() => onSelect(null)}
-            className={`w-full text-left px-3 py-2 text-[12px] rounded-md mb-1 transition-all duration-150 flex items-center gap-2 ${
-              activeId === null
-                ? 'text-white font-semibold shadow-sm brand-bg'
-                : 'text-gray-600 hover:bg-gray-100'
-            }`}
+            className="w-full text-left px-3 py-2 text-[12px] rounded-md mb-1 transition-all duration-150 flex items-center gap-2"
+            style={{
+              background: activeId === null ? 'var(--brand)' : 'transparent',
+              color: activeId === null ? 'white' : '#4B5563',
+              fontWeight: activeId === null ? 600 : 400,
+            }}
           >
             <span style={{
               width: '26px', height: '26px', borderRadius: '6px', flexShrink: 0,
@@ -212,7 +213,7 @@ function ProductRow({ artikal, stanje, dugmeTekst = 'Dodaj' }: { artikal: Artika
   return (
     <tr className="border-b border-gray-100 hover:bg-slate-50/60 transition-all duration-150 group">
       <td className="py-2.5 pl-4 pr-2">
-        <Link href={`/proizvod/${artikal.id}`} className="text-[13px] font-medium text-gray-800 hover:text-[var(--brand)] transition-colors leading-snug block">
+        <Link href={`/proizvod/${artikal.id}`} className="text-[13px] font-medium text-gray-800 transition-colors leading-snug block" style={{ color: "var(--text)" }} onMouseEnter={e => (e.currentTarget as HTMLAnchorElement).style.color = "var(--brand)"} onMouseLeave={e => (e.currentTarget as HTMLAnchorElement).style.color = "var(--text)"}>
           {artikal.naziv}
         </Link>
         {artikal.naziv2 && <span className="text-[11px] text-gray-400">{artikal.naziv2}</span>}
@@ -243,7 +244,7 @@ function ProductRow({ artikal, stanje, dugmeTekst = 'Dodaj' }: { artikal: Artika
       <td className="py-2.5 px-2 whitespace-nowrap text-right">
         <div className="text-[14px] font-bold text-gray-900">{formatCijena(cijena)}</div>
         {popust > 0 && <div className="text-[11px] text-gray-400 line-through">{formatCijena(cijenaBase)}</div>}
-        {inCart > 0 && <div className="text-[10px] font-medium" style={{ color: "var(--brand)" }}">{inCart} u korpi</div>}
+        {inCart > 0 && <div className="text-[10px] font-medium">{inCart} u korpi</div>}
       </td>
       <td className="py-2 pl-2 pr-3 whitespace-nowrap">
         <div className="flex items-center gap-1.5 justify-end">
@@ -267,8 +268,15 @@ function ProductRow({ artikal, stanje, dugmeTekst = 'Dodaj' }: { artikal: Artika
           <button
             onClick={handleAdd}
             disabled={!canAdd || inCart + qty > maxQty}
-            style={{ background: canAdd && inCart + qty <= maxQty ? 'var(--brand)' : '#F3F4F6', color: canAdd && inCart + qty <= maxQty ? 'white' : '#D1D5DB', cursor: canAdd && inCart + qty <= maxQty ? 'pointer' : 'not-allowed' }}
-          className="flex items-center gap-1.5 text-[12px] font-semibold px-3 py-1.5 rounded-lg transition-all duration-300 shadow-sm hover:scale-[1.02] active:scale-95" 
+            style={{
+            background: canAdd && inCart + qty <= maxQty ? 'var(--brand)' : '#F3F4F6',
+            color: canAdd && inCart + qty <= maxQty ? 'white' : '#D1D5DB',
+            cursor: canAdd && inCart + qty <= maxQty ? 'pointer' : 'not-allowed',
+            display: 'flex', alignItems: 'center', gap: '6px',
+            fontSize: '12px', fontWeight: 600, padding: '6px 12px',
+            borderRadius: '8px', border: 'none', fontFamily: 'inherit',
+            transition: 'all 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+          }}
           >
             <ShoppingCart size={11} />
             {inCart > 0 ? dugmeTekst + ' još' : dugmeTekst}
@@ -739,7 +747,7 @@ export default function HomePage() {
               <div className="flex-1 min-w-0 flex items-center gap-1.5 text-[13px]">
                 {activeGrupa ? (
                   <>
-                    <button onClick={() => onGrupaSelect(null)} className="text-gray-400 hover:text-[var(--brand)] transition-colors">
+                    <button onClick={() => onGrupaSelect(null)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: "13px", color: "#9CA3AF", fontFamily: "inherit" }} onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = "var(--brand)"} onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = "#9CA3AF"}>
                       Sve kategorije
                     </button>
                     <ChevronRight size={12} className="text-gray-300" />
@@ -847,7 +855,7 @@ export default function HomePage() {
                               Nema artikala
                               <br />
                               <button onClick={() => { onGrupaSelect(null); setFilterStock(false) }}
-                                className="mt-2 underline" style={{ color: "var(--brand)" }} text-[12px]">
+                                className="mt-2 underline text-[12px]">
                                 Prikaži sve
                               </button>
                             </td></tr>
@@ -879,7 +887,7 @@ export default function HomePage() {
                           Nema artikala
                           <br />
                           <button onClick={() => { onGrupaSelect(null); setFilterStock(false) }}
-                            className="mt-2 underline" style={{ color: "var(--brand)" }} text-[12px]">
+                            className="mt-2 underline text-[12px]">
                             Prikaži sve
                           </button>
                         </div>
