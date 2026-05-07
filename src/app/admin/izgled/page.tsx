@@ -97,6 +97,114 @@ const PRESET_TEME = [
   { naziv: 'Rose', emoji: '🔴', boje: { theme_primary_boja: '#E11D48', theme_bg_stranica: '#FFF1F2', theme_bg_kartica: '#ffffff', theme_border_boja: '#FECDD3', theme_tekst_boja: '#881337', header_boja: '#ffffff', baner_boja_pozadine: '#9F1239', hero_boja_pozadine: '#E11D48' } },
 ]
 
+
+const CSS_PRESET_TEME = [
+  {
+    naziv: 'Glassmorphism', emoji: '🪟',
+    opis: 'Mutno staklo, blur efekti, moderne kartice',
+    css: `/* Glassmorphism */
+.bg-white, [style*="background: white"], [style*="background:#ffffff"] {
+  background: rgba(255,255,255,0.7) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border: 1px solid rgba(255,255,255,0.3) !important;
+}
+header { backdrop-filter: blur(20px) !important; background: rgba(255,255,255,0.85) !important; }
+.min-h-screen { background: linear-gradient(135deg, #667eea22 0%, #764ba233 50%, #f093fb22 100%) !important; }`
+  },
+  {
+    naziv: 'Neumorphism', emoji: '🔘',
+    opis: 'Meke sjene, plastični 3D izgled',
+    css: `/* Neumorphism */
+:root { --surface: #e0e5ec; --bg-kartica: #e0e5ec; }
+.min-h-screen { background: #e0e5ec !important; }
+[style*="border: 1px solid"], [style*="border:1px solid"] {
+  border: none !important;
+  box-shadow: 8px 8px 16px #b8bec7, -8px -8px 16px #ffffff !important;
+  border-radius: 16px !important;
+}
+button:not([disabled]) { box-shadow: 4px 4px 8px #b8bec7, -4px -4px 8px #ffffff !important; }`
+  },
+  {
+    naziv: 'Brutalist', emoji: '⬛',
+    opis: 'Crne debele linije, bez zaobljenosti',
+    css: `/* Brutalism */
+:root { --radius: 0px !important; --kartica-radius: 0px !important; }
+* { border-radius: 0 !important; }
+[style*="border"], .border, [class*="border"] {
+  border: 2px solid #000 !important;
+}
+button { border: 2px solid #000 !important; box-shadow: 4px 4px 0 #000 !important; }
+button:hover { transform: translate(2px, 2px) !important; box-shadow: 2px 2px 0 #000 !important; }`
+  },
+  {
+    naziv: 'Flat Design', emoji: '📐',
+    opis: 'Čisto, bez sjena, minimalistično',
+    css: `/* Flat Design */
+* { box-shadow: none !important; text-shadow: none !important; }
+button { box-shadow: none !important; }
+header { box-shadow: none !important; border-bottom: 2px solid var(--border) !important; }
+[style*="box-shadow"] { box-shadow: none !important; }`
+  },
+  {
+    naziv: 'Gradient Wave', emoji: '🌊',
+    opis: 'Gradient pozadine, živopisne boje',
+    css: `/* Gradient Wave */
+.min-h-screen { 
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%) !important;
+}
+header {
+  background: linear-gradient(90deg, var(--brand) 0%, var(--brand-dark) 100%) !important;
+  color: white !important;
+}
+header * { color: white !important; }
+header input { background: rgba(255,255,255,0.2) !important; color: white !important; border-color: rgba(255,255,255,0.3) !important; }
+header input::placeholder { color: rgba(255,255,255,0.7) !important; }`
+  },
+  {
+    naziv: 'Dark Mode', emoji: '🌙',
+    opis: 'Tamna tema, neon akcenti',
+    css: `/* Dark Mode */
+:root {
+  --surface: #1a1a2e !important; --bg-kartica: #16213e !important;
+  --border: #0f3460 !important; --text: #e0e0e0 !important; --text-muted: #888 !important;
+}
+.min-h-screen { background: #0d0d1a !important; }
+header { background: #1a1a2e !important; border-color: #0f3460 !important; }
+body { background: #0d0d1a !important; color: #e0e0e0 !important; }`
+  },
+  {
+    naziv: 'Retro 90s', emoji: '💾',
+    opis: 'Nostalgičan izgled, serif fontovi',
+    css: `/* Retro 90s */
+:root { --radius: 0px !important; }
+* { border-radius: 0 !important; font-family: 'Courier New', monospace !important; }
+header { 
+  background: #000080 !important; color: white !important;
+  border-bottom: 3px solid #ffff00 !important;
+}
+header * { color: white !important; }
+button { 
+  background: #c0c0c0 !important; color: #000 !important;
+  border: 2px solid !important;
+  border-color: #ffffff #808080 #808080 #ffffff !important;
+}
+.min-h-screen { background: #008080 !important; }`
+  },
+  {
+    naziv: 'Premium Serif', emoji: '🎩',
+    opis: 'Elegantno, serif fontovi, zlatni akcenti',
+    css: `/* Premium Serif */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Lato:wght@300;400;700&display=swap');
+h1, h2, h3 { font-family: 'Playfair Display', Georgia, serif !important; }
+body { font-family: 'Lato', sans-serif !important; }
+button[style*="brand"], .bg-emerald { 
+  background: linear-gradient(135deg, #c9a84c, #f4d03f) !important; 
+  color: #1a1a1a !important; font-weight: 700 !important;
+}`
+  },
+]
+
 const GOOGLE_FONTS = ['DM Sans', 'Inter', 'Roboto', 'Open Sans', 'Lato', 'Poppins', 'Nunito', 'Montserrat', 'Raleway', 'Merriweather', 'Playfair Display', 'Source Sans 3']
 
 // ─── UI Helpers ────────────────────────────────────────────────────────────────
@@ -288,29 +396,77 @@ export default function IzgledPage() {
       })
   }, [])
 
+  // historyRef drži posljednji snapshot — ne uzrokuje re-render
+  const historyRef = useRef<Postavke[]>([])
+  const lastSnapshotRef = useRef<string>('')
+
   function set(key: string, value: string) {
-    setHistory(h => [...h.slice(-30), p])
+    // Push history samo kad se promijeni ključ (ne na svaki karakter)
+    const snapshotKey = key
+    if (lastSnapshotRef.current !== snapshotKey) {
+      lastSnapshotRef.current = snapshotKey
+      historyRef.current = [...historyRef.current.slice(-30), p]
+      setHistory(historyRef.current) // sync za undo dugme (da zna da ima historije)
+    }
     setP(prev => ({ ...prev, [key]: value }))
     setChanged(true)
     // Live update u iframeu
     iframeRef.current?.contentWindow?.postMessage({ type: 'THEME_UPDATE', key, value }, '*')
+    // Update CSS varijable direktno u trenutnoj stranici (za preview bez iframe)
+    applyCSS(key, value)
+  }
+
+  function applyCSS(key: string, value: string) {
+    const r = document.documentElement
+    const cssMap: Record<string, string> = {
+      theme_primary_boja: '--brand',
+      theme_bg_stranica: '--surface',
+      theme_bg_kartica: '--bg-kartica',
+      theme_border_boja: '--border',
+      theme_tekst_boja: '--text',
+      theme_tekst_muted: '--text-muted',
+      theme_cijena_boja: '--cijena',
+      theme_akcija_boja: '--akcija',
+    }
+    if (cssMap[key]) {
+      r.style.setProperty(cssMap[key], value)
+      if (key === 'theme_primary_boja') {
+        r.style.setProperty('--brand-pale', value + '18')
+        r.style.setProperty('--brand-dark', value + 'dd')
+      }
+    }
+    if (key === 'theme_border_radius') r.style.setProperty('--radius', value + 'px')
+    if (key === 'theme_font_body_size') document.body.style.fontSize = value + 'px'
+    if (key === 'theme_font' || key === 'theme_google_font_tijelo') {
+      document.body.style.fontFamily = `'${value}', DM Sans, system-ui, sans-serif`
+    }
+    if (key === 'theme_custom_css') {
+      let el = document.getElementById('admin-preview-css')
+      if (!el) { el = document.createElement('style'); el.id = 'admin-preview-css'; document.head.appendChild(el) }
+      el.textContent = value
+    }
   }
 
   function undo() {
-    if (!history.length) return
-    const prev = history[history.length - 1]
-    setHistory(h => h.slice(0, -1))
+    if (!historyRef.current.length) return
+    const prev = historyRef.current[historyRef.current.length - 1]
+    historyRef.current = historyRef.current.slice(0, -1)
+    setHistory([...historyRef.current])
+    lastSnapshotRef.current = ''
     setP(prev)
     setChanged(true)
     iframeRef.current?.contentWindow?.postMessage({ type: 'THEME_FULL_RELOAD' }, '*')
   }
 
   function applyPreset(preset: typeof PRESET_TEME[0]) {
-    setHistory(h => [...h.slice(-30), p])
+    historyRef.current = [...historyRef.current.slice(-30), p]
+    setHistory([...historyRef.current])
+    lastSnapshotRef.current = ''
     setP(prev => ({ ...prev, ...preset.boje }))
     setChanged(true)
     Object.entries(preset.boje).forEach(([k, v]) => {
       iframeRef.current?.contentWindow?.postMessage({ type: 'THEME_UPDATE', key: k, value: v }, '*')
+      applyCSS(k, v)
     })
   }
 
@@ -337,7 +493,8 @@ export default function IzgledPage() {
     reader.onload = ev => {
       try {
         const data = JSON.parse(ev.target?.result as string)
-        setHistory(h => [...h.slice(-30), p])
+        historyRef.current = [...historyRef.current.slice(-30), p]
+        setHistory([...historyRef.current])
         setP(prev => ({ ...prev, ...data }))
         setChanged(true)
       } catch {}
@@ -708,12 +865,30 @@ export default function IzgledPage() {
 
       {/* ── CUSTOM CSS ───────────────────────────────────────────── */}
       <AccordionSec title="Napredne postavke (Custom CSS)" icon={<Type size={18} />} defaultOpen={false} badge="Za developere">
+      <AccordionSec title="Napredne postavke (Custom CSS)" icon={<Type size={18} />} defaultOpen={false} badge="Za developere">
+        <Sec title="Gotove CSS teme" desc="Klikni za primjenu — kombinuj s bojama iznad">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px' }}>
+            {CSS_PRESET_TEME.map(t => (
+              <button key={t.naziv} onClick={() => set('theme_custom_css', t.css)}
+                style={{ padding: '10px 12px', border: `1.5px solid ${p.theme_custom_css === t.css ? '#0F6E56' : '#E5E7EB'}`, borderRadius: '10px', cursor: 'pointer', fontFamily: 'inherit', background: p.theme_custom_css === t.css ? '#F0FDF4' : 'white', textAlign: 'left', transition: 'all 0.15s' }}>
+                <div style={{ fontSize: '18px', marginBottom: '4px' }}>{t.emoji}</div>
+                <div style={{ fontSize: '12px', fontWeight: 700, color: p.theme_custom_css === t.css ? '#0F6E56' : '#111827' }}>{t.naziv}</div>
+                <div style={{ fontSize: '10px', color: '#9CA3AF', marginTop: '2px', lineHeight: 1.3 }}>{t.opis}</div>
+              </button>
+            ))}
+            <button onClick={() => set('theme_custom_css', '')}
+              style={{ padding: '10px 12px', border: `1.5px solid ${!p.theme_custom_css ? '#0F6E56' : '#E5E7EB'}`, borderRadius: '10px', cursor: 'pointer', fontFamily: 'inherit', background: !p.theme_custom_css ? '#F0FDF4' : 'white', textAlign: 'left', transition: 'all 0.15s' }}>
+              <div style={{ fontSize: '18px', marginBottom: '4px' }}>✨</div>
+              <div style={{ fontSize: '12px', fontWeight: 700, color: !p.theme_custom_css ? '#0F6E56' : '#111827' }}>Bez CSS teme</div>
+              <div style={{ fontSize: '10px', color: '#9CA3AF', marginTop: '2px' }}>Default izgled</div>
+            </button>
+          </div>
+        </Sec>
         <div style={{ padding: '10px', background: '#FEF3C7', borderRadius: '8px', fontSize: '12px', color: '#92400E' }}>
-          ⚠️ Ove postavke su namijenjene developerima. Pogrešan CSS može pokvariti izgled sajta.
+          ⚠️ Vlastiti CSS može pokvariti izgled — koristite s oprezom.
         </div>
-        <Textarea label="Custom CSS kod" value={p.theme_custom_css || ''} onChange={v => set('theme_custom_css', v)} rows={10} placeholder="/* Ovdje unesite vlastiti CSS */\n\n.header { ... }" />
+        <Textarea label="Vlastiti CSS kod (opcionalno)" value={p.theme_custom_css || ''} onChange={v => set('theme_custom_css', v)} rows={8} placeholder={"/* Ovdje unesite vlastiti CSS */\n\n.header { ... }"} />
       </AccordionSec>
-
     </div>
   )
 
