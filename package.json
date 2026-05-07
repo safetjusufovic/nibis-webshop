@@ -10,14 +10,13 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "2.39.8",
-    "grapesjs": "^0.22.16",
-    "grapesjs-preset-webpage": "^1.0.3",
     "lucide-react": "^0.383.0",
     "next": "14.2.3",
     "next-intl": "^3.15.0",
     "react": "^18",
     "react-dom": "^18",
-    "resend": "^3.2.0"
+    "resend": "^3.2.0",
+    "@craftjs/core": "^0.2.7"
   },
   "devDependencies": {
     "@types/node": "^20",
