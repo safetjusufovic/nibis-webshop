@@ -6,7 +6,7 @@ import {
   Save, ChevronLeft, Monitor, Smartphone, Tablet, Undo2, Redo2,
   Eye, EyeOff, Trash2, Copy, ChevronUp, ChevronDown, Plus,
   Type, Image, Layout, Square, AlignLeft, AlignCenter, AlignRight,
-  Bold, Italic, Link, Minus, Settings, GripVertical, X,
+  Bold, Italic, Link as LinkIcon, Minus, Settings, GripVertical, X,
   LayoutGrid, Star, Megaphone, Mail, BarChart2, Box, Columns,
 } from 'lucide-react'
 import Link from 'next/link'
