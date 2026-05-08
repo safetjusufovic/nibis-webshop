@@ -594,7 +594,7 @@ function Footer() {
                 onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = 'var(--brand)'}
                 onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = '#6B7280'}
               >{line}</a></li>
-            )) : [{ label: 'O nama', href: '/stranica/o-nama' }, { label: 'Vijesti', href: '/blog' }, { label: 'Dostava i plaćanje', href: '/stranica/dostava-i-placanje' }, { label: 'Uvjeti korištenja', href: '/stranica/uvjeti-koristenja' }, { label: 'Kontakt', href: '/stranica/kontakt' }].map((item, i) => (
+            )) : [{ label: 'O nama', href: '/stranica/o-nama' }, { label: 'Vijesti', href: '/vijesti' }, { label: 'Dostava i plaćanje', href: '/stranica/dostava-i-placanje' }, { label: 'Uvjeti korištenja', href: '/stranica/uvjeti-koristenja' }, { label: 'Kontakt', href: '/stranica/kontakt' }].map((item, i) => (
               <li key={i}><a href={item.href || '#'} style={{ fontSize: '13px', color: '#6B7280', textDecoration: 'none' }}
                 onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = 'var(--brand)'}
                 onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = '#6B7280'}

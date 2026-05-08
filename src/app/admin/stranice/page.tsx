@@ -193,7 +193,7 @@ export default function AdminStranicePage() {
             <ChevronLeft size={14} /> Nazad
           </button>
           <h2 style={{ fontSize: '16px', fontWeight: 700, margin: 0, flex: 1 }}>{editing.id ? 'Uredi' : 'Nova'} {editing.tip === 'clanak' ? 'članak' : 'stranicu'}</h2>
-          <a href={'/stranica/' + (editing.slug || '')} target="_blank" rel="noopener noreferrer"
+          <a href={'/' + (editing.tip === 'clanak' ? 'vijesti' : 'stranica') + '/' + (editing.slug || '')} target="_blank" rel="noopener noreferrer"
             style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '7px 12px', border: '1px solid #E5E7EB', borderRadius: '8px', background: 'white', fontSize: '12px', color: '#6B7280', textDecoration: 'none', fontFamily: 'inherit' }}>
             <ExternalLink size={12} /> Preview
           </a>
@@ -348,7 +348,7 @@ export default function AdminStranicePage() {
                 </div>
               </div>
               <div style={{ display: 'flex', gap: '4px', flexShrink: 0 }}>
-                <a href={'/stranica/' + s.slug} target="_blank" rel="noopener noreferrer" title="Pregledaj"
+                <a href={'/' + (s.tip === 'clanak' ? 'vijesti' : 'stranica') + '/' + s.slug} target="_blank" rel="noopener noreferrer" title="Pregledaj"
                   style={{ padding: '6px', border: '1px solid #E5E7EB', borderRadius: '7px', background: 'white', display: 'flex', color: '#6B7280' }}>
                   <ExternalLink size={13} />
                 </a>

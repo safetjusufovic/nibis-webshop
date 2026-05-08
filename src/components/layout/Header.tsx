@@ -1,8 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import { ShoppingCart, Menu, X, ChevronDown, User, Search, Bell } from 'lucide-react'
-import { useState, useEffect } from 'react'
+import { ShoppingCart, Menu, X, Search, Phone, Mail, Clock, ChevronDown, MapPin } from 'lucide-react'
+import { useState, useEffect, useRef } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import { useCart } from '@/hooks/useCart'
@@ -11,382 +11,338 @@ import CartDrawer from '@/components/shop/CartDrawer'
 import LangSwitcher from '@/components/layout/LangSwitcher'
 import Logo from '@/components/layout/Logo'
 import { siteConfig } from '@/lib/config'
+import type { ArtikalGrupa } from '@/types/nibis'
+
+interface HeaderPostavke {
+  topbar_aktivan: string; topbar_boja: string; topbar_tekst_boja: string
+  topbar_telefon: string; topbar_email: string; topbar_radno_vrijeme: string
+  topbar_adresa: string; topbar_jezik_switcher: string; topbar_custom_tekst: string
+  header_layout: string; header_boja: string; header_tekst_boja: string
+  header_visina: string; header_shadow: string; header_sticky: string
+  header_blur: string; header_logo_pozicija: string; header_search_stil: string
+  header_search_sirina: string; header_search_placeholder: string
+  header_korpa_stil: string; header_korpa_boja: string; header_border_bottom: string
+  navkat_aktivan: string; navkat_boja: string; navkat_tekst_boja: string
+  navkat_visina: string; navkat_stil: string; navkat_akcijski_dugme: string
+  navkat_akcijski_tekst: string; navkat_akcijski_boja: string
+  announcement_bar: string; baner_boja_pozadine: string; baner_boja_teksta: string
+  shop_naziv: string; theme_logo_url: string
+}
+
+const D: HeaderPostavke = {
+  topbar_aktivan: 'false', topbar_boja: '#1F2937', topbar_tekst_boja: '#9CA3AF',
+  topbar_telefon: '', topbar_email: '', topbar_radno_vrijeme: '',
+  topbar_adresa: '', topbar_jezik_switcher: 'true', topbar_custom_tekst: '',
+  header_layout: 'minimal', header_boja: '#ffffff', header_tekst_boja: '#111827',
+  header_visina: '64', header_shadow: 'true', header_sticky: 'true',
+  header_blur: 'true', header_logo_pozicija: 'left', header_search_stil: 'inline',
+  header_search_sirina: '520', header_search_placeholder: 'Pretraži artikle, šifre, barkodove...',
+  header_korpa_stil: 'button', header_korpa_boja: '', header_border_bottom: 'true',
+  navkat_aktivan: 'false', navkat_boja: '#1e3a5f', navkat_tekst_boja: '#ffffff',
+  navkat_visina: '44', navkat_stil: 'flat', navkat_akcijski_dugme: 'false',
+  navkat_akcijski_tekst: 'Akcijski proizvodi', navkat_akcijski_boja: '#DC2626',
+  announcement_bar: '', baner_boja_pozadine: '#085041', baner_boja_teksta: '#ffffff',
+  shop_naziv: '', theme_logo_url: '',
+}
+
+function TopBar({ p }: { p: HeaderPostavke }) {
+  if (p.topbar_aktivan !== 'true') return null
+  return (
+    <div style={{ background: p.topbar_boja, color: p.topbar_tekst_boja, fontSize: '12px', padding: '6px 0' }}>
+      <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+          {p.topbar_telefon && <a href={`tel:${p.topbar_telefon}`} style={{ display: 'flex', alignItems: 'center', gap: '5px', color: p.topbar_tekst_boja, textDecoration: 'none' }}><Phone size={12} />{p.topbar_telefon}</a>}
+          {p.topbar_email && <a href={`mailto:${p.topbar_email}`} style={{ display: 'flex', alignItems: 'center', gap: '5px', color: p.topbar_tekst_boja, textDecoration: 'none' }}><Mail size={12} />{p.topbar_email}</a>}
+          {p.topbar_radno_vrijeme && <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}><Clock size={12} />{p.topbar_radno_vrijeme}</span>}
+          {p.topbar_adresa && <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}><MapPin size={12} />{p.topbar_adresa}</span>}
+          {p.topbar_custom_tekst && <span>{p.topbar_custom_tekst}</span>}
+        </div>
+        {p.topbar_jezik_switcher === 'true' && <LangSwitcher current="bs" />}
+      </div>
+    </div>
+  )
+}
+
+function AnnouncementBar({ p }: { p: HeaderPostavke }) {
+  if (!p.announcement_bar) return null
+  return (
+    <div style={{ background: p.baner_boja_pozadine, color: p.baner_boja_teksta, fontSize: '12px', textAlign: 'center', padding: '7px 16px', letterSpacing: '0.01em' }}>
+      {p.announcement_bar}
+    </div>
+  )
+}
+
+function NavKategorija({ p, grupe }: { p: HeaderPostavke; grupe: ArtikalGrupa[] }) {
+  if (p.navkat_aktivan !== 'true') return null
+  const roots = grupe.filter(g => !g.parentId).slice(0, 9)
+  const stil = p.navkat_stil
+  return (
+    <div style={{ background: p.navkat_boja, minHeight: parseInt(p.navkat_visina) + 'px', display: 'flex', alignItems: 'center', borderBottom: '1px solid rgba(0,0,0,0.1)' }}>
+      <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 24px', display: 'flex', alignItems: 'center', gap: '2px', width: '100%', flexWrap: 'wrap' }}>
+        {p.navkat_akcijski_dugme === 'true' && (
+          <Link href="/?akcija=true" style={{ display: 'flex', alignItems: 'center', gap: '6px', background: p.navkat_akcijski_boja, color: 'white', padding: '7px 14px', borderRadius: stil === 'pills' ? '100px' : '4px', fontSize: '13px', fontWeight: 700, textDecoration: 'none', marginRight: '8px', flexShrink: 0 }}>
+            ⚡ {p.navkat_akcijski_tekst}
+          </Link>
+        )}
+        {roots.map(g => {
+          const isBoje = stil === 'boje_kategorija'
+          const boja = g.boja || '#6B7280'
+          return (
+            <Link key={g.id} href={`/?grupaId=${g.id}`} style={{
+              display: 'flex', alignItems: 'center', gap: '6px',
+              color: isBoje ? 'white' : p.navkat_tekst_boja,
+              textDecoration: 'none', fontSize: '13px', fontWeight: 500,
+              padding: stil === 'pills' ? '6px 14px' : '7px 12px',
+              borderRadius: stil === 'pills' ? '100px' : stil === 'flat' ? '4px' : '0',
+              background: isBoje ? boja : 'transparent',
+              borderBottom: stil === 'underline' ? '2px solid transparent' : 'none',
+              transition: 'all 0.15s', whiteSpace: 'nowrap', flexShrink: 0, margin: '4px 2px',
+            }}
+              onMouseEnter={e => {
+                const el = e.currentTarget as HTMLElement
+                if (isBoje) el.style.filter = 'brightness(1.2)'
+                else if (stil === 'underline') el.style.borderBottomColor = p.navkat_tekst_boja
+                else el.style.background = 'rgba(255,255,255,0.18)'
+              }}
+              onMouseLeave={e => {
+                const el = e.currentTarget as HTMLElement
+                el.style.filter = ''
+                if (stil === 'underline') el.style.borderBottomColor = 'transparent'
+                else if (!isBoje) el.style.background = 'transparent'
+              }}
+            >
+              {isBoje && g.ikonaUrl && <img src={g.ikonaUrl} alt="" style={{ width: '16px', height: '16px', objectFit: 'contain', filter: 'brightness(10)' }} />}
+              {g.naziv}
+            </Link>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+function SearchBox({ p, searchVal, setSearchVal, onSearch, className, extraStyle }: {
+  p: HeaderPostavke; searchVal: string; setSearchVal: (v: string) => void
+  onSearch?: (q: string) => void; className?: string; extraStyle?: React.CSSProperties
+}) {
+  if (!onSearch || p.header_search_stil === 'hidden') return null
+  return (
+    <div style={{ position: 'relative', width: '100%', maxWidth: parseInt(p.header_search_sirina) + 'px', ...extraStyle }} className={className}>
+      <Search size={15} style={{ position: 'absolute', left: '13px', top: '50%', transform: 'translateY(-50%)', color: '#9CACA6', pointerEvents: 'none' }} />
+      <input type="text" placeholder={p.header_search_placeholder || 'Pretraži artikle...'} value={searchVal}
+        onChange={e => { setSearchVal(e.target.value); onSearch?.(e.target.value) }}
+        style={{ width: '100%', paddingLeft: '38px', paddingRight: '14px', height: '40px', fontSize: '14px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '10px', outline: 'none', fontFamily: 'inherit', color: 'var(--text)', transition: 'all 0.15s', boxSizing: 'border-box' }}
+        onFocus={e => { e.target.style.borderColor = 'var(--brand)'; e.target.style.boxShadow = '0 0 0 3px var(--brand-pale)' }}
+        onBlur={e => { e.target.style.borderColor = 'var(--border)'; e.target.style.boxShadow = 'none' }}
+      />
+    </div>
+  )
+}
+
+function KorpaDugme({ p, totalQty, onClick }: { p: HeaderPostavke; totalQty: number; onClick: () => void }) {
+  const boja = p.header_korpa_boja || 'var(--brand)'
+  if (p.header_korpa_stil === 'icon') {
+    return (
+      <button onClick={onClick} style={{ position: 'relative', width: '40px', height: '40px', borderRadius: '10px', background: 'transparent', border: '1px solid var(--border)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text)' }}>
+        <ShoppingCart size={18} />
+        {totalQty > 0 && <span style={{ position: 'absolute', top: '-4px', right: '-4px', background: boja, color: 'white', fontSize: '10px', fontWeight: 700, borderRadius: '100px', minWidth: '18px', height: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 4px' }}>{totalQty > 9 ? '9+' : totalQty}</span>}
+      </button>
+    )
+  }
+  const isPill = p.header_korpa_stil === 'pill'
+  return (
+    <button onClick={onClick} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: boja, color: 'white', border: 'none', borderRadius: isPill ? '100px' : '10px', padding: '8px 16px', fontSize: '14px', fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.15s', boxShadow: '0 1px 3px rgba(0,0,0,0.15)' }}
+      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.filter = 'brightness(1.1)'; (e.currentTarget as HTMLElement).style.transform = 'translateY(-1px)' }}
+      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.filter = ''; (e.currentTarget as HTMLElement).style.transform = 'none' }}
+    >
+      <ShoppingCart size={15} />
+      <span className="cart-label">Korpa</span>
+      {totalQty > 0 && <span style={{ background: 'rgba(255,255,255,0.25)', fontSize: '11px', fontWeight: 700, borderRadius: '100px', minWidth: '20px', height: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 5px' }}>{totalQty > 9 ? '9+' : totalQty}</span>}
+    </button>
+  )
+}
+
+function MobileMenu({ user, isAdmin, menuOpen, setMenuOpen, handleSignOut }: any) {
+  if (!menuOpen) return null
+  return (
+    <div style={{ borderTop: '1px solid var(--border)', background: 'white', padding: '16px 24px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+      {[{ href: '/', label: 'Katalog' }, ...(user ? [{ href: '/moje-narudzbe', label: 'Narudžbe' }, { href: '/favoriti', label: 'Favoriti' }] : []), ...(isAdmin ? [{ href: '/admin', label: 'Admin', accent: true }] : [])].map(item => (
+        <Link key={item.href} href={item.href} onClick={() => setMenuOpen(false)} style={{ padding: '10px 12px', fontSize: '15px', color: (item as any).accent ? 'var(--brand)' : 'var(--text)', fontWeight: (item as any).accent ? 500 : 400, textDecoration: 'none', borderRadius: '8px' }}>{item.label}</Link>
+      ))}
+      {user && <button onClick={handleSignOut} style={{ textAlign: 'left', padding: '10px 12px', fontSize: '15px', color: '#991B1B', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', borderRadius: '8px' }}>Odjava</button>}
+    </div>
+  )
+}
 
 export default function Header({ onSearch }: { onSearch?: (q: string) => void }) {
   const { totalQty } = useCart()
-  const [postavke, setPostavke] = useState<Record<string, string>>({})
-
-  useEffect(() => {
-    supabase.from('postavke').select('kljuc, vrijednost')
-      .in('kljuc', ['announcement_bar', 'baner_boja_pozadine', 'baner_boja_teksta', 'shop_naziv'])
-      .then(({ data }) => {
-        const map: Record<string, string> = {}
-        data?.forEach(p => { map[p.kljuc] = p.vrijednost })
-        setPostavke(map)
-      })
-  }, [])
   const { user, profil, isAdmin, signOut } = useAuth()
+  const [p, setP] = useState<HeaderPostavke>(D)
+  const [grupe, setGrupe] = useState<ArtikalGrupa[]>([])
   const [cartOpen, setCartOpen] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [searchVal, setSearchVal] = useState('')
   const router = useRouter()
+  const userMenuRef = useRef<HTMLDivElement>(null)
 
-  async function handleSignOut() {
-    await signOut()
-    router.push('/login')
-  }
+  useEffect(() => {
+    supabase.from('postavke').select('kljuc, vrijednost')
+      .in('kljuc', [...Object.keys(D)])
+      .then(({ data }) => {
+        const map: any = { ...D }
+        data?.forEach(row => { map[row.kljuc] = row.vrijednost })
+        setP(map)
+      })
+  }, [])
+
+  useEffect(() => {
+    if (p.navkat_aktivan === 'true') {
+      fetch('/api/grupe').then(r => r.json()).then(d => setGrupe(d.items ?? []))
+    }
+  }, [p.navkat_aktivan])
+
+  useEffect(() => {
+    function h(e: MouseEvent) { if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) setUserMenuOpen(false) }
+    document.addEventListener('mousedown', h)
+    return () => document.removeEventListener('mousedown', h)
+  }, [])
+
+  async function handleSignOut() { await signOut(); router.push('/login') }
 
   const partnerNaziv = (profil?.partner as any)?.naziv
-  const userName = profil
-    ? `${profil.ime ?? ''} ${profil.prezime ?? ''}`.trim() || user?.email
-    : user?.email
+  const userName = profil ? `${profil.ime ?? ''} ${profil.prezime ?? ''}`.trim() || user?.email : user?.email
+  const initials = profil?.ime ? `${profil.ime[0]}${profil.prezime?.[0] ?? ''}`.toUpperCase() : (user?.email?.[0] ?? '?').toUpperCase()
 
-  const initials = profil?.ime
-    ? `${profil.ime[0]}${profil.prezime?.[0] ?? ''}`.toUpperCase()
-    : (user?.email?.[0] ?? '?').toUpperCase()
+  const hVisina = parseInt(p.header_visina) || 64
+  const layout = p.header_layout || 'minimal'
+
+  const hStyle: React.CSSProperties = {
+    position: p.header_sticky !== 'false' ? 'sticky' : 'relative',
+    top: 0, zIndex: 40,
+    background: p.header_blur !== 'false' ? `${p.header_boja}f5` : p.header_boja,
+    backdropFilter: p.header_blur !== 'false' ? 'blur(12px)' : 'none',
+    borderBottom: p.header_border_bottom !== 'false' ? '1px solid var(--border)' : 'none',
+    boxShadow: p.header_shadow !== 'false' ? '0 1px 8px rgba(0,0,0,0.06)' : 'none',
+  }
+
+  const UserMenu = () => (
+    <div style={{ position: 'relative' }} ref={userMenuRef}>
+      <button onClick={() => setUserMenuOpen(!userMenuOpen)} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'transparent', border: '1px solid var(--border)', borderRadius: '10px', padding: '6px 12px 6px 6px', cursor: 'pointer', fontFamily: 'inherit' }}>
+        <span style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'var(--brand)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 700, flexShrink: 0 }}>{initials}</span>
+        <span className="user-info" style={{ display: 'none', fontSize: '13px', fontWeight: 500, maxWidth: '120px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'var(--text)' }}>{userName}</span>
+        <ChevronDown size={13} style={{ color: 'var(--text-muted)' }} />
+      </button>
+      {userMenuOpen && (
+        <div style={{ position: 'absolute', right: 0, top: 'calc(100% + 8px)', width: '220px', background: 'white', border: '1px solid var(--border)', borderRadius: '14px', boxShadow: '0 8px 24px rgba(0,0,0,0.12)', zIndex: 50, overflow: 'hidden' }}>
+          <div style={{ padding: '14px 16px', borderBottom: '1px solid var(--border)', background: 'var(--surface)' }}>
+            <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text)' }}>{userName}</div>
+            {partnerNaziv && <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>{partnerNaziv}</div>}
+          </div>
+          {[{ href: '/moje-narudzbe', label: 'Moje narudžbe' }, { href: '/favoriti', label: 'Moji favoriti' }, ...(isAdmin ? [{ href: '/admin', label: 'Admin panel', accent: true }] : [])].map(item => (
+            <Link key={item.href} href={item.href} onClick={() => setUserMenuOpen(false)} style={{ display: 'block', padding: '10px 16px', fontSize: '14px', color: (item as any).accent ? 'var(--brand)' : 'var(--text)', fontWeight: (item as any).accent ? 500 : 400, textDecoration: 'none' }}
+              onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--surface)'}
+              onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}
+            >{item.label}</Link>
+          ))}
+          <div style={{ height: '1px', background: 'var(--border)', margin: '4px 0' }} />
+          <button onClick={handleSignOut} style={{ width: '100%', textAlign: 'left', padding: '10px 16px', fontSize: '14px', color: '#991B1B', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}
+            onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#FEF2F2'}
+            onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'none'}
+          >Odjava</button>
+        </div>
+      )}
+    </div>
+  )
+
+  const RightActions = () => (
+    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+      {user ? (<><KorpaDugme p={p} totalQty={totalQty} onClick={() => setCartOpen(true)} /><UserMenu /></>) : (
+        <Link href="/login" style={{ padding: '8px 18px', background: 'var(--brand)', color: 'white', borderRadius: '10px', textDecoration: 'none', fontSize: '14px', fontWeight: 500 }}>Prijava</Link>
+      )}
+      <button style={{ display: 'none', padding: '8px', background: 'none', border: '1px solid var(--border)', borderRadius: '8px', cursor: 'pointer', color: 'var(--text)' }} onClick={() => setMenuOpen(!menuOpen)} className="mobile-menu-btn">
+        {menuOpen ? <X size={18} /> : <Menu size={18} />}
+      </button>
+    </div>
+  )
 
   return (
     <>
-      {/* Announcement bar */}
-      {(postavke.announcement_bar || true) && (
-        <div style={{
-          background: postavke.baner_boja_pozadine || 'var(--brand-dark)',
-          color: postavke.baner_boja_teksta || 'rgba(255,255,255,0.75)',
-          fontSize: '12px',
-          textAlign: 'center',
-          padding: '7px 16px',
-          letterSpacing: '0.01em',
-        }}>
-          {postavke.announcement_bar || `Radimo pon–pet 08:00–16:00 | ${siteConfig.orgJedNaziv}`}
-        </div>
-      )}
+      <TopBar p={p} />
+      <AnnouncementBar p={p} />
 
-      <header style={{
-        position: 'sticky',
-        top: 0,
-        zIndex: 40,
-        background: 'rgba(255,255,255,0.95)',
-        backdropFilter: 'blur(12px)',
-        borderBottom: '1px solid var(--border)',
-        boxShadow: '0 1px 0 0 rgba(0,0,0,0.04)',
-      }}>
+      <header style={hStyle}>
         <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 24px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '20px', height: '64px' }}>
 
-            {/* Logo */}
-            <Link href="/" style={{ flexShrink: 0, textDecoration: 'none' }}>
-              <Logo size="md" />
-            </Link>
-
-            {/* Search */}
-            {onSearch && (
-              <div style={{ flex: 1, maxWidth: '520px', position: 'relative', display: 'none' }} className="md-search">
-                <Search size={15} style={{ position: 'absolute', left: '13px', top: '50%', transform: 'translateY(-50%)', color: '#9CACA6', pointerEvents: 'none' }} />
-                <input
-                  type="text"
-                  placeholder="Pretraži artikle, šifre, barkodove..."
-                  value={searchVal}
-                  onChange={e => { setSearchVal(e.target.value); onSearch(e.target.value) }}
-                  style={{
-                    width: '100%',
-                    paddingLeft: '38px',
-                    paddingRight: '14px',
-                    height: '40px',
-                    fontSize: '14px',
-                    background: 'var(--surface)',
-                    border: '1px solid var(--border)',
-                    borderRadius: '10px',
-                    outline: 'none',
-                    fontFamily: 'inherit',
-                    color: 'var(--text)',
-                    transition: 'border-color 0.15s, box-shadow 0.15s',
-                  }}
-                  onFocus={e => { e.target.style.borderColor = 'var(--brand-light)'; e.target.style.boxShadow = '0 0 0 3px rgba(29,158,117,0.1)' }}
-                  onBlur={e => { e.target.style.borderColor = 'var(--border)'; e.target.style.boxShadow = 'none' }}
-                />
+          {/* R&S layout — logo lijevo, search centar, akcije desno */}
+          {layout === 'rs_stil' && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', height: hVisina + 'px' }}>
+              <Link href="/" style={{ flexShrink: 0, textDecoration: 'none' }}><Logo size="md" /></Link>
+              <Link href="/vijesti" style={{ fontSize: '13px', fontWeight: 500, color: 'white', textDecoration: 'none', padding: '6px 10px', borderRadius: '7px', flexShrink: 0, whiteSpace: 'nowrap' as const, opacity: 0.85 }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.opacity = '1'; (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.1)' }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.opacity = '0.85'; (e.currentTarget as HTMLElement).style.background = 'transparent' }}
+              >Vijesti</Link>
+              <div style={{ flex: 1 }}>
+                <SearchBox p={p} searchVal={searchVal} setSearchVal={setSearchVal} onSearch={onSearch} extraStyle={{ maxWidth: '600px', margin: '0 auto' }} />
               </div>
-            )}
-
-            <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <LangSwitcher current="bs" />
-
-              {/* OJ badge */}
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                fontSize: '12px',
-                color: 'var(--text-muted)',
-                background: 'var(--surface)',
-                border: '1px solid var(--border)',
-                padding: '5px 12px',
-                borderRadius: '100px',
-              }} className="oj-badge">
-                <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--brand-light)', display: 'inline-block', animation: 'pulse 2s infinite' }} />
-                {siteConfig.orgJedNaziv}
-              </div>
-
-              {/* Cart */}
-              {user && (
-                <button
-                  onClick={() => setCartOpen(true)}
-                  style={{
-                    position: 'relative',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    background: 'var(--brand)',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '10px',
-                    padding: '8px 16px',
-                    fontSize: '14px',
-                    fontWeight: 500,
-                    cursor: 'pointer',
-                    transition: 'all 0.15s',
-                    fontFamily: 'inherit',
-                    boxShadow: '0 1px 3px rgba(15,110,86,0.2)',
-                  }}
-                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'var(--brand-dark)'; (e.currentTarget as HTMLElement).style.transform = 'translateY(-1px)' }}
-                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'var(--brand)'; (e.currentTarget as HTMLElement).style.transform = 'none' }}
-                >
-                  <ShoppingCart size={15} />
-                  <span className="cart-label">Korpa</span>
-                  {totalQty > 0 && (
-                    <span style={{
-                      background: 'white',
-                      color: 'var(--brand)',
-                      fontSize: '11px',
-                      fontWeight: 700,
-                      borderRadius: '100px',
-                      minWidth: '20px',
-                      height: '20px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      padding: '0 5px',
-                    }}>
-                      {totalQty > 9 ? '9+' : totalQty}
-                    </span>
-                  )}
-                </button>
-              )}
-
-              {/* User menu */}
-              {user ? (
-                <div style={{ position: 'relative' }}>
-                  <button
-                    onClick={() => setUserMenuOpen(!userMenuOpen)}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      background: 'transparent',
-                      border: '1px solid var(--border)',
-                      borderRadius: '10px',
-                      padding: '6px 10px',
-                      cursor: 'pointer',
-                      fontFamily: 'inherit',
-                      transition: 'background 0.15s',
-                    }}
-                    onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--surface)'}
-                    onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}
-                  >
-                    <div style={{
-                      width: '28px',
-                      height: '28px',
-                      borderRadius: '8px',
-                      background: 'var(--brand-pale)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: '11px',
-                      fontWeight: 700,
-                      color: 'var(--brand)',
-                    }}>
-                      {initials}
-                    </div>
-                    <div style={{ textAlign: 'left', display: 'none' }} className="user-info">
-                      <div style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text)', lineHeight: 1.2, maxWidth: '100px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {userName}
-                      </div>
-                      {partnerNaziv && (
-                        <div style={{ fontSize: '11px', color: 'var(--text-muted)', maxWidth: '100px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {partnerNaziv}
-                        </div>
-                      )}
-                    </div>
-                    <ChevronDown size={12} style={{ color: 'var(--text-muted)' }} />
-                  </button>
-
-                  {userMenuOpen && (
-                    <>
-                      <div style={{ position: 'fixed', inset: 0, zIndex: 10 }} onClick={() => setUserMenuOpen(false)} />
-                      <div style={{
-                        position: 'absolute',
-                        right: 0,
-                        top: 'calc(100% + 8px)',
-                        width: '220px',
-                        background: 'white',
-                        border: '1px solid var(--border)',
-                        borderRadius: '14px',
-                        boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
-                        zIndex: 20,
-                        overflow: 'hidden',
-                      }}>
-                        <div style={{ padding: '14px 16px', borderBottom: '1px solid var(--border)', background: 'var(--surface)' }}>
-                          <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text)' }}>{userName}</div>
-                          {partnerNaziv && <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>{partnerNaziv}</div>}
-                        </div>
-                        {[
-                          { href: '/moje-narudzbe', label: 'Moje narudžbe' },
-          { href: '/favoriti', label: 'Moji favoriti' },
-                          ...(isAdmin ? [{ href: '/admin', label: 'Admin panel', accent: true }] : []),
-                        ].map(item => (
-                          <Link
-                            key={item.href}
-                            href={item.href}
-                            onClick={() => setUserMenuOpen(false)}
-                            style={{
-                              display: 'block',
-                              padding: '10px 16px',
-                              fontSize: '14px',
-                              color: (item as any).accent ? 'var(--brand)' : 'var(--text)',
-                              fontWeight: (item as any).accent ? 500 : 400,
-                              textDecoration: 'none',
-                              transition: 'background 0.1s',
-                            }}
-                            onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--surface)'}
-                            onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}
-                          >
-                            {item.label}
-                          </Link>
-                        ))}
-                        <div style={{ height: '1px', background: 'var(--border)', margin: '4px 0' }} />
-                        <button
-                          onClick={handleSignOut}
-                          style={{
-                            width: '100%',
-                            textAlign: 'left',
-                            padding: '10px 16px',
-                            fontSize: '14px',
-                            color: '#991B1B',
-                            background: 'none',
-                            border: 'none',
-                            cursor: 'pointer',
-                            fontFamily: 'inherit',
-                          }}
-                          onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#FEF2F2'}
-                          onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'none'}
-                        >
-                          Odjava
-                        </button>
-                      </div>
-                    </>
-                  )}
-                </div>
-              ) : (
-                <Link href="/login" className="btn-primary" style={{ fontSize: '14px', padding: '8px 18px', textDecoration: 'none' }}>
-                  Prijava
-                </Link>
-              )}
-
-              {/* Mobile menu btn */}
-              <button
-                style={{ display: 'none', padding: '8px', background: 'none', border: '1px solid var(--border)', borderRadius: '8px', cursor: 'pointer', color: 'var(--text)' }}
-                onClick={() => setMenuOpen(!menuOpen)}
-                className="mobile-menu-btn"
-              >
-                {menuOpen ? <X size={18} /> : <Menu size={18} />}
-              </button>
-            </div>
-          </div>
-
-          {/* Search bar below on desktop */}
-          {onSearch && (
-            <div style={{ paddingBottom: '12px' }} className="search-bar-mobile">
-              <div style={{ position: 'relative' }}>
-                <Search size={15} style={{ position: 'absolute', left: '13px', top: '50%', transform: 'translateY(-50%)', color: '#9CACA6', pointerEvents: 'none' }} />
-                <input
-                  type="text"
-                  placeholder="Pretraži artikle..."
-                  value={searchVal}
-                  onChange={e => { setSearchVal(e.target.value); onSearch(e.target.value) }}
-                  style={{
-                    width: '100%',
-                    paddingLeft: '38px',
-                    paddingRight: '14px',
-                    height: '40px',
-                    fontSize: '14px',
-                    background: 'var(--surface)',
-                    border: '1px solid var(--border)',
-                    borderRadius: '10px',
-                    outline: 'none',
-                    fontFamily: 'inherit',
-                    color: 'var(--text)',
-                  }}
-                  onFocus={e => { e.target.style.borderColor = 'var(--brand-light)'; e.target.style.boxShadow = '0 0 0 3px rgba(29,158,117,0.1)' }}
-                  onBlur={e => { e.target.style.borderColor = 'var(--border)'; e.target.style.boxShadow = 'none' }}
-                />
-              </div>
+              <RightActions />
             </div>
           )}
-        </div>
 
-        {/* Mobile nav */}
-        {menuOpen && (
-          <div style={{
-            borderTop: '1px solid var(--border)',
-            background: 'white',
-            padding: '16px 24px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '4px',
-          }}>
-            {[
-              { href: '/', label: 'Katalog' },
-              ...(user ? [{ href: '/moje-narudzbe', label: 'Narudžbe' }] : []),
-              ...(isAdmin ? [{ href: '/admin', label: 'Admin', accent: true }] : []),
-            ].map(item => (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => setMenuOpen(false)}
-                style={{
-                  padding: '10px 12px',
-                  fontSize: '15px',
-                  color: (item as any).accent ? 'var(--brand)' : 'var(--text)',
-                  fontWeight: (item as any).accent ? 500 : 400,
-                  textDecoration: 'none',
-                  borderRadius: '8px',
-                  transition: 'background 0.1s',
-                }}
-              >
-                {item.label}
-              </Link>
-            ))}
-            {user && (
-              <button
-                onClick={handleSignOut}
-                style={{
-                  textAlign: 'left',
-                  padding: '10px 12px',
-                  fontSize: '15px',
-                  color: '#991B1B',
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  fontFamily: 'inherit',
-                  borderRadius: '8px',
-                }}
-              >
-                Odjava
-              </button>
-            )}
-          </div>
-        )}
+          {/* Centered layout — logo centar, search ispod */}
+          {layout === 'centered' && (
+            <>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: hVisina + 'px' }}>
+                {user ? <UserMenu /> : <Link href="/login" style={{ padding: '7px 16px', background: 'var(--brand)', color: 'white', borderRadius: '8px', textDecoration: 'none', fontSize: '13px' }}>Prijava</Link>}
+                <Link href="/" style={{ textDecoration: 'none', position: 'absolute', left: '50%', transform: 'translateX(-50%)' }}><Logo size="lg" /></Link>
+                {user && <KorpaDugme p={p} totalQty={totalQty} onClick={() => setCartOpen(true)} />}
+              </div>
+              {onSearch && p.header_search_stil !== 'hidden' && (
+                <div style={{ paddingBottom: '14px' }}>
+                  <SearchBox p={p} searchVal={searchVal} setSearchVal={setSearchVal} onSearch={onSearch} extraStyle={{ margin: '0 auto' }} />
+                </div>
+              )}
+            </>
+          )}
+
+          {/* Minimal layout (default) */}
+          {(layout === 'minimal' || layout === 'mega') && (
+            <>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px', height: hVisina + 'px' }}>
+                <Link href="/" style={{ flexShrink: 0, textDecoration: 'none' }}><Logo size="md" /></Link>
+                <Link href="/vijesti" style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text-muted)', textDecoration: 'none', padding: '6px 10px', borderRadius: '7px', flexShrink: 0, whiteSpace: 'nowrap' as const }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'var(--brand)'; (e.currentTarget as HTMLElement).style.background = 'var(--brand-pale)' }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'var(--text-muted)'; (e.currentTarget as HTMLElement).style.background = 'transparent' }}
+                >Vijesti</Link>
+                {p.header_search_stil === 'inline' && (
+                  <SearchBox p={p} searchVal={searchVal} setSearchVal={setSearchVal} onSearch={onSearch} className="md-search" extraStyle={{ flex: 1, display: 'none' }} />
+                )}
+                <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  {p.topbar_aktivan !== 'true' && <LangSwitcher current="bs" />}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: 'var(--text-muted)', background: 'var(--surface)', border: '1px solid var(--border)', padding: '5px 12px', borderRadius: '100px' }} className="oj-badge">
+                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--brand)', display: 'inline-block' }} />
+                    {siteConfig.orgJedNaziv}
+                  </div>
+                  <RightActions />
+                </div>
+              </div>
+              {p.header_search_stil === 'bar' && onSearch && (
+                <div style={{ paddingBottom: '12px' }}>
+                  <SearchBox p={p} searchVal={searchVal} setSearchVal={setSearchVal} onSearch={onSearch} extraStyle={{ maxWidth: '100%' }} />
+                </div>
+              )}
+              {p.header_search_stil === 'inline' && onSearch && (
+                <div style={{ paddingBottom: '12px' }} className="search-bar-mobile">
+                  <SearchBox p={p} searchVal={searchVal} setSearchVal={setSearchVal} onSearch={onSearch} extraStyle={{ maxWidth: '100%' }} />
+                </div>
+              )}
+            </>
+          )}
+        </div>
+        <MobileMenu user={user} isAdmin={isAdmin} menuOpen={menuOpen} setMenuOpen={setMenuOpen} handleSignOut={handleSignOut} />
       </header>
+
+      <NavKategorija p={p} grupe={grupe} />
 
       <style>{`
         @media (min-width: 768px) {
@@ -400,10 +356,6 @@ export default function Header({ onSearch }: { onSearch?: (q: string) => void })
           .oj-badge { display: none !important; }
           .cart-label { display: none !important; }
           .mobile-menu-btn { display: flex !important; }
-        }
-        @keyframes pulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.4; }
         }
       `}</style>
 
