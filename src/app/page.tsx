@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { SlidersHorizontal, ChevronRight, ChevronDown, Package, ShoppingCart, Plus, LayoutGrid, LayoutList } from 'lucide-react'
 import Header from '@/components/layout/Header'
-import AuthGuard from '@/components/auth/AuthGuard'
 import AkcijeSlider from '@/components/shop/AkcijeSlider'
 import HeroBanner from '@/components/shop/HeroBanner'
 import { useCart } from '@/hooks/useCart'
@@ -185,9 +184,9 @@ function CategorySidebar({ grupe, activeId, onSelect, sirina = 240, sidebarConfi
 }
 
 // ─── Product Table Row ─────────────────────────────────────────────────────────
-function ProductRow({ artikal, stanje, dugmeTekst = 'Dodaj' }: { artikal: Artikal; stanje: StanjeSkladista | null | undefined; dugmeTekst?: string }) {
+function ProductRow({ artikal, stanje, dugmeTekst = 'Dodaj', onLoginRequired }: { artikal: Artikal; stanje: StanjeSkladista | null | undefined; dugmeTekst?: string; onLoginRequired?: () => void }) {
   const { cart, add } = useCart()
-  const { rabat } = useAuth()
+  const { rabat, user } = useAuth()
   const { favoriti, toggle: toggleFavorit } = useFavoriti()
   const [qty, setQty] = useState(1)
   const inCart = cart[artikal.id]?.qty ?? 0
@@ -204,6 +203,7 @@ function ProductRow({ artikal, stanje, dugmeTekst = 'Dodaj' }: { artikal: Artika
 
   function handleAdd() {
     if (!canAdd) return
+    if (!user) { onLoginRequired?.(); return }
     const toAdd = Math.min(qty, maxQty - inCart)
     if (toAdd <= 0) return
     for (let i = 0; i < toAdd; i++) add(artikal, cijenaBase, stanje ?? null)
@@ -528,83 +528,182 @@ function PageBuilderOutput({ pozicija }: { pozicija: 'gore' | 'dole' }) {
 // ─── Footer ───────────────────────────────────────────────────────────────────
 function Footer() {
   const [p, setP] = useState<Record<string, string>>({})
+  const [grupe, setGrupe] = useState<any[]>([])
+
   useEffect(() => {
-    fetch('/api/postavke?kljuci=shop_naziv,shop_email,shop_telefon,theme_footer_tekst,theme_footer_boja,theme_footer_bg_slika,theme_footer_logo_url,footer_kolone_aktivan,footer_kolona1_naslov,footer_kolona1_sadrzaj,footer_kolona2_naslov,footer_kolona2_sadrzaj,footer_kolona3_naslov,footer_kolona3_sadrzaj,footer_social_facebook,footer_social_instagram,footer_social_linkedin,shop_watermark')
+    fetch('/api/postavke?kljuci=shop_naziv,shop_email,shop_telefon,shop_adresa,shop_grad,shop_web,theme_footer_tekst,theme_footer_boja,theme_footer_bg_slika,theme_footer_logo_url,footer_kolone_aktivan,footer_kolona1_naslov,footer_kolona1_sadrzaj,footer_kolona2_naslov,footer_kolona2_sadrzaj,footer_kolona3_naslov,footer_kolona3_sadrzaj,footer_social_facebook,footer_social_instagram,footer_social_linkedin,footer_social_twitter,footer_social_youtube,footer_social_tiktok,footer_social_whatsapp,footer_social_viber,shop_watermark')
       .then(r => r.json()).then(setP).catch(() => {})
+    fetch('/api/grupe')
+      .then(r => r.json()).then(d => setGrupe((d.items || []).filter((g: any) => !g.parentId).slice(0, 8)))
+      .catch(() => {})
   }, [])
+
+  const socials = [
+    { key: 'footer_social_facebook', label: 'Facebook', icon: '📘' },
+    { key: 'footer_social_instagram', label: 'Instagram', icon: '📷' },
+    { key: 'footer_social_linkedin', label: 'LinkedIn', icon: '💼' },
+    { key: 'footer_social_twitter', label: 'X / Twitter', icon: '✖' },
+    { key: 'footer_social_youtube', label: 'YouTube', icon: '▶' },
+    { key: 'footer_social_tiktok', label: 'TikTok', icon: '♪' },
+    { key: 'footer_social_whatsapp', label: 'WhatsApp', icon: '💬' },
+    { key: 'footer_social_viber', label: 'Viber', icon: '📞' },
+  ].filter(s => p[s.key])
 
   const bgStyle: React.CSSProperties = {
     background: p.theme_footer_bg_slika
       ? 'url(' + p.theme_footer_bg_slika + ') center/cover no-repeat'
-      : (p.theme_footer_boja || 'white'),
-    borderTop: '1px solid #E5E7EB',
+      : (p.theme_footer_boja || '#f5f5f3'),
+    borderTop: '1px solid #e5e7eb',
   }
+
+  const col1Lines = (p.footer_kolona1_sadrzaj || '').split('\n').filter(Boolean)
+  const col2Lines = (p.footer_kolona2_sadrzaj || '').split('\n').filter(Boolean)
+  const col3Lines = (p.footer_kolona3_sadrzaj || '').split('\n').filter(Boolean)
 
   return (
     <footer style={bgStyle}>
-      {/* Kolone */}
-      {p.footer_kolone_aktivan === 'true' && (
-        <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '40px 24px 24px', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '32px' }}>
-          {[
-            { naslov: p.footer_kolona1_naslov, sadrzaj: p.footer_kolona1_sadrzaj },
-            { naslov: p.footer_kolona2_naslov, sadrzaj: p.footer_kolona2_sadrzaj },
-            { naslov: p.footer_kolona3_naslov, sadrzaj: p.footer_kolona3_sadrzaj },
-          ].map((k, i) => k.naslov ? (
-            <div key={i}>
-              <h4 style={{ fontSize: '13px', fontWeight: 700, color: '#374151', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{k.naslov}</h4>
-              <div style={{ fontSize: '13px', color: '#6B7280', lineHeight: 1.7, whiteSpace: 'pre-line' }}>{k.sadrzaj}</div>
+      {/* Gornji dio — 4 kolone */}
+      <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '48px 24px 32px', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '40px' }}>
+
+        {/* Kolona 1 — Kategorije */}
+        <div>
+          <h4 style={{ fontSize: '13px', fontWeight: 700, color: '#111827', marginBottom: '16px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+            {grupe.length > 0 ? 'Kategorije' : (p.footer_kolona1_naslov || 'Kategorije')}
+          </h4>
+          <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {(grupe.length > 0 ? grupe.map(g => ({ href: '/?grupaId=' + g.id, label: g.naziv })) : col1Lines.map(l => ({ href: '#', label: l }))).map((item, i) => (
+              <li key={i}>
+                <a href={item.href} style={{ fontSize: '13px', color: '#6B7280', textDecoration: 'none', transition: 'color 0.15s' }}
+                  onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = 'var(--brand)'}
+                  onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = '#6B7280'}>
+                  {item.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {/* Kolona 2 — Custom (iz postavki) */}
+        <div>
+          <h4 style={{ fontSize: '13px', fontWeight: 700, color: '#111827', marginBottom: '16px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+            {p.footer_kolona2_naslov || 'Informacije'}
+          </h4>
+          <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {col2Lines.length > 0 ? col2Lines.map((line, i) => (
+              <li key={i}><a href="#" style={{ fontSize: '13px', color: '#6B7280', textDecoration: 'none' }}
+                onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = 'var(--brand)'}
+                onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = '#6B7280'}
+              >{line}</a></li>
+            )) : [{ label: 'O nama' }, { label: 'Dostava i plaćanje' }, { label: 'Povrat robe' }, { label: 'Uvjeti korištenja' }, { label: 'Privatnost' }].map((item, i) => (
+              <li key={i}><a href="#" style={{ fontSize: '13px', color: '#6B7280', textDecoration: 'none' }}
+                onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = 'var(--brand)'}
+                onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = '#6B7280'}
+              >{item.label}</a></li>
+            ))}
+          </ul>
+        </div>
+
+        {/* Kolona 3 — Pratite nas */}
+        <div>
+          <h4 style={{ fontSize: '13px', fontWeight: 700, color: '#111827', marginBottom: '16px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+            Pratite nas
+          </h4>
+          {socials.length > 0 ? (
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {socials.map(s => (
+                <li key={s.key}>
+                  <a href={p[s.key]} target="_blank" rel="noopener noreferrer"
+                    style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '13px', color: '#6B7280', textDecoration: 'none', paddingBottom: '10px', borderBottom: '1px solid #f0f0f0' }}
+                    onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = 'var(--brand)'}
+                    onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = '#6B7280'}
+                  >
+                    <span style={{ width: '28px', height: '28px', background: '#f3f4f6', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', flexShrink: 0 }}>
+                      {s.icon}
+                    </span>
+                    {s.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p style={{ fontSize: '12px', color: '#9CA3AF', lineHeight: 1.6 }}>
+              Dodajte linkove društvenih mreža u Admin → Izgled → Logo i identitet.
+            </p>
+          )}
+        </div>
+
+        {/* Kolona 4 — Kontakt */}
+        <div>
+          <h4 style={{ fontSize: '13px', fontWeight: 700, color: '#111827', marginBottom: '16px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+            {p.footer_kolona3_naslov || 'Kontakt'}
+          </h4>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            {(p.shop_naziv || siteConfig.name) && (
+              <div style={{ fontSize: '13px', fontWeight: 600, color: '#374151' }}>{p.shop_naziv || siteConfig.name}</div>
+            )}
+            {(p.shop_adresa || p.shop_grad) && (
+              <div style={{ fontSize: '13px', color: '#6B7280', lineHeight: 1.6 }}>
+                {p.shop_adresa && <div>{p.shop_adresa}</div>}
+                {p.shop_grad && <div>{p.shop_grad}</div>}
+              </div>
+            )}
+            {col3Lines.length > 0 && (
+              <div style={{ fontSize: '13px', color: '#6B7280', lineHeight: 1.8, whiteSpace: 'pre-line' }}>{p.footer_kolona3_sadrzaj}</div>
+            )}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '4px' }}>
+              {p.shop_telefon && (
+                <a href={'tel:' + p.shop_telefon} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#6B7280', textDecoration: 'none' }}
+                  onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = 'var(--brand)'}
+                  onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = '#6B7280'}
+                >
+                  <span style={{ fontSize: '14px' }}>📞</span> {p.shop_telefon}
+                </a>
+              )}
+              {p.shop_email && (
+                <a href={'mailto:' + p.shop_email} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--brand)', textDecoration: 'none', fontWeight: 500 }}>
+                  <span style={{ fontSize: '14px' }}>✉</span> {p.shop_email}
+                </a>
+              )}
+              {p.shop_web && (
+                <a href={'https://' + p.shop_web.replace('https://', '')} target="_blank" rel="noopener noreferrer"
+                  style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#6B7280', textDecoration: 'none' }}
+                  onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = 'var(--brand)'}
+                  onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = '#6B7280'}
+                >
+                  <span style={{ fontSize: '14px' }}>🌐</span> {p.shop_web}
+                </a>
+              )}
             </div>
-          ) : null)}
-        </div>
-      )}
-
-      {/* Social mreže s ikonama */}
-      {(p.footer_social_facebook || p.footer_social_instagram || p.footer_social_linkedin || p.footer_social_twitter || p.footer_social_youtube || p.footer_social_tiktok || p.footer_social_whatsapp || p.footer_social_viber) && (
-        <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 24px 16px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-          {[
-            { key: 'footer_social_facebook', label: 'Facebook', color: '#1877F2', icon: 'f' },
-            { key: 'footer_social_instagram', label: 'Instagram', color: '#E4405F', icon: '📷' },
-            { key: 'footer_social_linkedin', label: 'LinkedIn', color: '#0A66C2', icon: 'in' },
-            { key: 'footer_social_twitter', label: 'X (Twitter)', color: '#000000', icon: '𝕏' },
-            { key: 'footer_social_youtube', label: 'YouTube', color: '#FF0000', icon: '▶' },
-            { key: 'footer_social_tiktok', label: 'TikTok', color: '#000000', icon: '♪' },
-            { key: 'footer_social_whatsapp', label: 'WhatsApp', color: '#25D366', icon: '💬' },
-            { key: 'footer_social_viber', label: 'Viber', color: '#7360F2', icon: '📞' },
-          ].filter(s => p[s.key as keyof typeof p]).map(s => (
-            <a key={s.key} href={p[s.key as keyof typeof p] as string} target="_blank" rel="noopener noreferrer"
-              style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '6px 12px', background: s.color, color: 'white', borderRadius: '8px', textDecoration: 'none', fontSize: '12px', fontWeight: 600, transition: 'opacity 0.15s' }}
-              onMouseEnter={e => (e.currentTarget as HTMLElement).style.opacity = '0.85'}
-              onMouseLeave={e => (e.currentTarget as HTMLElement).style.opacity = '1'}
-            >
-              <span style={{ fontSize: '13px' }}>{s.icon}</span> {s.label}
-            </a>
-          ))}
-        </div>
-      )}
-
-      {/* Bottom bar */}
-      <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '16px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', fontSize: '12px', color: '#6B7280', borderTop: p.footer_kolone_aktivan === 'true' ? '1px solid #E5E7EB' : 'none' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          {(p.theme_footer_logo_url) && <img src={p.theme_footer_logo_url} alt="" style={{ height: '28px', objectFit: 'contain' }} />}
-          <div>
-            <span style={{ fontWeight: 600, color: '#374151' }}>{p.shop_naziv || siteConfig.name}</span>
-            <span style={{ margin: '0 6px' }}>·</span>
-            {p.theme_footer_tekst || 'B2B webshop'}
-            {p.shop_watermark !== 'false' && <span style={{ opacity: 0.5 }}> · Powered by NIBIS</span>}
           </div>
         </div>
-        <div style={{ display: 'flex', gap: '20px' }}>
-          {p.shop_telefon && <span>{p.shop_telefon}</span>}
-          {p.shop_email && (
-            <a href={'mailto:' + p.shop_email} style={{ color: 'var(--brand)', textDecoration: 'none' }}>
-              {p.shop_email}
-            </a>
-          )}
+      </div>
+
+      {/* Donji bar — copyright */}
+      <div style={{ borderTop: '1px solid #e5e7eb', padding: '16px 24px' }}>
+        <div style={{ maxWidth: '1280px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            {p.theme_footer_logo_url && (
+              <img src={p.theme_footer_logo_url} alt="" style={{ height: '24px', objectFit: 'contain' }} />
+            )}
+            <span style={{ fontSize: '12px', color: '#9CA3AF' }}>
+              © {new Date().getFullYear()} {p.shop_naziv || siteConfig.name}
+              {p.shop_watermark !== 'false' && <span style={{ opacity: 0.6 }}> · Powered by NIBIS</span>}
+            </span>
+          </div>
+          <div style={{ display: 'flex', gap: '20px' }}>
+            {['Impressum', 'Izjava o kolačićima', 'Pravila o privatnosti', 'Opći uslovi'].map(link => (
+              <a key={link} href="#" style={{ fontSize: '11px', color: '#9CA3AF', textDecoration: 'none', transition: 'color 0.15s' }}
+                onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = 'var(--brand)'}
+                onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = '#9CA3AF'}
+              >{link}</a>
+            ))}
+          </div>
         </div>
       </div>
     </footer>
   )
 }
+
 
 // ─── Main Page ─────────────────────────────────────────────────────────────────
 export default function HomePage() {
@@ -619,6 +718,7 @@ export default function HomePage() {
   const [searchInput, setSearchInput] = useState('')
   const [filterStock, setFilterStock] = useState(false)
   const [mobileFilters, setMobileFilters] = useState(false)
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false)
   const [pageSekcije, setPageSekcije] = useState<{ id: string; aktivan: boolean; instanceId?: string }[]>([
     { id: 'hero', aktivan: true },
     { id: 'akcije', aktivan: true },
@@ -724,8 +824,7 @@ export default function HomePage() {
   const totalPages = Math.ceil(total / perPage)
 
   return (
-    <AuthGuard>
-      <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50">
         <Header onSearch={q => setSearchInput(q)} />
 
         {/* Dinamičke sekcije iznad kataloga */}
@@ -861,7 +960,7 @@ export default function HomePage() {
                             </td></tr>
                           )
                           : displayed.map(a => (
-                            <ProductRow key={a.id} artikal={a} stanje={stanje[a.id]} dugmeTekst={dugmeTekst} />
+                            <ProductRow key={a.id} artikal={a} stanje={stanje[a.id]} dugmeTekst={dugmeTekst} onLoginRequired={() => setShowLoginPrompt(true)} />
                           ))
                         }
                       </tbody>
@@ -934,9 +1033,36 @@ export default function HomePage() {
           </main>
         )}
 
+        {/* Login prompt modal za goste */}
+        {showLoginPrompt && (
+          <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}
+            onClick={() => setShowLoginPrompt(false)}>
+            <div style={{ background: 'white', borderRadius: '16px', padding: '32px', maxWidth: '380px', width: '100%', textAlign: 'center', boxShadow: '0 24px 64px rgba(0,0,0,0.2)' }}
+              onClick={e => e.stopPropagation()}>
+              <div style={{ fontSize: '40px', marginBottom: '12px' }}>🛒</div>
+              <h2 style={{ fontSize: '20px', fontWeight: 700, color: '#111827', margin: '0 0 8px' }}>Prijava potrebna</h2>
+              <p style={{ fontSize: '14px', color: '#6B7280', margin: '0 0 24px', lineHeight: 1.6 }}>
+                Za dodavanje artikala u korpu i finaliziranje narudžbe potrebna je prijava.
+              </p>
+              <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
+                <button onClick={() => setShowLoginPrompt(false)}
+                  style={{ padding: '10px 20px', background: '#F3F4F6', color: '#374151', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: 500, fontFamily: 'inherit' }}>
+                  Zatvori
+                </button>
+                <a href="/login"
+                  style={{ padding: '10px 24px', background: 'var(--brand)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: 700, fontFamily: 'inherit', textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}>
+                  Prijava →
+                </a>
+              </div>
+              <p style={{ fontSize: '12px', color: '#9CA3AF', margin: '16px 0 0' }}>
+                Nemate račun? <a href="/register" style={{ color: 'var(--brand)', textDecoration: 'none' }}>Registrujte se</a>
+              </p>
+            </div>
+          </div>
+        )}
+
         <Footer />
 
       </div>
-    </AuthGuard>
   )
 }
