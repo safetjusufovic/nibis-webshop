@@ -6,7 +6,6 @@ import Header from '@/components/layout/Header'
 import AkcijeSlider from '@/components/shop/AkcijeSlider'
 import HeroBanner from '@/components/shop/HeroBanner'
 import HeroSlider from '@/components/shop/HeroSlider'
-import NavKategorija from '@/components/shop/NavKategorija'
 import { useCart } from '@/hooks/useCart'
 import { useAuth } from '@/hooks/useAuth'
 import { useFavoriti } from '@/hooks/useFavoriti'
@@ -867,8 +866,6 @@ export default function HomePage() {
         {/* Hero Slider */}
         {pageSekcije.find(s => s.id === 'hero')?.aktivan !== false && <HeroSlider />}
 
-        {/* Nav kategorija — horizontalno ispod hero slidera */}
-        <NavKategorija activeId={activeGrupa} onSelect={onGrupaSelect} />
 
         {/* Akcije slider */}
         {pageSekcije.find(s => s.id === 'akcije')?.aktivan !== false && <AkcijeSlider />}
