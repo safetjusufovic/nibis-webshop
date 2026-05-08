@@ -25,6 +25,7 @@ const DEFAULTS: Postavke = {
   theme_cijena_boja: '#0F6E56', theme_akcija_boja: '#DC2626',
   theme_font: 'DM Sans', theme_google_font_naslov: '', theme_google_font_tijelo: '',
   theme_font_body_size: '14', theme_font_naslov_size: '22',
+  header_logo_visina: '34',
   header_layout: 'minimal', header_boja: '#ffffff', header_tekst_boja: '#111827',
   header_visina_nova: '64', header_shadow_nova: 'true', header_sticky: 'true',
   header_blur: 'true', header_search_stil: 'inline',
@@ -34,7 +35,7 @@ const DEFAULTS: Postavke = {
   topbar_telefon: '', topbar_email: '', topbar_radno_vrijeme: '',
   topbar_adresa: '', topbar_jezik_switcher: 'true', topbar_custom_tekst: '',
   announcement_bar: '', baner_boja_pozadine: '#085041', baner_boja_teksta: '#ffffff',
-  navkat_aktivan: 'false', navkat_boja: '#1e3a5f', navkat_tekst_boja: '#ffffff',
+  navkat_aktivan: 'true', navkat_featured: '[]', navkat_boja: '#1e3a5f', navkat_tekst_boja: '#ffffff',
   navkat_visina: '44', navkat_stil: 'flat', navkat_akcijski_dugme: 'false',
   navkat_akcijski_tekst: 'Akcijski proizvodi', navkat_akcijski_boja: '#DC2626',
   hero_slides: '[]',
@@ -627,7 +628,8 @@ export default function IzgledPage() {
           {/* ── LOGO I IDENTITET ── */}
           <AccordionSec title="Logo i identitet firme" icon={<Globe size={18} />}>
             <Sec title="Logo">
-              <ImageInput label="Logo (PNG transparentna pozadina, 200×60px)" value={p.theme_logo_url || ''} onChange={v => set('theme_logo_url', v)} hint="Preporučeno: PNG s transparentnom pozadinom" />
+              <ImageInput label="Logo (PNG transparentna pozadina)" value={p.theme_logo_url || ''} onChange={v => set('theme_logo_url', v)} hint="Preporučeno: PNG s transparentnom pozadinom, horizontalni format" />
+              <Slider label="Visina loga" value={p.header_logo_visina || '34'} onChange={v => set('header_logo_visina', v)} min={20} max={80} />
               <ImageInput label="Favicon (ikonica u browseru, 32×32px)" value={p.theme_favicon_url || ''} onChange={v => set('theme_favicon_url', v)} />
               <ImageInput label="Logo u footeru (ostavite prazno = isti)" value={p.theme_footer_logo_url || ''} onChange={v => set('theme_footer_logo_url', v)} />
             </Sec>
@@ -770,6 +772,55 @@ export default function IzgledPage() {
                 )}
               </>
             )}
+            <Sec title="Istaknute kategorije (kao ris.ba)" desc="Klikni na kategoriju u dropdownu otvori grid s karticama i slikama">
+              {(() => {
+                let items: any[] = []
+                try { items = JSON.parse(p.navkat_featured || '[]') } catch {}
+                return (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    {items.map((item: any, i: number) => (
+                      <div key={i} style={{ border: '1px solid #E5E7EB', borderRadius: '10px', overflow: 'hidden' }}>
+                        {/* Preview */}
+                        <div style={{ height: '60px', backgroundImage: item.slika_url ? 'url(' + item.slika_url + ')' : 'none', backgroundSize: 'cover', backgroundPosition: 'center', background: item.slika_url ? 'none' : (item.boja || '#E5E7EB'), display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 12px' }}>
+                          <span style={{ color: 'white', fontWeight: 700, fontSize: '13px', textShadow: '0 1px 4px rgba(0,0,0,0.5)' }}>{item.naziv || 'Kategorija ' + (i+1)}</span>
+                          <button onClick={() => {
+                            const updated = items.filter((_: any, j: number) => j !== i)
+                            set('navkat_featured', JSON.stringify(updated))
+                          }} style={{ background: 'rgba(239,68,68,0.8)', color: 'white', border: 'none', borderRadius: '5px', padding: '3px 8px', cursor: 'pointer', fontSize: '11px', fontFamily: 'inherit' }}>
+                            ✕
+                          </button>
+                        </div>
+                        <div style={{ padding: '10px', background: 'white', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                          <Input label="Naziv" value={item.naziv || ''} onChange={v => {
+                            const updated = items.map((it: any, j: number) => j === i ? { ...it, naziv: v } : it)
+                            set('navkat_featured', JSON.stringify(updated))
+                          }} placeholder="Alati" />
+                          <Input label="URL (npr. /?grupaId=3)" value={item.url || ''} onChange={v => {
+                            const updated = items.map((it: any, j: number) => j === i ? { ...it, url: v } : it)
+                            set('navkat_featured', JSON.stringify(updated))
+                          }} placeholder="/?grupaId=3" />
+                          <ImageInput label="Slika kategorije" value={item.slika_url || ''} onChange={v => {
+                            const updated = items.map((it: any, j: number) => j === i ? { ...it, slika_url: v } : it)
+                            set('navkat_featured', JSON.stringify(updated))
+                          }} />
+                          <ColorPicker label="Boja (overlay na hover)" value={item.boja || '#0F6E56'} onChange={v => {
+                            const updated = items.map((it: any, j: number) => j === i ? { ...it, boja: v } : it)
+                            set('navkat_featured', JSON.stringify(updated))
+                          }} />
+                        </div>
+                      </div>
+                    ))}
+                    <button onClick={() => {
+                      const updated = [...items, { naziv: '', slika_url: '', boja: 'var(--brand)', url: '' }]
+                      set('navkat_featured', JSON.stringify(updated))
+                    }} style={{ padding: '10px', border: '2px dashed #E5E7EB', borderRadius: '10px', background: 'white', cursor: 'pointer', fontSize: '13px', fontWeight: 600, color: 'var(--brand)', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                      + Dodaj kategoriju
+                    </button>
+                  </div>
+                )
+              })()}
+            </Sec>
+
             <Sec title="Sidebar kategorija">
               <ChoiceGroup label="Pozicija kategorija" value={p.sidebar_pozicija || 'lijevo'} onChange={v => set('sidebar_pozicija', v)}
                 options={[{ v: 'lijevo', l: 'S lijeva' }, { v: 'vrh', l: 'Na vrhu' }, { v: 'skriveno', l: 'Sakrij' }]} />

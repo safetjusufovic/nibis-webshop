@@ -13,7 +13,7 @@ interface LogoConfig {
 let cachedConfig: LogoConfig | null = null
 
 export default function Logo({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) {
-  const [cfg, setCfg] = useState<LogoConfig>({
+  const [cfg, setCfg] = useState<LogoConfig & { logo_visina?: string }>({
     shop_naziv: siteConfig.name || '',
     theme_logo_url: siteConfig.logoUrl || '',
   })
@@ -21,21 +21,23 @@ export default function Logo({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) {
   useEffect(() => {
     if (cachedConfig) { setCfg(cachedConfig); return }
     supabase.from('postavke').select('kljuc, vrijednost')
-      .in('kljuc', ['shop_naziv', 'theme_logo_url'])
+      .in('kljuc', ['shop_naziv', 'theme_logo_url', 'header_logo_visina'])
       .then(({ data }) => {
         const m: any = {}
         data?.forEach(r => { m[r.kljuc] = r.vrijednost })
-        const config = {
+        const config: any = {
           shop_naziv: m.shop_naziv || siteConfig.name || 'WebShop',
           theme_logo_url: m.theme_logo_url || siteConfig.logoUrl || '',
+          logo_visina: m.header_logo_visina || '34',
         }
         cachedConfig = config
         setCfg(config)
       })
   }, [])
 
-  const s = size === 'sm' ? 28 : size === 'md' ? 34 : 44
-  const fs = size === 'sm' ? 13 : size === 'md' ? 15 : 20
+  const defaultSize = size === 'sm' ? 28 : size === 'md' ? 34 : 44
+  const s = parseInt(cfg.logo_visina || '') || defaultSize
+  const fs = s < 30 ? 11 : s < 40 ? 13 : s < 50 ? 15 : 18
   const naziv = cfg.shop_naziv || 'WebShop'
   const parts = naziv.split(' ')
   const line1 = parts[0]
@@ -50,7 +52,7 @@ export default function Logo({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) {
           alt={naziv}
           style={{
             height: s + 'px',
-            maxWidth: '180px',
+            maxWidth: '240px',
             objectFit: 'contain',
           }}
         />
