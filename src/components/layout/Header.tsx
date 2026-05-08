@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { ShoppingCart, Menu, X, Search, Phone, Mail, Clock, ChevronDown, MapPin } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'
+import React from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import { useCart } from '@/hooks/useCart'
@@ -73,50 +74,69 @@ function AnnouncementBar({ p }: { p: HeaderPostavke }) {
 }
 
 function NavKategorija({ p, grupe }: { p: HeaderPostavke; grupe: ArtikalGrupa[] }) {
+  const [open, setOpen] = React.useState(false)
+  const ref = React.useRef<HTMLDivElement>(null)
+
+  React.useEffect(() => {
+    function onClickOutside(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', onClickOutside)
+    return () => document.removeEventListener('mousedown', onClickOutside)
+  }, [])
+
   if (p.navkat_aktivan !== 'true') return null
-  const roots = grupe.filter(g => !g.parentId).slice(0, 9)
-  const stil = p.navkat_stil
+  const roots = grupe.filter(g => !g.parentId)
+  const navH = parseInt(p.navkat_visina) || 48
+
   return (
-    <div style={{ background: p.navkat_boja, minHeight: parseInt(p.navkat_visina) + 'px', display: 'flex', alignItems: 'center', borderBottom: '1px solid rgba(0,0,0,0.1)' }}>
-      <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 24px', display: 'flex', alignItems: 'center', gap: '2px', width: '100%', flexWrap: 'wrap' }}>
+    <div style={{ background: p.navkat_boja, borderBottom: '1px solid rgba(0,0,0,0.1)', position: 'relative', zIndex: 90 }} ref={ref}>
+      <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 24px', display: 'flex', alignItems: 'center', height: navH + 'px', gap: '4px' }}>
         {p.navkat_akcijski_dugme === 'true' && (
-          <Link href="/?akcija=true" style={{ display: 'flex', alignItems: 'center', gap: '6px', background: p.navkat_akcijski_boja, color: 'white', padding: '7px 14px', borderRadius: stil === 'pills' ? '100px' : '4px', fontSize: '13px', fontWeight: 700, textDecoration: 'none', marginRight: '8px', flexShrink: 0 }}>
+          <Link href="/?akcija=true" style={{ display: 'flex', alignItems: 'center', gap: '6px', background: p.navkat_akcijski_boja, color: 'white', padding: '6px 14px', borderRadius: '6px', fontSize: '13px', fontWeight: 700, textDecoration: 'none', marginRight: '6px', flexShrink: 0 }}>
             ⚡ {p.navkat_akcijski_tekst}
           </Link>
         )}
-        {roots.map(g => {
-          const isBoje = stil === 'boje_kategorija'
-          const boja = g.boja || '#6B7280'
-          return (
-            <Link key={g.id} href={`/?grupaId=${g.id}`} style={{
-              display: 'flex', alignItems: 'center', gap: '6px',
-              color: isBoje ? 'white' : p.navkat_tekst_boja,
-              textDecoration: 'none', fontSize: '13px', fontWeight: 500,
-              padding: stil === 'pills' ? '6px 14px' : '7px 12px',
-              borderRadius: stil === 'pills' ? '100px' : stil === 'flat' ? '4px' : '0',
-              background: isBoje ? boja : 'transparent',
-              borderBottom: stil === 'underline' ? '2px solid transparent' : 'none',
-              transition: 'all 0.15s', whiteSpace: 'nowrap', flexShrink: 0, margin: '4px 2px',
-            }}
-              onMouseEnter={e => {
-                const el = e.currentTarget as HTMLElement
-                if (isBoje) el.style.filter = 'brightness(1.2)'
-                else if (stil === 'underline') el.style.borderBottomColor = p.navkat_tekst_boja
-                else el.style.background = 'rgba(255,255,255,0.18)'
-              }}
-              onMouseLeave={e => {
-                const el = e.currentTarget as HTMLElement
-                el.style.filter = ''
-                if (stil === 'underline') el.style.borderBottomColor = 'transparent'
-                else if (!isBoje) el.style.background = 'transparent'
-              }}
-            >
-              {isBoje && g.ikonaUrl && <img src={g.ikonaUrl} alt="" style={{ width: '16px', height: '16px', objectFit: 'contain', filter: 'brightness(10)' }} />}
-              {g.naziv}
-            </Link>
-          )
-        })}
+
+        {/* Kategorije dugme s dropdownom */}
+        <button
+          onClick={() => setOpen(o => !o)}
+          style={{ display: 'flex', alignItems: 'center', gap: '7px', height: navH + 'px', padding: '0 16px', background: open ? 'rgba(255,255,255,0.18)' : 'transparent', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: '13px', fontWeight: 600, color: p.navkat_tekst_boja, transition: 'background 0.15s', flexShrink: 0, borderRight: '1px solid rgba(255,255,255,0.12)' }}
+        >
+          ☰ Kategorije
+          <span style={{ fontSize: '10px', opacity: 0.7, transition: 'transform 0.2s', display: 'inline-block', transform: open ? 'rotate(180deg)' : 'none' }}>▼</span>
+        </button>
       </div>
+
+      {/* Dropdown */}
+      {open && (
+        <div style={{ position: 'absolute', top: navH + 'px', left: 0, right: 0, background: 'white', boxShadow: '0 16px 48px rgba(0,0,0,0.18)', zIndex: 200, maxHeight: '70vh', overflowY: 'auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1px', backgroundColor: '#F3F4F6' }}>
+          {/* Svi artikli */}
+          <Link href="/" onClick={() => setOpen(false)} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '13px 18px', background: 'white', textDecoration: 'none', fontSize: '13px', fontWeight: 500, color: '#374151', borderBottom: '1px solid #F9FAFB', transition: 'background 0.1s' }}
+            onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#F0FDF4'}
+            onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'white'}
+          >
+            <span style={{ width: '30px', height: '30px', background: '#F3F4F6', borderRadius: '7px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '15px', flexShrink: 0 }}>🏪</span>
+            Svi artikli
+          </Link>
+
+          {roots.map(g => (
+            <Link key={g.id} href={'/?grupaId=' + g.id} onClick={() => setOpen(false)}
+              style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '13px 18px', background: 'white', textDecoration: 'none', fontSize: '13px', fontWeight: 500, color: '#374151', transition: 'background 0.1s' }}
+              onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.background = '#F9FAFB'; el.style.color = 'var(--brand)' }}
+              onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.background = 'white'; el.style.color = '#374151' }}
+            >
+              <span style={{ width: '30px', height: '30px', background: g.boja || '#F3F4F6', borderRadius: '7px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', flexShrink: 0, overflow: 'hidden' }}>
+                {g.ikonaUrl
+                  ? <img src={g.ikonaUrl} alt="" style={{ width: '20px', height: '20px', objectFit: 'contain' }} />
+                  : (g.ikonaEmoji || '📦')
+                }
+              </span>
+              <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{g.naziv}</span>
+            </Link>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

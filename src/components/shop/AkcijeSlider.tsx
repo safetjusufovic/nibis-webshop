@@ -10,7 +10,8 @@ interface ArtikalAkcija {
   id: number
   sifra: string
   naziv: string
-  planska_maloprodajna_cijena: number
+  planskaMaloprodajnaCijena: number
+  planska_maloprodajna_cijena?: number
   slika_url: string | null
   akcija_popust: number
   akcija_do: string | null
@@ -31,9 +32,19 @@ export default function AkcijeSlider() {
   useEffect(() => {
     fetch('/api/artikli?akcija=true&perPage=24&page=1')
       .then(r => r.json())
-      .then(d => {
+      .then(async d => {
         const items = (d.items ?? []).filter((a: any) => a.akcija_popust > 0)
-        setArtikli(items)
+        if (items.length === 0) { setLoading(false); return }
+        // Fetch stanje za cijene - isto kao ProductCard
+        const ids = items.map((a: any) => a.id).join(',')
+        try {
+          const sr = await fetch('/api/stanje?ids=' + ids)
+          const stanjeMap = sr.ok ? await sr.json() : {}
+          const withPrices = items.map((a: any) => ({ ...a, _stanje: stanjeMap[a.id] || null }))
+          setArtikli(withPrices)
+        } catch {
+          setArtikli(items)
+        }
         setLoading(false)
       })
       .catch(() => setLoading(false))
@@ -175,7 +186,9 @@ export default function AkcijeSlider() {
                 <div key={i} style={{ flexShrink: 0, width: '180px', height: '240px', background: 'rgba(255,255,255,0.1)', borderRadius: '14px' }} />
               ))
               : displayItems.map((a, idx) => {
-                const cijenaBase = a.planska_maloprodajna_cijena || (a as any).planMalCijena || 0
+                const s = (a as any)._stanje
+                const tipCijene = process.env.NEXT_PUBLIC_TIP_CIJENE || 'mpcijena'
+                const cijenaBase = s ? (s[tipCijene] || s.mpcijena || s.vpcijena || 0) : 0
                 const cijena = cijenaBase > 0 ? cijenaBase * (1 - a.akcija_popust / 100) : 0
                 const cijenaKupca = (rabat > 0 && cijena > 0) ? cijena * (1 - rabat / 100) : cijena
 
