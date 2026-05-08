@@ -4,7 +4,7 @@ import { useAdminNotifikacije } from '@/hooks/useAdminNotifikacije'
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Users, ShoppingBag, Image, RefreshCw, LayoutDashboard, Settings, LayoutList, BarChart2, Activity, FolderTree, Paintbrush } from 'lucide-react'
+import { Users, ShoppingBag, Image, RefreshCw, LayoutDashboard, Settings, LayoutList, BarChart2, Activity, FolderTree, Paintbrush, FileText } from 'lucide-react'
 import AuthGuard from '@/components/auth/AuthGuard'
 import Header from '@/components/layout/Header'
 
@@ -19,6 +19,7 @@ const NAV = [
   { href: '/admin/izvjestaji', label: 'Izvještaji', icon: BarChart2 },
   { href: '/admin/korisnici-log', label: 'Historija prijava', icon: Activity },
   { href: '/admin/izgled', label: 'Izgled', icon: Paintbrush },
+  { href: '/admin/stranice', label: 'Stranice i članci', icon: FileText },
   { href: '/admin/postavke', label: 'Postavke', icon: Settings },
 ]
 

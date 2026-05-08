@@ -1,0 +1,47 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { supabase } from '@/lib/supabase'
+
+export async function GET(req: NextRequest) {
+  const tip = req.nextUrl.searchParams.get('tip')
+  const slug = req.nextUrl.searchParams.get('slug')
+  const sve = req.nextUrl.searchParams.get('sve') // admin - sve uključujući neobjavljene
+
+  let q = supabase.from('stranice').select('*').order('redoslijed').order('created_at', { ascending: false })
+
+  if (slug) q = q.eq('slug', slug).single() as any
+  if (tip) q = q.eq('tip', tip)
+  if (!sve) q = q.eq('objavljen', true)
+
+  const { data, error } = await q as any
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  return NextResponse.json(data)
+}
+
+export async function POST(req: NextRequest) {
+  const body = await req.json()
+  const { data, error } = await supabase.from('stranice').insert({
+    ...body,
+    updated_at: new Date().toISOString(),
+  }).select().single()
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  return NextResponse.json(data)
+}
+
+export async function PUT(req: NextRequest) {
+  const body = await req.json()
+  const { id, ...rest } = body
+  const { data, error } = await supabase.from('stranice').update({
+    ...rest,
+    updated_at: new Date().toISOString(),
+  }).eq('id', id).select().single()
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  return NextResponse.json(data)
+}
+
+export async function DELETE(req: NextRequest) {
+  const id = req.nextUrl.searchParams.get('id')
+  if (!id) return NextResponse.json({ error: 'ID required' }, { status: 400 })
+  const { error } = await supabase.from('stranice').delete().eq('id', id)
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  return NextResponse.json({ ok: true })
+}
