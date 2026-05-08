@@ -140,7 +140,7 @@ export default function NavKategorija({ activeId, onSelect }: Props) {
               ))}
             </div>
 
-            {/* Featured kartice — desno (kao ris.ba) */}
+            {/* Featured kartice — desno (s karticama i slikama) */}
             {featured.length > 0 && (
               <div style={{ flex: 1, padding: '20px 24px', overflowY: 'auto' }}>
                 <div style={{ fontSize: '11px', fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '14px' }}>

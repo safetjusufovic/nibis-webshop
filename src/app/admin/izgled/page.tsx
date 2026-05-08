@@ -343,11 +343,17 @@ export default function IzgledPage() {
   const [changed, setChanged] = useState(false)
   const [history, setHistory] = useState<Postavke[]>([])
   const [preview, setPreview] = useState(false)
+  const [grupe, setGrupe] = useState<{id: number; naziv: string}[]>([])
   const historyRef = useRef<Postavke[]>([])
   const lastKeyRef = useRef('')
   const iframeRef = useRef<HTMLIFrameElement>(null)
 
   useEffect(() => {
+    fetch('/api/grupe?perPage=100')
+      .then(r => r.json())
+      .then(d => setGrupe((d.items || []).map((g: any) => ({ id: g.id, naziv: g.naziv }))))
+      .catch(() => {})
+
     supabase.from('postavke').select('kljuc, vrijednost')
       .in('kljuc', Object.keys(DEFAULTS))
       .then(({ data }) => {
@@ -566,7 +572,7 @@ export default function IzgledPage() {
           <AccordionSec title="Zaglavlje (Header)" icon={<Layout size={18} />}>
             <Sec title="Layout zaglavlja">
               <ChoiceGroup label="Raspored" value={p.header_layout} onChange={v => set('header_layout', v)}
-                options={[{ v: 'minimal', l: 'Minimalni' }, { v: 'rs_stil', l: 'R&S stil' }, { v: 'centered', l: 'Centrirani' }]} />
+                options={[{ v: 'minimal', l: 'Minimalni' }, { v: 'rs_stil', l: 'Klasični' }, { v: 'centered', l: 'Centrirani' }]} />
             </Sec>
             <Sec title="Boje">
               <Row>
@@ -752,7 +758,7 @@ export default function IzgledPage() {
 
           {/* ── NAVIGACIJA KATEGORIJA ── */}
           <AccordionSec title="Navigacija kategorija" icon={<Layout size={18} />}>
-            <Toggle label="Horizontalni nav ispod zaglavlja" value={p.navkat_aktivan || 'false'} onChange={v => set('navkat_aktivan', v)} desc="Kategorije kao meni — kao na ris.ba" />
+            <Toggle label="Horizontalni nav ispod zaglavlja" value={p.navkat_aktivan || 'false'} onChange={v => set('navkat_aktivan', v)} desc="Kategorije kao meni — horizontalni meni ispod headera" />
             {p.navkat_aktivan === 'true' && (
               <>
                 <Row>
@@ -761,7 +767,7 @@ export default function IzgledPage() {
                 </Row>
                 <Slider label="Visina nava" value={p.navkat_visina || '44'} onChange={v => set('navkat_visina', v)} min={32} max={72} />
                 <ChoiceGroup label="Stil kategorija" value={p.navkat_stil || 'flat'} onChange={v => set('navkat_stil', v)}
-                  options={[{ v: 'flat', l: 'Flat' }, { v: 'pills', l: 'Pills' }, { v: 'underline', l: 'Podvučeno' }, { v: 'boje_kategorija', l: 'Boje (R&S)' }]} />
+                  options={[{ v: 'flat', l: 'Flat' }, { v: 'pills', l: 'Pills' }, { v: 'underline', l: 'Podvučeno' }, { v: 'boje_kategorija', l: 'Boje po kategoriji' }]} />
                 <Divider />
                 <Toggle label="Akcijsko dugme" value={p.navkat_akcijski_dugme || 'false'} onChange={v => set('navkat_akcijski_dugme', v)} />
                 {p.navkat_akcijski_dugme === 'true' && (
@@ -772,7 +778,7 @@ export default function IzgledPage() {
                 )}
               </>
             )}
-            <Sec title="Istaknute kategorije (kao ris.ba)" desc="Klikni na kategoriju u dropdownu otvori grid s karticama i slikama">
+            <Sec title="Istaknute kategorije (s karticama i slikama)" desc="Klikni na kategoriju u dropdownu otvori grid s karticama i slikama">
               {(() => {
                 let items: any[] = []
                 try { items = JSON.parse(p.navkat_featured || '[]') } catch {}
@@ -795,10 +801,20 @@ export default function IzgledPage() {
                             const updated = items.map((it: any, j: number) => j === i ? { ...it, naziv: v } : it)
                             set('navkat_featured', JSON.stringify(updated))
                           }} placeholder="Alati" />
-                          <Input label="URL (npr. /?grupaId=3)" value={item.url || ''} onChange={v => {
-                            const updated = items.map((it: any, j: number) => j === i ? { ...it, url: v } : it)
-                            set('navkat_featured', JSON.stringify(updated))
-                          }} placeholder="/?grupaId=3" />
+                          <div>
+                            <label style={{ fontSize: '11px', fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: '5px', textTransform: 'uppercase' as const, letterSpacing: '0.05em' }}>Kategorija</label>
+                            <select value={item.url || ''} onChange={e => {
+                              const updated = items.map((it: any, j: number) => j === i ? { ...it, url: e.target.value, naziv: it.naziv || (grupe.find(g => '/?grupaId=' + g.id === e.target.value)?.naziv || it.naziv) } : it)
+                              set('navkat_featured', JSON.stringify(updated))
+                            }} style={{ width: '100%', padding: '9px 12px', fontSize: '13px', border: '1px solid #E5E7EB', borderRadius: '8px', outline: 'none', fontFamily: 'inherit', background: 'white', boxSizing: 'border-box' as const }}>
+                              <option value="">-- Odaberi kategoriju --</option>
+                              <option value="/">Sve kategorije</option>
+                              <option value="/vijesti">Vijesti</option>
+                              {grupe.map(g => (
+                                <option key={g.id} value={'/?grupaId=' + g.id}>{g.naziv}</option>
+                              ))}
+                            </select>
+                          </div>
                           <ImageInput label="Slika kategorije" value={item.slika_url || ''} onChange={v => {
                             const updated = items.map((it: any, j: number) => j === i ? { ...it, slika_url: v } : it)
                             set('navkat_featured', JSON.stringify(updated))

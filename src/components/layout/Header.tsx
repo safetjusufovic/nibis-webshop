@@ -274,7 +274,7 @@ export default function Header({ onSearch }: { onSearch?: (q: string) => void })
       <header style={hStyle}>
         <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 24px' }}>
 
-          {/* R&S layout — logo lijevo, search centar, akcije desno */}
+          {/* Klasični layout — logo lijevo, search centar, akcije desno */}
           {layout === 'rs_stil' && (
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px', height: hVisina + 'px' }}>
               <Link href="/" style={{ flexShrink: 0, textDecoration: 'none' }}><Logo size="md" /></Link>
