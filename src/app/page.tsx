@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { SlidersHorizontal, ChevronRight, ChevronDown, Package, ShoppingCart, Plus, LayoutGrid, LayoutList } from 'lucide-react'
 import Header from '@/components/layout/Header'
 import AkcijeSlider from '@/components/shop/AkcijeSlider'
@@ -707,6 +707,37 @@ function Footer() {
 }
 
 
+// ─── Scroll to top ─────────────────────────────────────────────────────────────
+function ScrollToTop() {
+  const [visible, setVisible] = useState(false)
+  useEffect(() => {
+    const onScroll = () => setVisible(window.scrollY > 400)
+    window.addEventListener('scroll', onScroll)
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+  if (!visible) return null
+  return (
+    <button
+      onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+      style={{
+        position: 'fixed', bottom: '24px', right: '24px', zIndex: 50,
+        width: '44px', height: '44px', borderRadius: '50%',
+        background: 'var(--brand)', color: 'white', border: 'none',
+        cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+        boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
+        transition: 'transform 0.15s, box-shadow 0.15s',
+        fontSize: '18px',
+      }}
+      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-2px)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 8px 24px rgba(0,0,0,0.25)' }}
+      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = 'none'; (e.currentTarget as HTMLElement).style.boxShadow = '0 4px 16px rgba(0,0,0,0.2)' }}
+      title="Na vrh"
+    >
+      ↑
+    </button>
+  )
+}
+
+
 // ─── Main Page ─────────────────────────────────────────────────────────────────
 export default function HomePage() {
   const [grupe, setGrupe] = useState<ArtikalGrupa[]>([])
@@ -740,6 +771,10 @@ export default function HomePage() {
   const [viewMode, setViewMode] = useState<'table' | 'grid'>('grid')
   const [perPage, setPerPage] = useState(siteConfig.perPage)
   const [dugmeTekst, setDugmeTekst] = useState('Dodaj')
+  const [searchSuggestions, setSearchSuggestions] = useState<{id: number; naziv: string; sifra: string}[]>([])
+  const [showSuggestions, setShowSuggestions] = useState(false)
+  const [searchFocused, setSearchFocused] = useState(false)
+  const suggestTimer = useRef<NodeJS.Timeout | null>(null)
 
   // Učitaj dinamičke postavke iz baze
   useEffect(() => {
@@ -826,7 +861,7 @@ export default function HomePage() {
   const totalPages = Math.ceil(total / perPage)
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen" style={{ background: "var(--surface)" }}>
         <Header onSearch={q => setSearchInput(q)} />
 
         {/* Hero Slider */}
@@ -927,12 +962,7 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Mobile filters */}
-            {mobileFilters && (
-              <div className="md:hidden mb-4">
-                <CategorySidebar grupe={grupe} activeId={activeGrupa} onSelect={onGrupaSelect} sirina={sidebarSirina} sidebarConfig={sidebarConfig} />
-              </div>
-            )}
+
 
             {/* Layout */}
             <div className="flex gap-5 items-start">
@@ -940,10 +970,10 @@ export default function HomePage() {
               {/* Table / Grid */}
               <div className="flex-1 min-w-0">
                 {viewMode === 'table' ? (
-                  <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-                    <table className="w-full border-collapse">
+                  <div style={{ background: "var(--bg-kartica)", border: "1px solid var(--border)", borderRadius: "10px", overflow: "hidden" }}>
+                    <table className="w-full" style={{ borderCollapse: "collapse" as const }}>
                       <thead>
-                        <tr className="bg-gray-50 border-b border-gray-200">
+                        <tr style={{ background: "var(--surface)", borderBottom: "1px solid var(--border)" }}>
                           <th className="py-2.5 pl-4 pr-2 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Naziv</th>
                           <th className="py-2.5 px-2 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Šifra</th>
                           <th className="py-2.5 px-2 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider hidden lg:table-cell">Kategorija</th>
@@ -975,15 +1005,15 @@ export default function HomePage() {
                     </table>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(172px, 1fr))", gap: "12px" }}>
                     {loading
                       ? Array(perPage).fill(0).map((_, i) => (
-                        <div key={i} className="bg-white border border-gray-200 rounded-lg overflow-hidden animate-pulse">
-                          <div className="pt-[72%] bg-gray-100" />
+                        <div key={i} className="rounded-lg overflow-hidden" style={{ background: "var(--bg-kartica)", border: "1px solid var(--border)" }}>
+                          <div className="pt-[72%]" style={{ background: "var(--border)" }} />
                           <div className="p-3 space-y-2">
-                            <div className="h-3 bg-gray-100 rounded w-2/3" />
-                            <div className="h-3 bg-gray-100 rounded w-1/2" />
-                            <div className="h-8 bg-gray-100 rounded mt-2" />
+                            <div className="h-3 rounded w-2/3" style={{ background: "var(--border)" }} />
+                            <div className="h-3 rounded w-1/2" style={{ background: "var(--border)" }} />
+                            <div className="h-8 rounded mt-2" style={{ background: "var(--border)" }} />
                           </div>
                         </div>
                       ))
@@ -1068,6 +1098,9 @@ export default function HomePage() {
             </div>
           </div>
         )}
+
+        {/* Scroll to top */}
+        <ScrollToTop />
 
         <Footer />
 

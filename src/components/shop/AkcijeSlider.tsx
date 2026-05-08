@@ -175,9 +175,9 @@ export default function AkcijeSlider() {
                 <div key={i} style={{ flexShrink: 0, width: '180px', height: '240px', background: 'rgba(255,255,255,0.1)', borderRadius: '14px' }} />
               ))
               : displayItems.map((a, idx) => {
-                const cijenaBase = a.planska_maloprodajna_cijena
-                const cijena = cijenaBase * (1 - a.akcija_popust / 100)
-                const cijenaKupca = rabat > 0 ? cijena * (1 - rabat / 100) : cijena
+                const cijenaBase = a.planska_maloprodajna_cijena || (a as any).planMalCijena || 0
+                const cijena = cijenaBase > 0 ? cijenaBase * (1 - a.akcija_popust / 100) : 0
+                const cijenaKupca = (rabat > 0 && cijena > 0) ? cijena * (1 - rabat / 100) : cijena
 
                 return (
                   <Link key={idx} href={'/proizvod/' + a.id} style={{ textDecoration: 'none', flexShrink: 0 }}>
