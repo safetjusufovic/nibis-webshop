@@ -37,6 +37,7 @@ const DEFAULTS: Postavke = {
   navkat_aktivan: 'false', navkat_boja: '#1e3a5f', navkat_tekst_boja: '#ffffff',
   navkat_visina: '44', navkat_stil: 'flat', navkat_akcijski_dugme: 'false',
   navkat_akcijski_tekst: 'Akcijski proizvodi', navkat_akcijski_boja: '#DC2626',
+  hero_slides: '[]',
   hero_aktivan: 'true', hero_naslov: 'Dobrodošli u naš webshop',
   hero_podnaslov: 'Profesionalna roba za vaše poslovanje',
   hero_dugme_tekst: 'Pregledaj katalog', hero_dugme_url: '/',
@@ -670,34 +671,78 @@ export default function IzgledPage() {
             </Sec>
           </AccordionSec>
 
-          {/* ── HERO BANNER ── */}
-          <AccordionSec title="Hero banner (glavni baner)" icon={<ImgIcon size={18} />}>
-            <Toggle label="Prikazati hero banner" value={p.hero_aktivan || 'true'} onChange={v => set('hero_aktivan', v)} />
+          {/* ── HERO SLIDER ── */}
+          <AccordionSec title="Hero Slider (glavni baner)" icon={<ImgIcon size={18} />}>
+            <Toggle label="Prikazati hero slider" value={p.hero_aktivan || 'true'} onChange={v => set('hero_aktivan', v)} />
+            <Slider label="Visina slidera" value={p.hero_visina || '480'} onChange={v => set('hero_visina', v)} min={200} max={800} />
             {p.hero_aktivan !== 'false' && (
               <>
-                <Sec title="Sadržaj">
-                  <Input label="Naslov" value={p.hero_naslov || ''} onChange={v => set('hero_naslov', v)} />
-                  <Input label="Podnaslov" value={p.hero_podnaslov || ''} onChange={v => set('hero_podnaslov', v)} />
-                  <Row>
-                    <Input label="Tekst dugmeta" value={p.hero_dugme_tekst || ''} onChange={v => set('hero_dugme_tekst', v)} />
-                    <Input label="URL dugmeta" value={p.hero_dugme_url || '/'} onChange={v => set('hero_dugme_url', v)} />
-                  </Row>
-                </Sec>
-                <Sec title="Pozadina">
-                  <ImageInput label="Slika pozadine (min 1920×600px)" value={p.hero_slika_url || ''} onChange={v => set('hero_slika_url', v)} hint="Ostavite prazno za boju pozadine" />
-                  <ColorPicker label="Boja pozadine (ako nema slike)" value={p.hero_boja_pozadine || '#0F6E56'} onChange={v => set('hero_boja_pozadine', v)} />
-                  {p.hero_slika_url && (
-                    <Slider label="Zatamnjenje slike" value={p.hero_overlay_opacity || '0.4'} onChange={v => set('hero_overlay_opacity', v)} min={0} max={1} unit="" />
-                  )}
-                </Sec>
-                <Sec title="Tekst i dimenzije">
-                  <ColorPicker label="Boja teksta" value={p.hero_tekst_boja || '#ffffff'} onChange={v => set('hero_tekst_boja', v)} />
-                  <ChoiceGroup label="Pozicija teksta" value={p.hero_tekst_pozicija || 'center'} onChange={v => set('hero_tekst_pozicija', v)}
-                    options={[{ v: 'left', l: '← Lijevo' }, { v: 'center', l: 'Centar' }, { v: 'right', l: 'Desno →' }]} />
-                  <Row>
-                    <Slider label="Veličina naslova" value={p.hero_font_naslov || '42'} onChange={v => set('hero_font_naslov', v)} min={20} max={72} />
-                    <Slider label="Visina banera" value={p.hero_visina || '400'} onChange={v => set('hero_visina', v)} min={150} max={700} />
-                  </Row>
+                <Sec title="Slajdovi" desc="Dodaj do 5 slajdova. Svrtaju se automatski svakih 5 sekundi.">
+                  {(() => {
+                    let slides: any[] = []
+                    try { slides = JSON.parse(p.hero_slides || '[]') } catch {}
+                    return (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        {slides.map((s: any, i: number) => (
+                          <div key={i} style={{ border: '1px solid #E5E7EB', borderRadius: '12px', overflow: 'hidden' }}>
+                            {/* Preview */}
+                            <div style={{ height: '80px', background: s.slika_url ? 'none' : 'linear-gradient(135deg, var(--brand-dark), var(--brand))', backgroundImage: s.slika_url ? 'linear-gradient(rgba(0,0,0,' + (s.overlay||'0.4') + '),rgba(0,0,0,' + (s.overlay||'0.4') + ')),url(' + s.slika_url + ')' : 'none', backgroundSize: 'cover', backgroundPosition: 'center', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              <span style={{ color: 'white', fontWeight: 700, fontSize: '13px', textShadow: '0 1px 3px rgba(0,0,0,0.5)' }}>{s.naslov || 'Slajd ' + (i + 1)}</span>
+                              <button onClick={() => {
+                                const updated = slides.filter((_: any, j: number) => j !== i)
+                                set('hero_slides', JSON.stringify(updated))
+                              }} style={{ position: 'absolute', top: '6px', right: '6px', background: 'rgba(239,68,68,0.85)', color: 'white', border: 'none', borderRadius: '6px', padding: '3px 8px', cursor: 'pointer', fontSize: '11px', fontWeight: 600 }}>
+                                ✕ Ukloni
+                              </button>
+                            </div>
+                            {/* Fields */}
+                            <div style={{ padding: '12px', display: 'flex', flexDirection: 'column', gap: '8px', background: 'white' }}>
+                              <ImageInput label="Slika (1920×600px, WebP preporučeno)" value={s.slika_url || ''} onChange={v => {
+                                const updated = slides.map((sl: any, j: number) => j === i ? { ...sl, slika_url: v } : sl)
+                                set('hero_slides', JSON.stringify(updated))
+                              }} />
+                              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                                <Input label="Naslov" value={s.naslov || ''} onChange={v => {
+                                  const updated = slides.map((sl: any, j: number) => j === i ? { ...sl, naslov: v } : sl)
+                                  set('hero_slides', JSON.stringify(updated))
+                                }} placeholder="Naslov slajda" />
+                                <Input label="Podnaslov" value={s.podnaslov || ''} onChange={v => {
+                                  const updated = slides.map((sl: any, j: number) => j === i ? { ...sl, podnaslov: v } : sl)
+                                  set('hero_slides', JSON.stringify(updated))
+                                }} placeholder="Kratki opis" />
+                                <Input label="Tekst dugmeta" value={s.dugme_tekst || ''} onChange={v => {
+                                  const updated = slides.map((sl: any, j: number) => j === i ? { ...sl, dugme_tekst: v } : sl)
+                                  set('hero_slides', JSON.stringify(updated))
+                                }} placeholder="Pregledaj katalog" />
+                                <Input label="URL dugmeta" value={s.dugme_url || '/'} onChange={v => {
+                                  const updated = slides.map((sl: any, j: number) => j === i ? { ...sl, dugme_url: v } : sl)
+                                  set('hero_slides', JSON.stringify(updated))
+                                }} placeholder="/" />
+                              </div>
+                              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
+                                <ChoiceGroup label="Pozicija teksta" value={s.pozicija || 'center'} onChange={v => {
+                                  const updated = slides.map((sl: any, j: number) => j === i ? { ...sl, pozicija: v } : sl)
+                                  set('hero_slides', JSON.stringify(updated))
+                                }} options={[{ v: 'left', l: '← Lijevo' }, { v: 'center', l: 'Centar' }, { v: 'right', l: 'Desno →' }]} />
+                              </div>
+                              <Slider label="Zatamnjenje slike" value={s.overlay || '0.4'} onChange={v => {
+                                const updated = slides.map((sl: any, j: number) => j === i ? { ...sl, overlay: v } : sl)
+                                set('hero_slides', JSON.stringify(updated))
+                              }} min={0} max={1} unit="" />
+                            </div>
+                          </div>
+                        ))}
+                        {slides.length < 5 && (
+                          <button onClick={() => {
+                            const updated = [...slides, { slika_url: '', naslov: '', podnaslov: '', dugme_tekst: 'Pregledaj katalog', dugme_url: '/', pozicija: 'center', overlay: '0.4' }]
+                            set('hero_slides', JSON.stringify(updated))
+                          }} style={{ padding: '12px', border: '2px dashed #E5E7EB', borderRadius: '10px', background: 'white', cursor: 'pointer', fontSize: '13px', fontWeight: 600, color: 'var(--brand)', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                            + Dodaj slajd ({slides.length}/5)
+                          </button>
+                        )}
+                      </div>
+                    )
+                  })()}
                 </Sec>
               </>
             )}

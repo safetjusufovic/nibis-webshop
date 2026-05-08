@@ -5,6 +5,8 @@ import { SlidersHorizontal, ChevronRight, ChevronDown, Package, ShoppingCart, Pl
 import Header from '@/components/layout/Header'
 import AkcijeSlider from '@/components/shop/AkcijeSlider'
 import HeroBanner from '@/components/shop/HeroBanner'
+import HeroSlider from '@/components/shop/HeroSlider'
+import NavKategorija from '@/components/shop/NavKategorija'
 import { useCart } from '@/hooks/useCart'
 import { useAuth } from '@/hooks/useAuth'
 import { useFavoriti } from '@/hooks/useFavoriti'
@@ -827,10 +829,17 @@ export default function HomePage() {
     <div className="min-h-screen bg-gray-50">
         <Header onSearch={q => setSearchInput(q)} />
 
-        {/* Dinamičke sekcije iznad kataloga */}
-        {pageSekcije.filter(s => s.aktivan && s.id !== 'katalog').map(s => {
-          if (s.id === 'hero') return <HeroBanner key={s.id} />
-          if (s.id === 'akcije') return <AkcijeSlider key={s.id} />
+        {/* Hero Slider */}
+        {pageSekcije.find(s => s.id === 'hero')?.aktivan !== false && <HeroSlider />}
+
+        {/* Nav kategorija — horizontalno ispod hero slidera */}
+        <NavKategorija activeId={activeGrupa} onSelect={onGrupaSelect} />
+
+        {/* Akcije slider */}
+        {pageSekcije.find(s => s.id === 'akcije')?.aktivan !== false && <AkcijeSlider />}
+
+        {/* Ostale sekcije */}
+        {pageSekcije.filter(s => s.aktivan && !['hero','akcije','katalog'].includes(s.id)).map(s => {
           if (s.id === 'features') return <FeaturesSekcija key={s.id} />
           if (s.id === 'banner') return <PromoBanner key={s.id} />
           if (s.id === 'newsletter') return <NewsletterSekcija key={s.id} />
@@ -927,7 +936,6 @@ export default function HomePage() {
 
             {/* Layout */}
             <div className="flex gap-5 items-start">
-              <CategorySidebar grupe={grupe} activeId={activeGrupa} onSelect={onGrupaSelect} sirina={sidebarSirina} sidebarConfig={sidebarConfig} />
 
               {/* Table / Grid */}
               <div className="flex-1 min-w-0">
