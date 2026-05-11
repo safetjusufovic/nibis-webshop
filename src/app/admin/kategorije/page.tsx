@@ -174,9 +174,9 @@ export default function AdminKategorijePage() {
                     boxShadow: `0 2px 6px ${boja}50`,
                   }}>
                     {root.ikona_url ? (
-                      <img src={root.ikona_url} alt="" style={{ width: Math.round(ikonaSize * 0.58) + 'px', height: Math.round(ikonaSize * 0.58) + 'px', objectFit: 'contain', filter: 'brightness(0) invert(1)' }} />
+                      <img src={root.ikona_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     ) : (
-                      <div style={{ width: Math.round(ikonaSize * 0.38) + 'px', height: Math.round(ikonaSize * 0.38) + 'px', borderRadius: '3px', background: 'rgba(255,255,255,0.8)' }} />
+                      <span style={{ fontSize: Math.round(ikonaSize * 0.5) + 'px', opacity: 0.7 }}>📁</span>
                     )}
                   </div>
                   <span style={{ fontSize: '12px', color: '#374151', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
@@ -229,24 +229,62 @@ function GrupaRow({ grupa, onUpdate, onSave, saving, saved, hasChanges, presetBo
   presetBoje: string[]; isChild?: boolean
 }) {
   const [showPicker, setShowPicker] = useState(false)
+  const [uploading, setUploading] = useState(false)
   const boja = grupa.boja || '#0F6E56'
+
+  async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (file.size > 2 * 1024 * 1024) { alert('Max 2MB za ikonu'); return }
+    setUploading(true)
+    try {
+      const path = 'kategorije/' + grupa.id + '_' + Date.now() + '.' + (file.name.split('.').pop() || 'png')
+      const { error } = await supabase.storage.from('slike').upload(path, file, { upsert: true })
+      if (!error) {
+        const { data } = supabase.storage.from('slike').getPublicUrl(path)
+        onUpdate(grupa.id, 'ikona_url', data.publicUrl)
+      } else {
+        // Fallback base64
+        const reader = new FileReader()
+        reader.onload = ev => onUpdate(grupa.id, 'ikona_url', ev.target?.result as string)
+        reader.readAsDataURL(file)
+      }
+    } catch {
+      const reader = new FileReader()
+      reader.onload = ev => onUpdate(grupa.id, 'ikona_url', ev.target?.result as string)
+      reader.readAsDataURL(file)
+    }
+    setUploading(false)
+    e.target.value = ''
+  }
 
   return (
     <div style={{
       background: 'white', border: '1px solid var(--border)', borderRadius: '12px',
       padding: '12px 16px', display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap',
     }}>
-      {/* Preview ikone */}
-      <div style={{
-        width: '40px', height: '40px', borderRadius: '10px', background: boja, flexShrink: 0,
-        display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 2px 8px ${boja}40`,
-      }}>
-        {grupa.ikona_url ? (
-          <img src={grupa.ikona_url} alt="" style={{ width: '22px', height: '22px', objectFit: 'contain', filter: 'brightness(0) invert(1)' }} />
-        ) : (
-          <Palette size={16} style={{ color: 'white', opacity: 0.8 }} />
-        )}
-      </div>
+      {/* Preview ikone — klikabilna za upload */}
+      <label style={{ cursor: 'pointer', flexShrink: 0, position: 'relative' as const }}>
+        <div style={{
+          width: '44px', height: '44px', borderRadius: '10px', background: boja,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          boxShadow: '0 2px 8px ' + boja + '60', overflow: 'hidden',
+          transition: 'filter 0.15s',
+        }}
+          onMouseEnter={e => (e.currentTarget as HTMLElement).style.filter = 'brightness(0.85)'}
+          onMouseLeave={e => (e.currentTarget as HTMLElement).style.filter = 'none'}
+        >
+          {uploading ? (
+            <span style={{ width: '16px', height: '16px', border: '2px solid white', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.7s linear infinite', display: 'inline-block' }} />
+          ) : grupa.ikona_url ? (
+            <img src={grupa.ikona_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          ) : (
+            <span style={{ fontSize: '18px', opacity: 0.7 }}>📁</span>
+          )}
+        </div>
+        <div style={{ position: 'absolute' as const, bottom: '-3px', right: '-3px', width: '16px', height: '16px', background: 'var(--brand)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid white', fontSize: '8px', color: 'white', fontWeight: 700 }}>+</div>
+        <input type="file" accept="image/*" style={{ display: 'none' }} onChange={handleUpload} disabled={uploading} />
+      </label>
 
       {/* Naziv */}
       <div style={{ flex: 1, minWidth: '100px' }}>
@@ -255,42 +293,25 @@ function GrupaRow({ grupa, onUpdate, onSave, saving, saved, hasChanges, presetBo
       </div>
 
       {/* Boja */}
-      <div style={{ position: 'relative' }}>
+      <div style={{ position: 'relative' as const }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Boja</span>
           <button onClick={() => setShowPicker(!showPicker)} style={{
             width: '26px', height: '26px', borderRadius: '6px', background: boja,
             border: '2px solid white', boxShadow: '0 0 0 1px var(--border)', cursor: 'pointer',
-            transition: 'transform 0.15s',
-          }}
-            onMouseEnter={e => (e.currentTarget as HTMLElement).style.transform = 'scale(1.1)'}
-            onMouseLeave={e => (e.currentTarget as HTMLElement).style.transform = 'none'}
-          />
+          }} />
         </div>
-
         {showPicker && (
           <>
-            <div style={{ position: 'fixed', inset: 0, zIndex: 10 }} onClick={() => setShowPicker(false)} />
-            <div style={{
-              position: 'absolute', top: 'calc(100% + 8px)', left: 0, zIndex: 20,
-              background: 'white', border: '1px solid var(--border)', borderRadius: '12px',
-              padding: '14px', boxShadow: '0 8px 24px rgba(0,0,0,0.12)', width: '200px',
-            }}>
-              <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px' }}>Brzi odabir</div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '12px' }}>
+            <div style={{ position: 'fixed' as const, inset: 0, zIndex: 10 }} onClick={() => setShowPicker(false)} />
+            <div style={{ position: 'absolute' as const, top: 'calc(100% + 8px)', left: 0, zIndex: 20, background: 'white', border: '1px solid var(--border)', borderRadius: '12px', padding: '14px', boxShadow: '0 8px 24px rgba(0,0,0,0.12)', width: '200px' }}>
+              <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' as const, letterSpacing: '0.05em', marginBottom: '8px' }}>Brzi odabir</div>
+              <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: '6px', marginBottom: '12px' }}>
                 {presetBoje.map(c => (
                   <button key={c} onClick={() => { onUpdate(grupa.id, 'boja', c); setShowPicker(false) }}
-                    style={{
-                      width: '24px', height: '24px', borderRadius: '6px', background: c, cursor: 'pointer',
-                      border: boja === c ? '2px solid #1a202c' : '2px solid transparent',
-                      boxShadow: '0 1px 3px rgba(0,0,0,0.2)', transition: 'transform 0.1s',
-                    }}
-                    onMouseEnter={e => (e.currentTarget as HTMLElement).style.transform = 'scale(1.15)'}
-                    onMouseLeave={e => (e.currentTarget as HTMLElement).style.transform = 'none'}
-                  />
+                    style={{ width: '24px', height: '24px', borderRadius: '6px', background: c, cursor: 'pointer', border: boja === c ? '2px solid #1a202c' : '2px solid transparent', boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} />
                 ))}
               </div>
-              <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>Prilagođena</div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <input type="color" value={boja} onChange={e => onUpdate(grupa.id, 'boja', e.target.value)}
                   style={{ width: '36px', height: '32px', border: 'none', padding: 0, cursor: 'pointer', borderRadius: '6px' }} />
@@ -303,28 +324,34 @@ function GrupaRow({ grupa, onUpdate, onSave, saving, saved, hasChanges, presetBo
         )}
       </div>
 
-      {/* Ikona URL */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-        <span style={{ fontSize: '11px', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>Ikona URL</span>
-        <input type="text" value={grupa.ikona_url || ''} onChange={e => onUpdate(grupa.id, 'ikona_url', e.target.value)}
-          placeholder="https://..."
-          style={{ width: '160px', padding: '6px 10px', fontSize: '12px', border: '1px solid var(--border)', borderRadius: '8px', outline: 'none', fontFamily: 'inherit' }}
-          onFocus={e => { e.target.style.borderColor = 'var(--brand-light)'; e.target.style.boxShadow = '0 0 0 3px rgba(29,158,117,0.1)' }}
-          onBlur={e => { e.target.style.borderColor = 'var(--border)'; e.target.style.boxShadow = 'none' }}
-        />
-        {grupa.ikona_url && (
-          <img src={grupa.ikona_url} alt="" style={{ width: '24px', height: '24px', objectFit: 'contain', borderRadius: '4px', border: '1px solid var(--border)' }} />
-        )}
+      {/* Ikona — URL input + upload dugme */}
+      <div style={{ display: 'flex', flexDirection: 'column' as const, gap: '4px' }}>
+        <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Ikona</span>
+        <div style={{ display: 'flex', gap: '5px', alignItems: 'center' }}>
+          <input type="text" value={grupa.ikona_url || ''} onChange={e => onUpdate(grupa.id, 'ikona_url', e.target.value)}
+            placeholder="URL ili uploadaj sliku →"
+            style={{ width: '170px', padding: '5px 9px', fontSize: '12px', border: '1px solid var(--border)', borderRadius: '7px', outline: 'none', fontFamily: 'inherit' }}
+            onFocus={e => e.target.style.borderColor = 'var(--brand)'}
+            onBlur={e => e.target.style.borderColor = 'var(--border)'}
+          />
+          <label style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '5px 10px', background: 'var(--brand-pale)', color: 'var(--brand)', border: '1px solid var(--brand-pale)', borderRadius: '7px', cursor: 'pointer', fontSize: '11px', fontWeight: 600, whiteSpace: 'nowrap' as const }}>
+            {uploading ? '...' : '📁 Odaberi'}
+            <input type="file" accept="image/*" style={{ display: 'none' }} onChange={handleUpload} disabled={uploading} />
+          </label>
+          {grupa.ikona_url && (
+            <button onClick={() => onUpdate(grupa.id, 'ikona_url', '')}
+              title="Ukloni ikonu"
+              style={{ padding: '5px 7px', background: '#FEF2F2', color: '#EF4444', border: '1px solid #FECACA', borderRadius: '7px', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+              ✕
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Sačuvaj */}
       {hasChanges && (
         <button onClick={() => onSave(grupa.id)} disabled={saving}
-          style={{
-            display: 'flex', alignItems: 'center', gap: '6px', padding: '7px 14px', fontSize: '12px', fontWeight: 500,
-            background: saved ? '#059669' : 'var(--brand)', color: 'white', border: 'none', borderRadius: '8px',
-            cursor: saving ? 'not-allowed' : 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap',
-          }}>
+          style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '7px 14px', fontSize: '12px', fontWeight: 500, background: saved ? '#059669' : 'var(--brand)', color: 'white', border: 'none', borderRadius: '8px', cursor: saving ? 'not-allowed' : 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' as const }}>
           <Save size={12} />{saving ? 'Čuvam...' : saved ? 'Sačuvano ✓' : 'Sačuvaj'}
         </button>
       )}
