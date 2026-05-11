@@ -150,14 +150,7 @@ const PRESET_TEME = SKINOVI.map(s => ({
 }))
 
 
-// Backwards compat - keep PRESET_TEME as alias
-const PRESET_TEME = SKINOVI.map(s => ({
-  naziv: s.naziv, emoji: s.emoji,
-  primary: s.postavke.theme_primary_boja, bg: s.postavke.theme_bg_stranica,
-  kartica: s.postavke.theme_bg_kartica, border: s.postavke.theme_border_boja,
-  tekst: s.postavke.theme_tekst_boja, muted: s.postavke.theme_tekst_muted,
-  header: s.postavke.header_boja, hero: s.postavke.hero_boja_pozadine,
-}))
+
 
 
 const GOOGLE_FONTS = ['DM Sans', 'Inter', 'Roboto', 'Open Sans', 'Lato', 'Poppins', 'Nunito', 'Montserrat', 'Raleway', 'Merriweather', 'Playfair Display', 'Source Sans 3']
