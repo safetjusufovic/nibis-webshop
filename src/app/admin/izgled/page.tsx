@@ -1113,10 +1113,10 @@ export default function IzgledPage() {
           <AccordionSec title="CSS teme i napredne postavke" icon={<Type size={18} />} badge="Dev">
             <Sec title="Gotove CSS teme">
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                {CSS_PRESET_TEME.map(t => {
+                {[...SKINOVI, { id: 'none', naziv: 'Bez CSS-a', emoji: '✨', opis: 'Default izgled — samo boje iz teme', css: '', preview: ['#fff','#0F6E56','#fff'], postavke: {} as any }].map(t => {
                   const isActive = t.css ? p.theme_custom_css === t.css : !p.theme_custom_css
                   return (
-                    <button key={t.naziv} onClick={() => set('theme_custom_css', t.css)} style={{
+                    <button key={t.id} onClick={() => set('theme_custom_css', t.css)} style={{
                       display: 'flex', alignItems: 'center', gap: '12px',
                       padding: '12px 14px', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left' as const,
                       border: '1.5px solid ' + (isActive ? 'var(--brand)' : '#E5E7EB'),
@@ -1128,7 +1128,7 @@ export default function IzgledPage() {
                         <div style={{ fontSize: '13px', fontWeight: 700, color: isActive ? 'var(--brand)' : '#111827' }}>{t.naziv}</div>
                         <div style={{ fontSize: '11px', color: '#9CA3AF', marginTop: '2px' }}>{t.opis}</div>
                       </div>
-                      {isActive && <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--brand)', padding: '3px 10px', background: 'white', borderRadius: '100px', border: '1px solid var(--brand)', flexShrink: 0 }}>✓ Aktivna</div>}
+                      {isActive && <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--brand)', padding: '3px 10px', background: 'white', borderRadius: '100px', border: '1px solid var(--brand)', flexShrink: 0 }}>✓ Aktivan</div>}
                     </button>
                   )
                 })}
