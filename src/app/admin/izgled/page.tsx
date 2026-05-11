@@ -577,6 +577,35 @@ export default function IzgledPage() {
         <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px' }}>
 
           {/* ── BRZE TEME ── */}
+          <AccordionSec title="Template — izgled webshopa" icon={<Layout size={18} />} defaultOpen={true} badge="Novo">
+            <Sec title="Odaberi template" desc="Svaki template je potpuno drugačiji layout. Primijeni se after sačuvaj + refresh.">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {[
+                  { id: 'default', naziv: 'Default', emoji: '🏪', opis: 'Standardni izgled s hero sliderom, akcijama, grid katalogom i sidebarom' },
+                  { id: 'wurth', naziv: 'Würth Industrial', emoji: '🔧', opis: 'Dense katalog, dark header, tabela default, kompaktno. Za tehničku robu.' },
+                  { id: 'saas', naziv: 'SaaS Modern', emoji: '✨', opis: 'Glassmorphism header, gradient hero, kartice s glow animacijom. Kao Shopify Dawn.' },
+                ].map(t => {
+                  const isActive = (p.shop_template || 'default') === t.id
+                  return (
+                    <button key={t.id} onClick={() => set('shop_template', t.id)} style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '14px 16px', border: '2px solid ' + (isActive ? 'var(--brand)' : '#E5E7EB'), borderRadius: '12px', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left' as const, background: isActive ? 'var(--brand-pale)' : 'white', transition: 'all 0.15s', width: '100%' }}>
+                      <span style={{ fontSize: '28px', flexShrink: 0 }}>{t.emoji}</span>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '3px' }}>
+                          <span style={{ fontSize: '14px', fontWeight: 700, color: isActive ? 'var(--brand)' : '#111827' }}>{t.naziv}</span>
+                          {isActive && <span style={{ fontSize: '10px', fontWeight: 700, padding: '2px 8px', background: 'var(--brand)', color: 'white', borderRadius: '100px' }}>Aktivan</span>}
+                        </div>
+                        <p style={{ fontSize: '12px', color: '#6B7280', margin: 0 }}>{t.opis}</p>
+                      </div>
+                    </button>
+                  )
+                })}
+              </div>
+              <div style={{ padding: '10px 14px', background: '#FEF3C7', borderRadius: '8px', fontSize: '12px', color: '#92400E', display: 'flex', gap: '8px' }}>
+                <span>⚠</span> <span>Nakon odabira klikni <strong>Sačuvaj sve postavke</strong>, zatim refreshaj početnu stranicu da vidiš promjenu.</span>
+              </div>
+            </Sec>
+          </AccordionSec>
+
           <AccordionSec title="Izgled i boje" icon={<Palette size={18} />} defaultOpen={true}>
             <Sec title="Skinovi" desc="Jedan klik primjenjuje kompletan vizualni identitet — boje, font, header, CSS">
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
