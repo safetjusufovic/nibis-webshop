@@ -112,17 +112,27 @@ function NavKategorija({ p, grupe }: { p: HeaderPostavke; grupe: ArtikalGrupa[] 
       {open && (
         <div style={{ position: 'absolute', top: navH + 'px', left: 0, right: 0, background: 'white', boxShadow: '0 16px 48px rgba(0,0,0,0.18)', zIndex: 200, maxHeight: '70vh', overflowY: 'auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1px', backgroundColor: '#F3F4F6' }}>
           {/* Svi artikli */}
-          <Link href="/" onClick={() => setOpen(false)} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '13px 18px', background: 'white', textDecoration: 'none', fontSize: '13px', fontWeight: 500, color: '#374151', borderBottom: '1px solid #F9FAFB', transition: 'background 0.1s' }}
+          <button onClick={() => {
+              setOpen(false)
+              const url = new URL(window.location.href); url.searchParams.delete('grupaId')
+              window.history.pushState({}, '', url.toString())
+              window.dispatchEvent(new Event('grupaChanged'))
+            }} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '13px 18px', background: 'white', textDecoration: 'none', fontSize: '13px', fontWeight: 500, color: '#374151', borderBottom: '1px solid #F9FAFB', transition: 'background 0.1s', border: 'none', cursor: 'pointer', fontFamily: 'inherit', width: '100%', textAlign: 'left' as const }}
             onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#F0FDF4'}
             onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'white'}
           >
             <span style={{ width: '30px', height: '30px', background: '#F3F4F6', borderRadius: '7px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '15px', flexShrink: 0 }}>🏪</span>
             Svi artikli
-          </Link>
+          </button>
 
           {roots.map(g => (
-            <Link key={g.id} href={'/?grupaId=' + g.id} onClick={() => setOpen(false)}
-              style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '13px 18px', background: 'white', textDecoration: 'none', fontSize: '13px', fontWeight: 500, color: '#374151', transition: 'background 0.1s' }}
+            <button key={g.id} onClick={() => {
+                setOpen(false)
+                const url = new URL(window.location.href); url.searchParams.set('grupaId', String(g.id))
+                window.history.pushState({}, '', url.toString())
+                window.dispatchEvent(new Event('grupaChanged'))
+              }}
+              style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '13px 18px', background: 'white', fontSize: '13px', fontWeight: 500, color: '#374151', transition: 'background 0.1s', border: 'none', cursor: 'pointer', fontFamily: 'inherit', width: '100%', textAlign: 'left' as const }}
               onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.background = '#F9FAFB'; el.style.color = 'var(--brand)' }}
               onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.background = 'white'; el.style.color = '#374151' }}
             >
@@ -133,7 +143,7 @@ function NavKategorija({ p, grupe }: { p: HeaderPostavke; grupe: ArtikalGrupa[] 
                 }
               </span>
               <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{g.naziv}</span>
-            </Link>
+            </button>
           ))}
         </div>
       )}
