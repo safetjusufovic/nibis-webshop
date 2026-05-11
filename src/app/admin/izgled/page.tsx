@@ -88,129 +88,67 @@ const SKINOVI = [
     id: 'obsidian',
     naziv: 'Obsidian Pro',
     emoji: '⚫',
-    opis: 'Tamna pozadina, indigo akcenti, glassmorphism — trending 2025',
+    opis: 'Dark mode, indigo akcenti, glassmorphism kartice — #1 trend 2025',
     preview: ['#0f0f1a', '#6366f1', '#1e1b4b'],
-    postavke: {
-      theme_primary_boja: '#6366f1',
-      theme_bg_stranica: '#0f0f1a',
-      theme_bg_kartica: '#1a1a2e',
-      theme_border_boja: 'rgba(255,255,255,0.08)',
-      theme_tekst_boja: '#e2e8f0',
-      theme_tekst_muted: '#94a3b8',
-      theme_cijena_boja: '#818cf8',
-      theme_akcija_boja: '#f43f5e',
-      header_boja: '#6366f1',
-      header_tekst_boja: '#ffffff',
-      hero_boja_pozadine: '#1e1b4b',
-    },
-    css: 'body,.min-h-screen{background:#0f0f1a!important;color:#e2e8f0!important}header{background:linear-gradient(90deg,#6366f1,#8b5cf6)!important;box-shadow:0 4px 32px rgba(99,102,241,0.4)!important}header *{color:white!important}header input{background:rgba(255,255,255,0.12)!important;border-color:rgba(255,255,255,0.2)!important;color:white!important;border-radius:100px!important}[style*="background: white"],[style*="background:#ffffff"],[style*="background:#fff"]{background:rgba(255,255,255,0.05)!important;border-color:rgba(255,255,255,0.08)!important;backdrop-filter:blur(12px)!important}[style*="background: #F9FAFB"],[style*="background: #F8FAFA"],[style*="background:#f8fafa"]{background:rgba(255,255,255,0.03)!important}[style*="color: #111827"],[style*="color:#111827"]{color:#e2e8f0!important}[style*="color: #374151"],[style*="color:#374151"]{color:#cbd5e1!important}[style*="color: #6B7280"],[style*="color:#6B7280"]{color:#64748b!important}[style*="border: 1px solid #E5E7EB"]{border-color:rgba(255,255,255,0.08)!important}thead tr{background:rgba(255,255,255,0.04)!important}tbody tr:hover{background:rgba(99,102,241,0.1)!important}footer{background:#0d0d1a!important;border-top-color:rgba(255,255,255,0.06)!important}footer *{color:#94a3b8!important}select,input[type=number]{background:rgba(255,255,255,0.06)!important;border-color:rgba(255,255,255,0.1)!important;color:#e2e8f0!important}'
+    postavke: {},
+    css: ':root {\n  --brand: #6366f1;\n  --brand-light: #818cf8;\n  --brand-dark: #4f46e5;\n  --brand-pale: rgba(99,102,241,0.15);\n  --surface: #0f0f1a;\n  --bg-kartica: rgba(255,255,255,0.05);\n  --border: rgba(255,255,255,0.09);\n  --text: #e2e8f0;\n  --text-muted: #94a3b8;\n  --radius: 12px;\n  --kartica-radius: 16px;\n  --cijena: #818cf8;\n  --akcija: #f43f5e;\n}\n@import url(\'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap\');\nbody,.min-h-screen{background:#0f0f1a!important;color:#e2e8f0!important;font-family:\'Inter\',sans-serif!important}\nheader{background:linear-gradient(90deg,#6366f1 0%,#8b5cf6 100%)!important;box-shadow:0 4px 32px rgba(99,102,241,0.4)!important;border:none!important}\nheader *{color:white!important;font-family:\'Inter\',sans-serif!important}\nheader input{background:rgba(255,255,255,0.12)!important;border:1px solid rgba(255,255,255,0.2)!important;color:white!important;border-radius:100px!important}\nheader input::placeholder{color:rgba(255,255,255,0.5)!important}\nnav[style*="background"]{background:#1a1a2e!important;border-bottom:1px solid rgba(99,102,241,0.3)!important}\naside,aside *{background:#0d0d1a!important;border-color:rgba(255,255,255,0.07)!important}\n.bg-white,[style*="background: white"],[style*="background:#fff"],[style*="background: #fff"],[style*="background:#ffffff"],[style*="background: #ffffff"]{background:rgba(255,255,255,0.05)!important;border-color:rgba(255,255,255,0.08)!important;color:#e2e8f0!important}\n[style*="background: #F9FAFB"],[style*="background: #F8FAFA"],[style*="background:#F9FAFB"],[style*="background:#F8FAFA"],[style*="background:#f8fafa"],[style*="background: #f8fafa"]{background:rgba(255,255,255,0.03)!important}\n[style*="background: #F3F4F6"],[style*="background:#F3F4F6"]{background:rgba(255,255,255,0.04)!important}\n[style*="color: #111827"],[style*="color:#111827"]{color:#e2e8f0!important}\n[style*="color: #374151"],[style*="color:#374151"]{color:#cbd5e1!important}\n[style*="color: #6B7280"],[style*="color:#6B7280"]{color:#64748b!important}\n[style*="border: 1px solid #E5E7EB"],[style*="border-bottom: 1px solid #E5E7EB"],[style*="border-top: 1px solid #E5E7EB"]{border-color:rgba(255,255,255,0.08)!important}\n[style*="border: 1px solid #E5E7EB"]{border-color:rgba(255,255,255,0.08)!important}\nthead tr,[style*="background: #F9FAFB"]{background:rgba(255,255,255,0.04)!important}\ntbody tr:hover{background:rgba(99,102,241,0.12)!important}\ntable{color:#e2e8f0!important}\ntd,th{border-color:rgba(255,255,255,0.06)!important;color:#cbd5e1!important}\nselect,input[type=number],input[type=text],textarea{background:rgba(255,255,255,0.07)!important;border-color:rgba(255,255,255,0.12)!important;color:#e2e8f0!important}\nselect option{background:#1a1a2e!important;color:#e2e8f0!important}\nfooter{background:#080810!important;border-top:1px solid rgba(99,102,241,0.2)!important}\nfooter *{color:#94a3b8!important}\nfooter a:hover{color:#818cf8!important}\n::-webkit-scrollbar-track{background:#0f0f1a!important}\n::-webkit-scrollbar-thumb{background:#374151!important}',
   },
   {
     id: 'arctic',
     naziv: 'Arctic SaaS',
     emoji: '🧊',
-    opis: 'Ultra čist bijeli, sky-blue akcenti — kao Linear, Vercel',
+    opis: 'Ultra čist bijeli, sky-blue, blur header — kao Linear i Vercel',
     preview: ['#f8fafc', '#0ea5e9', '#ffffff'],
-    postavke: {
-      theme_primary_boja: '#0ea5e9',
-      theme_bg_stranica: '#f8fafc',
-      theme_bg_kartica: '#ffffff',
-      theme_border_boja: '#e2e8f0',
-      theme_tekst_boja: '#0f172a',
-      theme_tekst_muted: '#64748b',
-      theme_cijena_boja: '#0ea5e9',
-      theme_akcija_boja: '#f43f5e',
-      header_boja: '#ffffff',
-      header_tekst_boja: '#0f172a',
-      hero_boja_pozadine: '#0ea5e9',
-    },
-    css: 'body{font-family:Inter,DM Sans,sans-serif!important}header{background:rgba(255,255,255,0.92)!important;backdrop-filter:blur(20px)!important;border-bottom:1px solid #e2e8f0!important;box-shadow:0 1px 3px rgba(0,0,0,0.06)!important}[style*="background: #F9FAFB"],[style*="background: #F8FAFA"]{background:#f8fafc!important}tbody tr:hover{background:#f0f9ff!important}footer{background:white!important;border-top:1px solid #e2e8f0!important}'
+    postavke: {},
+    css: ':root {\n  --brand: #0ea5e9;\n  --brand-light: #38bdf8;\n  --brand-dark: #0284c7;\n  --brand-pale: #e0f2fe;\n  --surface: #f8fafc;\n  --bg-kartica: #ffffff;\n  --border: #e2e8f0;\n  --text: #0f172a;\n  --text-muted: #64748b;\n  --radius: 10px;\n  --kartica-radius: 12px;\n  --cijena: #0ea5e9;\n  --akcija: #f43f5e;\n}\n@import url(\'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap\');\nbody,.min-h-screen{background:#f8fafc!important;font-family:\'Inter\',system-ui,sans-serif!important}\nheader{background:rgba(255,255,255,0.85)!important;backdrop-filter:blur(20px)!important;-webkit-backdrop-filter:blur(20px)!important;border-bottom:1px solid #e2e8f0!important;box-shadow:0 1px 3px rgba(0,0,0,0.06),0 0 0 1px rgba(0,0,0,0.02)!important}\nheader *{color:#0f172a!important}\nnav[style*="background"]{background:#0ea5e9!important}\n[style*="background: #F9FAFB"],[style*="background: #F8FAFA"],[style*="background:#f8fafa"]{background:#f8fafc!important}\ntbody tr:hover{background:#f0f9ff!important}',
   },
   {
     id: 'midnight_gold',
     naziv: 'Midnight Gold',
     emoji: '✨',
-    opis: 'Tamno-plavi header, zlatni akcenti — premium luksuz',
+    opis: 'Tamno-plavi header, zlatni akcenti, topla pozadina — premium B2B',
     preview: ['#1e1b4b', '#f59e0b', '#fffbeb'],
-    postavke: {
-      theme_primary_boja: '#f59e0b',
-      theme_bg_stranica: '#fffbeb',
-      theme_bg_kartica: '#ffffff',
-      theme_border_boja: '#fde68a',
-      theme_tekst_boja: '#1e1b4b',
-      theme_tekst_muted: '#92400e',
-      theme_cijena_boja: '#d97706',
-      theme_akcija_boja: '#dc2626',
-      header_boja: '#1e1b4b',
-      header_tekst_boja: '#ffffff',
-      hero_boja_pozadine: '#1e1b4b',
-    },
-    css: 'body{font-family:"Plus Jakarta Sans",DM Sans,sans-serif!important}header{background:#1e1b4b!important;border-bottom:2px solid #f59e0b!important;box-shadow:0 4px 20px rgba(30,27,75,0.5)!important}header *{color:white!important}header input{background:rgba(255,255,255,0.1)!important;border-color:rgba(245,158,11,0.4)!important;color:white!important}[style*="background: #F9FAFB"],[style*="background: #F8FAFA"]{background:#fffbeb!important}[style*="border: 1px solid #E5E7EB"]{border-color:#fde68a!important}tbody tr:hover{background:rgba(245,158,11,0.06)!important}footer{background:#1e1b4b!important;border-top-color:#f59e0b!important}footer *{color:rgba(255,255,255,0.75)!important}'
+    postavke: {},
+    css: ':root {\n  --brand: #f59e0b;\n  --brand-light: #fbbf24;\n  --brand-dark: #d97706;\n  --brand-pale: rgba(245,158,11,0.12);\n  --surface: #fffbeb;\n  --bg-kartica: #ffffff;\n  --border: #fde68a;\n  --text: #1e1b4b;\n  --text-muted: #78716c;\n  --radius: 8px;\n  --kartica-radius: 12px;\n  --cijena: #d97706;\n  --akcija: #dc2626;\n}\n@import url(\'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap\');\nbody,.min-h-screen{background:#fffbeb!important;font-family:\'Plus Jakarta Sans\',sans-serif!important}\nheader{background:#1e1b4b!important;border-bottom:2px solid #f59e0b!important;box-shadow:0 4px 20px rgba(30,27,75,0.5)!important}\nheader *{color:white!important;font-family:\'Plus Jakarta Sans\',sans-serif!important}\nheader input{background:rgba(255,255,255,0.1)!important;border:1px solid rgba(245,158,11,0.4)!important;color:white!important}\nheader input::placeholder{color:rgba(255,255,255,0.5)!important}\nnav[style*="background"]{background:#2d2a6e!important;border-bottom:1px solid rgba(245,158,11,0.3)!important}\n[style*="background: #F9FAFB"],[style*="background: #F8FAFA"],[style*="background:#f8fafa"]{background:#fffbeb!important}\n[style*="border: 1px solid #E5E7EB"]{border-color:#fde68a!important}\ntbody tr:hover{background:rgba(245,158,11,0.07)!important}\ntd,th{border-color:#fef3c7!important}\nthead tr{background:#fffbeb!important}\nfooter{background:#1e1b4b!important;border-top:2px solid #f59e0b!important}\nfooter *{color:rgba(255,255,255,0.75)!important}\nfooter a:hover{color:#f59e0b!important}',
   },
   {
     id: 'forest_pro',
     naziv: 'Forest Pro',
     emoji: '🌲',
-    opis: 'Duboko zeleni gradient, premium B2B — Würth stil',
+    opis: 'Gradient zeleni header, mint pozadina — profesionalni industrijski B2B',
     preview: ['#064e3b', '#10b981', '#f0fdf4'],
-    postavke: {
-      theme_primary_boja: '#059669',
-      theme_bg_stranica: '#f0fdf4',
-      theme_bg_kartica: '#ffffff',
-      theme_border_boja: '#bbf7d0',
-      theme_tekst_boja: '#052e16',
-      theme_tekst_muted: '#166534',
-      theme_cijena_boja: '#059669',
-      theme_akcija_boja: '#dc2626',
-      header_boja: '#064e3b',
-      header_tekst_boja: '#ffffff',
-      hero_boja_pozadine: '#064e3b',
-    },
-    css: 'header{background:linear-gradient(90deg,#064e3b,#065f46)!important;box-shadow:0 4px 16px rgba(6,78,59,0.4)!important;border:none!important}header *{color:white!important}header input{background:rgba(255,255,255,0.12)!important;border-color:rgba(255,255,255,0.2)!important;color:white!important}[style*="background: #F9FAFB"],[style*="background: #F8FAFA"]{background:#f0fdf4!important}[style*="border: 1px solid #E5E7EB"]{border-color:#bbf7d0!important}tbody tr:hover{background:rgba(5,150,105,0.06)!important}'
+    postavke: {},
+    css: ':root {\n  --brand: #059669;\n  --brand-light: #10b981;\n  --brand-dark: #047857;\n  --brand-pale: #d1fae5;\n  --surface: #f0fdf4;\n  --bg-kartica: #ffffff;\n  --border: #bbf7d0;\n  --text: #052e16;\n  --text-muted: #166534;\n  --radius: 10px;\n  --kartica-radius: 14px;\n  --cijena: #059669;\n  --akcija: #dc2626;\n}\nheader{background:linear-gradient(90deg,#064e3b 0%,#065f46 60%,#047857 100%)!important;box-shadow:0 4px 16px rgba(6,78,59,0.4)!important;border:none!important}\nheader *{color:white!important}\nheader input{background:rgba(255,255,255,0.12)!important;border:1px solid rgba(255,255,255,0.2)!important;color:white!important;border-radius:8px!important}\nheader input::placeholder{color:rgba(255,255,255,0.55)!important}\nnav[style*="background"]{background:#065f46!important}\nbody,.min-h-screen{background:#f0fdf4!important}\n[style*="background: #F9FAFB"],[style*="background: #F8FAFA"],[style*="background:#f8fafa"]{background:#f0fdf4!important}\n[style*="border: 1px solid #E5E7EB"]{border-color:#bbf7d0!important}\ntbody tr:hover{background:rgba(5,150,105,0.07)!important}\ntd,th{border-color:#d1fae5!important}\nthead tr{background:#f0fdf4!important}\nfooter{background:#022c22!important;border-top:1px solid #065f46!important}\nfooter *{color:rgba(255,255,255,0.7)!important}',
   },
   {
-    id: 'warm_minimal',
-    naziv: 'Warm Minimal',
+    id: 'warm_stone',
+    naziv: 'Warm Stone',
     emoji: '🍂',
-    opis: 'Topli earth tones, serif naslovi — organik premium trend 2025',
-    preview: ['#fafaf9', '#78350f', '#fef3c7'],
-    postavke: {
-      theme_primary_boja: '#92400e',
-      theme_bg_stranica: '#fafaf9',
-      theme_bg_kartica: '#ffffff',
-      theme_border_boja: '#e7e5e4',
-      theme_tekst_boja: '#1c1917',
-      theme_tekst_muted: '#78716c',
-      theme_cijena_boja: '#92400e',
-      theme_akcija_boja: '#b91c1c',
-      header_boja: '#1c1917',
-      header_tekst_boja: '#ffffff',
-      hero_boja_pozadine: '#292524',
-    },
-    css: 'body{font-family:Georgia,"Times New Roman",serif!important}h1,h2,h3,.text-xl,.text-2xl,.text-3xl{font-family:Georgia,"Playfair Display",serif!important;letter-spacing:-0.02em!important}header{background:#1c1917!important;border-bottom:1px solid #92400e!important;box-shadow:none!important}header *{color:white!important;font-family:Inter,sans-serif!important}header input{background:rgba(255,255,255,0.08)!important;border-color:rgba(146,64,14,0.4)!important;color:white!important}[style*="background: #F9FAFB"],[style*="background: #F8FAFA"]{background:#fafaf9!important}tbody tr:hover{background:rgba(146,64,14,0.04)!important}footer{background:#1c1917!important;border-top-color:#92400e!important}footer *{color:rgba(255,255,255,0.7)!important}'
+    opis: 'Earth tones, tamni header, serif naslovi — organic premium trend 2025',
+    preview: ['#fafaf9', '#78350f', '#292524'],
+    postavke: {},
+    css: ':root {\n  --brand: #92400e;\n  --brand-light: #b45309;\n  --brand-dark: #78350f;\n  --brand-pale: rgba(146,64,14,0.1);\n  --surface: #fafaf9;\n  --bg-kartica: #ffffff;\n  --border: #e7e5e4;\n  --text: #1c1917;\n  --text-muted: #78716c;\n  --radius: 8px;\n  --kartica-radius: 10px;\n  --cijena: #92400e;\n  --akcija: #b91c1c;\n}\n@import url(\'https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap\');\nbody,.min-h-screen{background:#fafaf9!important;font-family:\'Inter\',sans-serif!important}\nh1,h2,h3,[style*="font-weight: 700"],[style*="fontWeight: 700"],[style*="font-weight: 800"],[style*="fontWeight: 800"]{font-family:\'Lora\',\'Georgia\',serif!important}\nheader{background:#292524!important;border-bottom:1px solid #92400e!important;box-shadow:0 2px 12px rgba(0,0,0,0.3)!important}\nheader *{color:#fafaf9!important;font-family:\'Inter\',sans-serif!important}\nheader input{background:rgba(255,255,255,0.08)!important;border:1px solid rgba(146,64,14,0.4)!important;color:#fafaf9!important}\nheader input::placeholder{color:rgba(255,255,255,0.4)!important}\nnav[style*="background"]{background:#1c1917!important;border-bottom:1px solid rgba(146,64,14,0.3)!important}\n[style*="background: #F9FAFB"],[style*="background: #F8FAFA"],[style*="background:#f8fafa"]{background:#fafaf9!important}\n[style*="border: 1px solid #E5E7EB"]{border-color:#e7e5e4!important}\ntbody tr:hover{background:rgba(146,64,14,0.05)!important}\ntd,th{border-color:#f5f5f4!important}\nthead tr{background:#fafaf9!important;color:#78716c!important}\nfooter{background:#1c1917!important;border-top:1px solid #92400e!important}\nfooter *{color:rgba(250,250,249,0.65)!important}\nfooter a:hover{color:#b45309!important}\n::-webkit-scrollbar-thumb{background:#d6d3d1!important}',
   },
   {
     id: 'violet_storm',
     naziv: 'Violet Storm',
     emoji: '💜',
-    opis: 'Purple gradient header, lavanda pozadina — modern SaaS',
+    opis: 'Purple gradient header, lavanda pozadina — modern SaaS kao HubSpot',
     preview: ['#faf5ff', '#9333ea', '#c026d3'],
-    postavke: {
-      theme_primary_boja: '#9333ea',
-      theme_bg_stranica: '#faf5ff',
-      theme_bg_kartica: '#ffffff',
-      theme_border_boja: '#e9d5ff',
-      theme_tekst_boja: '#3b0764',
-      theme_tekst_muted: '#7e22ce',
-      theme_cijena_boja: '#9333ea',
-      theme_akcija_boja: '#e11d48',
-      header_boja: '#7c3aed',
-      header_tekst_boja: '#ffffff',
-      hero_boja_pozadine: '#7c3aed',
-    },
-    css: 'header{background:linear-gradient(135deg,#7c3aed,#9333ea,#c026d3)!important;box-shadow:0 4px 24px rgba(147,51,234,0.4)!important;border:none!important}header *{color:white!important}header input{background:rgba(255,255,255,0.15)!important;border-color:rgba(255,255,255,0.25)!important;color:white!important}[style*="background: #F9FAFB"],[style*="background: #F8FAFA"]{background:#faf5ff!important}[style*="border: 1px solid #E5E7EB"]{border-color:#e9d5ff!important}tbody tr:hover{background:rgba(147,51,234,0.06)!important}'
+    postavke: {},
+    css: ':root {\n  --brand: #9333ea;\n  --brand-light: #a855f7;\n  --brand-dark: #7c3aed;\n  --brand-pale: rgba(147,51,234,0.1);\n  --surface: #faf5ff;\n  --bg-kartica: #ffffff;\n  --border: #e9d5ff;\n  --text: #3b0764;\n  --text-muted: #7e22ce;\n  --radius: 12px;\n  --kartica-radius: 16px;\n  --cijena: #9333ea;\n  --akcija: #e11d48;\n}\n@import url(\'https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap\');\nbody,.min-h-screen{background:#faf5ff!important;font-family:\'Nunito\',sans-serif!important}\nheader{background:linear-gradient(135deg,#7c3aed 0%,#9333ea 50%,#c026d3 100%)!important;box-shadow:0 4px 24px rgba(147,51,234,0.4)!important;border:none!important}\nheader *{color:white!important;font-family:\'Nunito\',sans-serif!important}\nheader input{background:rgba(255,255,255,0.15)!important;border:1px solid rgba(255,255,255,0.25)!important;color:white!important;border-radius:100px!important}\nheader input::placeholder{color:rgba(255,255,255,0.55)!important}\nnav[style*="background"]{background:#7c3aed!important;border-bottom:none!important;box-shadow:0 2px 8px rgba(124,58,237,0.3)!important}\n[style*="background: #F9FAFB"],[style*="background: #F8FAFA"],[style*="background:#f8fafa"]{background:#fdf4ff!important}\n[style*="border: 1px solid #E5E7EB"]{border-color:#e9d5ff!important}\n[style*="background: white"],[style*="background:#ffffff"]{border-color:#e9d5ff!important}\ntbody tr:hover{background:rgba(147,51,234,0.07)!important}\ntd,th{border-color:#f3e8ff!important}\nthead tr{background:#fdf4ff!important}\nfooter{background:#2e1065!important;border-top:1px solid rgba(147,51,234,0.3)!important}\nfooter *{color:rgba(255,255,255,0.7)!important}\nfooter a:hover{color:#c084fc!important}',
   },
 ]
+
+// Backwards compat
+const PRESET_TEME = SKINOVI.map(s => ({
+  naziv: s.naziv, emoji: s.emoji,
+  primary: '#0F6E56', bg: '#F8FAFA',
+  kartica: '#ffffff', border: '#E8EDEB',
+  tekst: '#0D1F1A', muted: '#6B8279',
+  header: '#ffffff', hero: '#0F6E56',
+}))
+
 
 // Backwards compat - keep PRESET_TEME as alias
 const PRESET_TEME = SKINOVI.map(s => ({
@@ -535,13 +473,13 @@ export default function IzgledPage() {
     historyRef.current = [...historyRef.current.slice(-30), p]
     setHistory([...historyRef.current])
     lastKeyRef.current = ''
-    const updates = { ...skin.postavke, theme_custom_css: skin.css }
+    // Skin sprema samo CSS koji uključuje :root varijable
+    const updates = { theme_custom_css: skin.css }
     setP(prev => ({ ...prev, ...updates }))
     setChanged(true)
-    Object.entries(updates).forEach(([k, v]) => {
-      applyLive(k, v)
-      iframeRef.current?.contentWindow?.postMessage({ type: 'THEME_UPDATE', key: k, value: v }, '*')
-    })
+    // Apliciraj CSS odmah
+    applyLive('theme_custom_css', skin.css)
+    iframeRef.current?.contentWindow?.postMessage({ type: 'THEME_UPDATE', key: 'theme_custom_css', value: skin.css }, '*')
   }
 
   function undo() {
