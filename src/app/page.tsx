@@ -105,14 +105,14 @@ function CategorySidebar({ grupe, activeId, onSelect, sirina = 240, sidebarConfi
                     <span style={{
                       width: ikonaSize + 'px',
                       height: ikonaSize + 'px',
-                      borderRadius: '8px',
+                      borderRadius: ikonaRadius + 'px',
                       flexShrink: 0,
-                      background: root.ikonaUrl ? 'transparent' : (isSelected ? 'rgba(255,255,255,0.22)' : boja),
+                      background: isSelected ? 'rgba(255,255,255,0.22)' : boja,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       overflow: 'hidden',
-                      boxShadow: isSelected ? 'none' : `0 2px 6px ${boja}50`,
+                      boxShadow: isSelected ? 'none' : '0 2px 6px ' + boja + '50',
                     }}>
                       {root.ikonaUrl ? (
                         <img
@@ -122,7 +122,6 @@ function CategorySidebar({ grupe, activeId, onSelect, sirina = 240, sidebarConfi
                             width: '100%',
                             height: '100%',
                             objectFit: 'cover',
-                            borderRadius: ikonaRadius + 'px',
                           }}
                         />
                       ) : (

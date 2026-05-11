@@ -128,8 +128,8 @@ function NavKategorija({ p, grupe }: { p: HeaderPostavke; grupe: ArtikalGrupa[] 
             >
               <span style={{ width: '30px', height: '30px', background: g.boja || '#F3F4F6', borderRadius: '7px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', flexShrink: 0, overflow: 'hidden' }}>
                 {g.ikonaUrl
-                  ? <img src={g.ikonaUrl} alt="" style={{ width: '20px', height: '20px', objectFit: 'contain' }} />
-                  : (g.ikonaEmoji || '📦')
+                  ? <img src={g.ikonaUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '7px' }} />
+                  : <span style={{ fontSize: '15px' }}>{g.ikonaEmoji || '📦'}</span>
                 }
               </span>
               <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{g.naziv}</span>
