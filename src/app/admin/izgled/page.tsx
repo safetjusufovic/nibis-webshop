@@ -35,6 +35,7 @@ const DEFAULTS: Postavke = {
   topbar_telefon: '', topbar_email: '', topbar_radno_vrijeme: '',
   topbar_adresa: '', topbar_jezik_switcher: 'true', topbar_custom_tekst: '',
   announcement_bar: '', baner_boja_pozadine: '#085041', baner_boja_teksta: '#ffffff',
+  shop_template: 'default',
   navkat_aktivan: 'true', navkat_featured: '[]', navkat_boja: '#1e3a5f', navkat_tekst_boja: '#ffffff',
   navkat_visina: '44', navkat_stil: 'flat', navkat_akcijski_dugme: 'false',
   navkat_akcijski_tekst: 'Akcijski proizvodi', navkat_akcijski_boja: '#DC2626',

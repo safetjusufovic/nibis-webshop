@@ -4,6 +4,10 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { SlidersHorizontal, ChevronRight, ChevronDown, Package, ShoppingCart, Plus, LayoutGrid, LayoutList } from 'lucide-react'
 import Header from '@/components/layout/Header'
 import AkcijeSlider from '@/components/shop/AkcijeSlider'
+import dynamic from 'next/dynamic'
+
+const WurthTemplate = dynamic(() => import('@/app/templates/wurth-industrial'), { ssr: false })
+const SaasTemplate = dynamic(() => import('@/app/templates/saas-modern'), { ssr: false })
 import HeroBanner from '@/components/shop/HeroBanner'
 import HeroSlider from '@/components/shop/HeroSlider'
 import { useCart } from '@/hooks/useCart'
@@ -768,6 +772,7 @@ export default function HomePage() {
   const [cijenaOd, setCijenaOd] = useState('')
   const [viewMode, setViewMode] = useState<'table' | 'grid'>('grid')
   const [perPage, setPerPage] = useState(siteConfig.perPage)
+  const [shopTemplate, setShopTemplate] = useState('default')
   const [dugmeTekst, setDugmeTekst] = useState('Dodaj')
   const [searchSuggestions, setSearchSuggestions] = useState<{id: number; naziv: string; sifra: string}[]>([])
   const [showSuggestions, setShowSuggestions] = useState(false)
@@ -776,12 +781,13 @@ export default function HomePage() {
 
   // Učitaj dinamičke postavke iz baze
   useEffect(() => {
-    fetch('/api/postavke?kljuci=default_view,per_page,artikal_dugme_tekst,artikal_prikaz_dvije_cijene,artikal_prikaz_sifra,artikal_prikaz_kategorija,sidebar_pozicija,sidebar_sirina,sidebar_boja_pozadine,sidebar_visina_kategorije')
+    fetch('/api/postavke?kljuci=default_view,per_page,artikal_dugme_tekst,shop_template,artikal_prikaz_dvije_cijene,artikal_prikaz_sifra,artikal_prikaz_kategorija,sidebar_pozicija,sidebar_sirina,sidebar_boja_pozadine,sidebar_visina_kategorije')
       .then(r => r.json())
       .then(d => {
         if (d.default_view === 'table' || d.default_view === 'grid') setViewMode(d.default_view)
         if (d.per_page) setPerPage(parseInt(d.per_page) || siteConfig.perPage)
         if (d.artikal_dugme_tekst) setDugmeTekst(d.artikal_dugme_tekst)
+        if (d.shop_template) setShopTemplate(d.shop_template)
         if (d.sidebar_sirina) setSidebarSirina(parseInt(d.sidebar_sirina))
         if (d.sidebar_boja_pozadine || d.sidebar_visina_kategorije) {
           setSidebarConfig(prev => ({
@@ -882,6 +888,10 @@ export default function HomePage() {
     : artikli
 
   const totalPages = Math.ceil(total / perPage)
+
+  // Template switcher
+  if (shopTemplate === 'wurth') return <WurthTemplate />
+  if (shopTemplate === 'saas') return <SaasTemplate />
 
   return (
     <div className="min-h-screen" style={{ background: "var(--surface)" }}>
