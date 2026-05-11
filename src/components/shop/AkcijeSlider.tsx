@@ -39,8 +39,10 @@ export default function AkcijeSlider() {
         const ids = items.map((a: any) => a.id).join(',')
         try {
           const sr = await fetch('/api/stanje?ids=' + ids)
-          const stanjeMap = sr.ok ? await sr.json() : {}
-          const withPrices = items.map((a: any) => ({ ...a, _stanje: stanjeMap[a.id] || null }))
+          const stanjeData = sr.ok ? await sr.json() : { items: [] }
+          const stanjeByArtikalId: Record<number, any> = {}
+          ;(stanjeData.items || []).forEach((s: any) => { stanjeByArtikalId[s.artikalId] = s })
+          const withPrices = items.map((a: any) => ({ ...a, _stanje: stanjeByArtikalId[a.id] || null }))
           setArtikli(withPrices)
         } catch {
           setArtikli(items)
@@ -187,8 +189,7 @@ export default function AkcijeSlider() {
               ))
               : displayItems.map((a, idx) => {
                 const s = (a as any)._stanje
-                const tipCijene = process.env.NEXT_PUBLIC_TIP_CIJENE || 'mpcijena'
-                const cijenaBase = s ? (s[tipCijene] || s.mpcijena || s.vpcijena || 0) : 0
+                const cijenaBase = s ? (s.mpcijena || s.vpcijena || 0) : 0
                 const cijena = cijenaBase > 0 ? cijenaBase * (1 - a.akcija_popust / 100) : 0
                 const cijenaKupca = (rabat > 0 && cijena > 0) ? cijena * (1 - rabat / 100) : cijena
 

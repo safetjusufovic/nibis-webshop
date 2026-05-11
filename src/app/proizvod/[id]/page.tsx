@@ -29,28 +29,14 @@ export default function ProizvodPage() {
       .then(r => r.ok ? r.json() : null)
       .then(a => {
         if (!a || a.error) { setLoading(false); return }
-        // Normalize snake_case to camelCase
-        const normalized = {
-          ...a,
-          sifra: a.sifra,
-          naziv: a.naziv,
-          grupaId: a.grupa_id,
-          grupa: a.grupe,
-          planskaMaloprodajnaCijena: a.planska_maloprodajna_cijena || 0,
-          planskaVeleprodajnaCijena: a.planska_veleprodajna_cijena || 0,
-          procPoreza: a.proc_poreza || 0,
-          tarBroj: a.tar_broj,
-          jedinicaMjere: a.jedinica_mjere,
-          slika_url: a.slika_url,
-          akcija_popust: a.akcija_popust || 0,
-          akcija_do: a.akcija_do,
-        }
-        setArtikal(normalized)
-        // Fetch stanje
+        setArtikal(a)
         return fetch('/api/stanje?ids=' + id).then(r => r.ok ? r.json() : null)
       })
       .then(s => {
-        if (s) setStanje(s[id] || s[parseInt(id)] || null)
+        if (s?.items) {
+          const found = s.items.find((x: any) => x.artikalId === parseInt(id))
+          setStanje(found || null)
+        }
         setLoading(false)
       })
       .catch(() => setLoading(false))
