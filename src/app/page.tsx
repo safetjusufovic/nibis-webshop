@@ -8,8 +8,11 @@ import dynamic from 'next/dynamic'
 
 const WurthTemplate = dynamic(() => import('@/app/templates/wurth-industrial'), { ssr: false })
 const SaasTemplate = dynamic(() => import('@/app/templates/saas-modern'), { ssr: false })
+const WarmTemplate = dynamic(() => import('@/app/templates/warm-editorial'), { ssr: false })
+const DarkTemplate = dynamic(() => import('@/app/templates/obsidian-dark'), { ssr: false })
 import HeroBanner from '@/components/shop/HeroBanner'
 import HeroSlider from '@/components/shop/HeroSlider'
+import FooterComponent from '@/components/layout/Footer'
 import { useCart } from '@/hooks/useCart'
 import { useAuth } from '@/hooks/useAuth'
 import { useFavoriti } from '@/hooks/useFavoriti'
@@ -892,6 +895,8 @@ export default function HomePage() {
   // Template switcher
   if (shopTemplate === 'wurth') return <WurthTemplate />
   if (shopTemplate === 'saas') return <SaasTemplate />
+  if (shopTemplate === 'warm') return <WarmTemplate />
+  if (shopTemplate === 'dark') return <DarkTemplate />
 
   return (
     <div className="min-h-screen" style={{ background: "var(--surface)" }}>
@@ -1133,7 +1138,7 @@ export default function HomePage() {
         {/* Scroll to top */}
         <ScrollToTop />
 
-        <Footer />
+        <FooterComponent />
 
       </div>
   )

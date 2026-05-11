@@ -582,8 +582,10 @@ export default function IzgledPage() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {[
                   { id: 'default', naziv: 'Default', emoji: '🏪', opis: 'Standardni izgled s hero sliderom, akcijama, grid katalogom i sidebarom' },
-                  { id: 'wurth', naziv: 'Würth Industrial', emoji: '🔧', opis: 'Dense katalog, dark header, tabela default, kompaktno. Za tehničku robu.' },
+                  { id: 'wurth', naziv: 'Würth Industrial', emoji: '🔧', opis: 'Dense katalog, dark header, tabela default, kompaktno. Za tehničku robu s 5000+ artikala.' },
                   { id: 'saas', naziv: 'SaaS Modern', emoji: '✨', opis: 'Glassmorphism header, gradient hero, kartice s glow animacijom. Kao Shopify Dawn.' },
+                  { id: 'warm', naziv: 'Warm Editorial', emoji: '🍂', opis: 'Serif naslovi, left sidebar, lista s velikom slikom. Magazinski premium stil.' },
+                  { id: 'dark', naziv: 'Obsidian Dark', emoji: '⚫', opis: 'Tamni layout, neon akcenti, glow hover. Za tech/IT B2B kompanije.' },
                 ].map(t => {
                   const isActive = (p.shop_template || 'default') === t.id
                   return (
