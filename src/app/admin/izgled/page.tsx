@@ -83,31 +83,144 @@ const DEFAULTS: Postavke = {
   ]),
 }
 
-const PRESET_TEME = [
-  { naziv: 'Emerald', emoji: '🟢', primary: '#0F6E56', bg: '#F8FAFA', kartica: '#ffffff', border: '#E8EDEB', tekst: '#0D1F1A', muted: '#6B8279', header: '#ffffff', hero: '#0F6E56' },
-  { naziv: 'Ocean', emoji: '🔵', primary: '#0369A1', bg: '#F0F9FF', kartica: '#ffffff', border: '#BAE6FD', tekst: '#0C4A6E', muted: '#4B88A2', header: '#ffffff', hero: '#0369A1' },
-  { naziv: 'Midnight', emoji: '⚫', primary: '#6366F1', bg: '#0F172A', kartica: '#1E293B', border: '#334155', tekst: '#F1F5F9', muted: '#94A3B8', header: '#1E293B', hero: '#312E81' },
-  { naziv: 'Violet', emoji: '🟣', primary: '#7C3AED', bg: '#FAF5FF', kartica: '#ffffff', border: '#E9D5FF', tekst: '#2E1065', muted: '#7C3AED', header: '#ffffff', hero: '#7C3AED' },
-  { naziv: 'Corporate', emoji: '🔷', primary: '#1e3a5f', bg: '#F8FAFC', kartica: '#ffffff', border: '#E2E8F0', tekst: '#0F172A', muted: '#64748B', header: '#1e3a5f', hero: '#1e3a5f' },
-  { naziv: 'Rose', emoji: '🌹', primary: '#E11D48', bg: '#FFF1F2', kartica: '#ffffff', border: '#FECDD3', tekst: '#881337', muted: '#BE123C', header: '#ffffff', hero: '#E11D48' },
-  { naziv: 'Sunset', emoji: '🌅', primary: '#EA580C', bg: '#FFF7ED', kartica: '#ffffff', border: '#FED7AA', tekst: '#431407', muted: '#9A3412', header: '#ffffff', hero: '#C2410C' },
-  { naziv: 'Forest', emoji: '🌲', primary: '#166534', bg: '#F0FDF4', kartica: '#ffffff', border: '#BBF7D0', tekst: '#052E16', muted: '#15803D', header: '#14532D', hero: '#166534' },
-  { naziv: 'Gold', emoji: '✨', primary: '#B45309', bg: '#FFFBEB', kartica: '#ffffff', border: '#FDE68A', tekst: '#451A03', muted: '#92400E', header: '#ffffff', hero: '#92400E' },
-  { naziv: 'Slate', emoji: '🩶', primary: '#475569', bg: '#F8FAFC', kartica: '#ffffff', border: '#E2E8F0', tekst: '#0F172A', muted: '#64748B', header: '#1E293B', hero: '#334155' },
-  { naziv: 'Sakura', emoji: '🌸', primary: '#DB2777', bg: '#FDF2F8', kartica: '#ffffff', border: '#FBCFE8', tekst: '#500724', muted: '#BE185D', header: '#ffffff', hero: '#BE185D' },
-  { naziv: 'Arctic', emoji: '🧊', primary: '#0891B2', bg: '#ECFEFF', kartica: '#ffffff', border: '#A5F3FC', tekst: '#164E63', muted: '#0E7490', header: '#083344', hero: '#0E7490' },
+const SKINOVI = [
+  {
+    id: 'obsidian',
+    naziv: 'Obsidian Pro',
+    emoji: '⚫',
+    opis: 'Tamna pozadina, indigo akcenti, glassmorphism — trending 2025',
+    preview: ['#0f0f1a', '#6366f1', '#1e1b4b'],
+    postavke: {
+      theme_primary_boja: '#6366f1',
+      theme_bg_stranica: '#0f0f1a',
+      theme_bg_kartica: '#1a1a2e',
+      theme_border_boja: 'rgba(255,255,255,0.08)',
+      theme_tekst_boja: '#e2e8f0',
+      theme_tekst_muted: '#94a3b8',
+      theme_cijena_boja: '#818cf8',
+      theme_akcija_boja: '#f43f5e',
+      header_boja: '#6366f1',
+      header_tekst_boja: '#ffffff',
+      hero_boja_pozadine: '#1e1b4b',
+    },
+    css: 'body,.min-h-screen{background:#0f0f1a!important;color:#e2e8f0!important}header{background:linear-gradient(90deg,#6366f1,#8b5cf6)!important;box-shadow:0 4px 32px rgba(99,102,241,0.4)!important}header *{color:white!important}header input{background:rgba(255,255,255,0.12)!important;border-color:rgba(255,255,255,0.2)!important;color:white!important;border-radius:100px!important}[style*="background: white"],[style*="background:#ffffff"],[style*="background:#fff"]{background:rgba(255,255,255,0.05)!important;border-color:rgba(255,255,255,0.08)!important;backdrop-filter:blur(12px)!important}[style*="background: #F9FAFB"],[style*="background: #F8FAFA"],[style*="background:#f8fafa"]{background:rgba(255,255,255,0.03)!important}[style*="color: #111827"],[style*="color:#111827"]{color:#e2e8f0!important}[style*="color: #374151"],[style*="color:#374151"]{color:#cbd5e1!important}[style*="color: #6B7280"],[style*="color:#6B7280"]{color:#64748b!important}[style*="border: 1px solid #E5E7EB"]{border-color:rgba(255,255,255,0.08)!important}thead tr{background:rgba(255,255,255,0.04)!important}tbody tr:hover{background:rgba(99,102,241,0.1)!important}footer{background:#0d0d1a!important;border-top-color:rgba(255,255,255,0.06)!important}footer *{color:#94a3b8!important}select,input[type=number]{background:rgba(255,255,255,0.06)!important;border-color:rgba(255,255,255,0.1)!important;color:#e2e8f0!important}'
+  },
+  {
+    id: 'arctic',
+    naziv: 'Arctic SaaS',
+    emoji: '🧊',
+    opis: 'Ultra čist bijeli, sky-blue akcenti — kao Linear, Vercel',
+    preview: ['#f8fafc', '#0ea5e9', '#ffffff'],
+    postavke: {
+      theme_primary_boja: '#0ea5e9',
+      theme_bg_stranica: '#f8fafc',
+      theme_bg_kartica: '#ffffff',
+      theme_border_boja: '#e2e8f0',
+      theme_tekst_boja: '#0f172a',
+      theme_tekst_muted: '#64748b',
+      theme_cijena_boja: '#0ea5e9',
+      theme_akcija_boja: '#f43f5e',
+      header_boja: '#ffffff',
+      header_tekst_boja: '#0f172a',
+      hero_boja_pozadine: '#0ea5e9',
+    },
+    css: 'body{font-family:Inter,DM Sans,sans-serif!important}header{background:rgba(255,255,255,0.92)!important;backdrop-filter:blur(20px)!important;border-bottom:1px solid #e2e8f0!important;box-shadow:0 1px 3px rgba(0,0,0,0.06)!important}[style*="background: #F9FAFB"],[style*="background: #F8FAFA"]{background:#f8fafc!important}tbody tr:hover{background:#f0f9ff!important}footer{background:white!important;border-top:1px solid #e2e8f0!important}'
+  },
+  {
+    id: 'midnight_gold',
+    naziv: 'Midnight Gold',
+    emoji: '✨',
+    opis: 'Tamno-plavi header, zlatni akcenti — premium luksuz',
+    preview: ['#1e1b4b', '#f59e0b', '#fffbeb'],
+    postavke: {
+      theme_primary_boja: '#f59e0b',
+      theme_bg_stranica: '#fffbeb',
+      theme_bg_kartica: '#ffffff',
+      theme_border_boja: '#fde68a',
+      theme_tekst_boja: '#1e1b4b',
+      theme_tekst_muted: '#92400e',
+      theme_cijena_boja: '#d97706',
+      theme_akcija_boja: '#dc2626',
+      header_boja: '#1e1b4b',
+      header_tekst_boja: '#ffffff',
+      hero_boja_pozadine: '#1e1b4b',
+    },
+    css: 'body{font-family:"Plus Jakarta Sans",DM Sans,sans-serif!important}header{background:#1e1b4b!important;border-bottom:2px solid #f59e0b!important;box-shadow:0 4px 20px rgba(30,27,75,0.5)!important}header *{color:white!important}header input{background:rgba(255,255,255,0.1)!important;border-color:rgba(245,158,11,0.4)!important;color:white!important}[style*="background: #F9FAFB"],[style*="background: #F8FAFA"]{background:#fffbeb!important}[style*="border: 1px solid #E5E7EB"]{border-color:#fde68a!important}tbody tr:hover{background:rgba(245,158,11,0.06)!important}footer{background:#1e1b4b!important;border-top-color:#f59e0b!important}footer *{color:rgba(255,255,255,0.75)!important}'
+  },
+  {
+    id: 'forest_pro',
+    naziv: 'Forest Pro',
+    emoji: '🌲',
+    opis: 'Duboko zeleni gradient, premium B2B — Würth stil',
+    preview: ['#064e3b', '#10b981', '#f0fdf4'],
+    postavke: {
+      theme_primary_boja: '#059669',
+      theme_bg_stranica: '#f0fdf4',
+      theme_bg_kartica: '#ffffff',
+      theme_border_boja: '#bbf7d0',
+      theme_tekst_boja: '#052e16',
+      theme_tekst_muted: '#166534',
+      theme_cijena_boja: '#059669',
+      theme_akcija_boja: '#dc2626',
+      header_boja: '#064e3b',
+      header_tekst_boja: '#ffffff',
+      hero_boja_pozadine: '#064e3b',
+    },
+    css: 'header{background:linear-gradient(90deg,#064e3b,#065f46)!important;box-shadow:0 4px 16px rgba(6,78,59,0.4)!important;border:none!important}header *{color:white!important}header input{background:rgba(255,255,255,0.12)!important;border-color:rgba(255,255,255,0.2)!important;color:white!important}[style*="background: #F9FAFB"],[style*="background: #F8FAFA"]{background:#f0fdf4!important}[style*="border: 1px solid #E5E7EB"]{border-color:#bbf7d0!important}tbody tr:hover{background:rgba(5,150,105,0.06)!important}'
+  },
+  {
+    id: 'warm_minimal',
+    naziv: 'Warm Minimal',
+    emoji: '🍂',
+    opis: 'Topli earth tones, serif naslovi — organik premium trend 2025',
+    preview: ['#fafaf9', '#78350f', '#fef3c7'],
+    postavke: {
+      theme_primary_boja: '#92400e',
+      theme_bg_stranica: '#fafaf9',
+      theme_bg_kartica: '#ffffff',
+      theme_border_boja: '#e7e5e4',
+      theme_tekst_boja: '#1c1917',
+      theme_tekst_muted: '#78716c',
+      theme_cijena_boja: '#92400e',
+      theme_akcija_boja: '#b91c1c',
+      header_boja: '#1c1917',
+      header_tekst_boja: '#ffffff',
+      hero_boja_pozadine: '#292524',
+    },
+    css: 'body{font-family:Georgia,"Times New Roman",serif!important}h1,h2,h3,.text-xl,.text-2xl,.text-3xl{font-family:Georgia,"Playfair Display",serif!important;letter-spacing:-0.02em!important}header{background:#1c1917!important;border-bottom:1px solid #92400e!important;box-shadow:none!important}header *{color:white!important;font-family:Inter,sans-serif!important}header input{background:rgba(255,255,255,0.08)!important;border-color:rgba(146,64,14,0.4)!important;color:white!important}[style*="background: #F9FAFB"],[style*="background: #F8FAFA"]{background:#fafaf9!important}tbody tr:hover{background:rgba(146,64,14,0.04)!important}footer{background:#1c1917!important;border-top-color:#92400e!important}footer *{color:rgba(255,255,255,0.7)!important}'
+  },
+  {
+    id: 'violet_storm',
+    naziv: 'Violet Storm',
+    emoji: '💜',
+    opis: 'Purple gradient header, lavanda pozadina — modern SaaS',
+    preview: ['#faf5ff', '#9333ea', '#c026d3'],
+    postavke: {
+      theme_primary_boja: '#9333ea',
+      theme_bg_stranica: '#faf5ff',
+      theme_bg_kartica: '#ffffff',
+      theme_border_boja: '#e9d5ff',
+      theme_tekst_boja: '#3b0764',
+      theme_tekst_muted: '#7e22ce',
+      theme_cijena_boja: '#9333ea',
+      theme_akcija_boja: '#e11d48',
+      header_boja: '#7c3aed',
+      header_tekst_boja: '#ffffff',
+      hero_boja_pozadine: '#7c3aed',
+    },
+    css: 'header{background:linear-gradient(135deg,#7c3aed,#9333ea,#c026d3)!important;box-shadow:0 4px 24px rgba(147,51,234,0.4)!important;border:none!important}header *{color:white!important}header input{background:rgba(255,255,255,0.15)!important;border-color:rgba(255,255,255,0.25)!important;color:white!important}[style*="background: #F9FAFB"],[style*="background: #F8FAFA"]{background:#faf5ff!important}[style*="border: 1px solid #E5E7EB"]{border-color:#e9d5ff!important}tbody tr:hover{background:rgba(147,51,234,0.06)!important}'
+  },
 ]
 
-const CSS_PRESET_TEME = [
-  { naziv: 'Nebula Dark', emoji: '🌌', opis: 'Tamna, indigo gradijent header, glassmorphism kartice', css: '/* === NEBULA DARK === */\n@import url(\'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap\');\n:root {\n  --brand: #6366f1; --brand-dark: #4f46e5; --brand-pale: rgba(99,102,241,0.12);\n  --surface: #0f0f1a; --border: rgba(255,255,255,0.07);\n  --text: #e2e8f0; --text-muted: #94a3b8;\n  --bg-kartica: rgba(255,255,255,0.04); --radius: 12px; --kartica-radius: 16px;\n}\nbody, .min-h-screen { background: #0f0f1a !important; font-family: \'Inter\', sans-serif !important; }\nheader {\n  background: rgba(99,102,241,0.95) !important;\n  backdrop-filter: blur(20px) !important;\n  border-bottom: 1px solid rgba(255,255,255,0.1) !important;\n  box-shadow: 0 4px 24px rgba(99,102,241,0.3) !important;\n}\nheader * { color: white !important; }\nheader input {\n  background: rgba(255,255,255,0.12) !important;\n  border-color: rgba(255,255,255,0.2) !important;\n  color: white !important; border-radius: 100px !important;\n}\nheader input::placeholder { color: rgba(255,255,255,0.6) !important; }\naside, [style*="position: sticky"] {\n  background: rgba(255,255,255,0.03) !important;\n  border-color: rgba(255,255,255,0.07) !important;\n  backdrop-filter: blur(12px) !important;\n}\n[style*="background: white"], [style*="background:#ffffff"], [style*="background:#fff"] {\n  background: rgba(255,255,255,0.05) !important;\n  border-color: rgba(255,255,255,0.08) !important;\n  color: #e2e8f0 !important;\n}\n[style*="background: #F9FAFB"], [style*="background: #F8FAFA"], [style*="background: #f8fafa"] {\n  background: rgba(255,255,255,0.03) !important;\n}\n[style*="color: #111827"], [style*="color:#111827"] { color: #e2e8f0 !important; }\n[style*="color: #374151"], [style*="color:#374151"] { color: #cbd5e1 !important; }\n[style*="color: #6B7280"], [style*="color:#6B7280"] { color: #64748b !important; }\n[style*="border: 1px solid #E5E7EB"], [style*="border:1px solid #E5E7EB"] { border-color: rgba(255,255,255,0.08) !important; }\n[style*="border-bottom: 1px solid #E5E7EB"] { border-bottom-color: rgba(255,255,255,0.07) !important; }\n[style*="background: #F3F4F6"] { background: rgba(255,255,255,0.06) !important; }\nfooter { background: rgba(255,255,255,0.02) !important; border-top-color: rgba(255,255,255,0.06) !important; }\nfooter * { color: #94a3b8 !important; }\ntable { color: #e2e8f0 !important; }\nthead tr { background: rgba(255,255,255,0.04) !important; }\ntbody tr:hover { background: rgba(99,102,241,0.08) !important; }\nselect, input[type=number] { background: rgba(255,255,255,0.06) !important; border-color: rgba(255,255,255,0.1) !important; color: #e2e8f0 !important; }' },
-  { naziv: 'Midnight Gold', emoji: '✨', opis: 'Tamno-plavi header, zlatni akcenti, topla pozadina', css: '/* === MIDNIGHT GOLD === */\n@import url(\'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap\');\n:root {\n  --brand: #f59e0b; --brand-dark: #d97706; --brand-pale: rgba(245,158,11,0.12);\n  --surface: #fffbeb; --border: #fde68a;\n  --text: #1e1b4b; --text-muted: #6b7280;\n  --bg-kartica: #ffffff; --radius: 8px; --kartica-radius: 12px;\n}\nbody, .min-h-screen { background: #fffbeb !important; font-family: \'Plus Jakarta Sans\', sans-serif !important; }\nheader {\n  background: #1e1b4b !important;\n  border-bottom: 2px solid #f59e0b !important;\n  box-shadow: 0 2px 20px rgba(30,27,75,0.4) !important;\n}\nheader * { color: white !important; }\nheader input {\n  background: rgba(255,255,255,0.1) !important;\n  border-color: rgba(245,158,11,0.4) !important;\n  color: white !important;\n}\nheader input::placeholder { color: rgba(255,255,255,0.5) !important; }\n[style*="background: white"], [style*="background:#ffffff"] {\n  background: white !important;\n  border-color: #fde68a !important;\n  box-shadow: 0 1px 4px rgba(245,158,11,0.08) !important;\n}\n[style*="background: #F9FAFB"], [style*="background: #F8FAFA"], [style*="background: #f8fafa"] {\n  background: #fffbeb !important;\n}\naside, [style*="position: sticky"] {\n  background: white !important;\n  border-color: #fde68a !important;\n}\n[style*="color: #111827"], [style*="color:#111827"] { color: #1e1b4b !important; }\n[style*="color: #6B7280"], [style*="color:#6B7280"] { color: #92400e !important; }\n[style*="border: 1px solid #E5E7EB"] { border-color: #fde68a !important; }\n[style*="border-bottom: 1px solid #E5E7EB"] { border-bottom-color: #fde68a !important; }\nthead tr { background: #fffbeb !important; border-bottom-color: #fde68a !important; }\ntbody tr:hover { background: rgba(245,158,11,0.06) !important; }\nfooter { background: #1e1b4b !important; border-top-color: #f59e0b !important; }\nfooter * { color: rgba(255,255,255,0.8) !important; }\nselect, input[type=number] { background: white !important; border-color: #fde68a !important; color: #1e1b4b !important; }\nh1, h2, h3 { color: #1e1b4b !important; font-weight: 700 !important; }' },
-  { naziv: 'Arctic Blue', emoji: '🧊', opis: 'Sky-blue akcenti, bijele kartice, čist SaaS izgled', css: ':root { --brand: #0ea5e9; --brand-dark: #0284c7; --brand-pale: #e0f2fe; --surface: #f8fafc; --border: #e2e8f0; --text: #0f172a; --text-muted: #64748b; } body { font-family: Inter, sans-serif !important; } header { background: white !important; border-bottom: 1px solid #e2e8f0 !important; box-shadow: 0 1px 3px rgba(0,0,0,0.06) !important; } [style*="background: #F9FAFB"], [style*="background: #F8FAFA"] { background: #f8fafc !important; } tbody tr:hover { background: #f0f9ff !important; }' },
-  { naziv: 'Noir Orange', emoji: '🔥', opis: 'Crni header, narančasti akcenti, premium kontrast', css: ':root { --brand: #f97316; --brand-dark: #ea580c; --brand-pale: #fff7ed; --surface: #fafaf9; --border: #e7e5e4; --text: #1c1917; --text-muted: #78716c; } body { font-family: Inter, sans-serif !important; } header { background: #1c1917 !important; border-bottom: 1px solid #f97316 !important; } header * { color: white !important; } header input { background: rgba(255,255,255,0.08) !important; border-color: rgba(249,115,22,0.4) !important; color: white !important; } [style*="background: #F9FAFB"], [style*="background: #F8FAFA"] { background: #fafaf9 !important; } tbody tr:hover { background: rgba(249,115,22,0.05) !important; }' },
-  { naziv: 'Forest Pro', emoji: '🌲', opis: 'Tamno zeleni header, mint pozadina — napravljeno za NIBIS', css: ':root { --brand: #059669; --brand-dark: #047857; --brand-pale: #d1fae5; --surface: #f0fdf4; --border: #bbf7d0; --text: #052e16; --text-muted: #166534; } header { background: linear-gradient(90deg, #064e3b 0%, #065f46 100%) !important; border-bottom: none !important; box-shadow: 0 4px 16px rgba(6,78,59,0.3) !important; } header * { color: white !important; } header input { background: rgba(255,255,255,0.12) !important; border-color: rgba(255,255,255,0.2) !important; color: white !important; } [style*="background: #F9FAFB"], [style*="background: #F8FAFA"] { background: #f0fdf4 !important; } tbody tr:hover { background: rgba(5,150,105,0.06) !important; } [style*="border: 1px solid #E5E7EB"] { border-color: #bbf7d0 !important; }' },
-  { naziv: 'Violet Storm', emoji: '💜', opis: 'Purple-pink gradijent, bijele kartice, lavanda pozadina', css: ':root { --brand: #9333ea; --brand-dark: #7e22ce; --brand-pale: #faf5ff; --surface: #faf5ff; --border: #e9d5ff; --text: #3b0764; --text-muted: #7c3aed; } body { font-family: Inter, sans-serif !important; } header { background: linear-gradient(90deg, #7c3aed 0%, #9333ea 50%, #c026d3 100%) !important; box-shadow: 0 4px 20px rgba(147,51,234,0.35) !important; border: none !important; } header * { color: white !important; } header input { background: rgba(255,255,255,0.15) !important; border-color: rgba(255,255,255,0.25) !important; color: white !important; } [style*="background: #F9FAFB"], [style*="background: #F8FAFA"] { background: #faf5ff !important; } [style*="border: 1px solid #E5E7EB"] { border-color: #e9d5ff !important; } tbody tr:hover { background: rgba(147,51,234,0.06) !important; }' },
-  { naziv: 'Flat Design', emoji: '📐', opis: 'Bez sjena, minimalistično, oštre linije', css: '* { box-shadow: none !important; border-radius: 4px !important; } header { box-shadow: none !important; border-bottom: 2px solid var(--brand) !important; } button { border-radius: 4px !important; }' },
-  { naziv: 'Bez CSS teme', emoji: '✨', opis: 'Default izgled — samo boje iz teme', css: '' },
-]
+// Backwards compat - keep PRESET_TEME as alias
+const PRESET_TEME = SKINOVI.map(s => ({
+  naziv: s.naziv, emoji: s.emoji,
+  primary: s.postavke.theme_primary_boja, bg: s.postavke.theme_bg_stranica,
+  kartica: s.postavke.theme_bg_kartica, border: s.postavke.theme_border_boja,
+  tekst: s.postavke.theme_tekst_boja, muted: s.postavke.theme_tekst_muted,
+  header: s.postavke.header_boja, hero: s.postavke.hero_boja_pozadine,
+}))
+
 
 const GOOGLE_FONTS = ['DM Sans', 'Inter', 'Roboto', 'Open Sans', 'Lato', 'Poppins', 'Nunito', 'Montserrat', 'Raleway', 'Merriweather', 'Playfair Display', 'Source Sans 3']
 
@@ -418,6 +531,19 @@ export default function IzgledPage() {
     })
   }
 
+  function applySkin(skin: typeof SKINOVI[0]) {
+    historyRef.current = [...historyRef.current.slice(-30), p]
+    setHistory([...historyRef.current])
+    lastKeyRef.current = ''
+    const updates = { ...skin.postavke, theme_custom_css: skin.css }
+    setP(prev => ({ ...prev, ...updates }))
+    setChanged(true)
+    Object.entries(updates).forEach(([k, v]) => {
+      applyLive(k, v)
+      iframeRef.current?.contentWindow?.postMessage({ type: 'THEME_UPDATE', key: k, value: v }, '*')
+    })
+  }
+
   function undo() {
     if (!historyRef.current.length) return
     const prev = historyRef.current[historyRef.current.length - 1]
@@ -520,24 +646,38 @@ export default function IzgledPage() {
 
           {/* ── BRZE TEME ── */}
           <AccordionSec title="Izgled i boje" icon={<Palette size={18} />} defaultOpen={true}>
-            <Sec title="Brze teme" desc="Klikni za trenutnu primjenu">
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px' }}>
-                {PRESET_TEME.map(t => (
-                  <button key={t.naziv} onClick={() => applyPreset(t)} style={{
-                    padding: '8px 6px', border: '2px solid ' + (p.theme_primary_boja === t.primary && p.theme_bg_stranica === t.bg ? '#0F6E56' : '#E5E7EB'),
-                    borderRadius: '10px', cursor: 'pointer', fontFamily: 'inherit',
-                    background: p.theme_primary_boja === t.primary && p.theme_bg_stranica === t.bg ? '#F0FDF4' : 'white',
-                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px',
-                    transition: 'all 0.15s',
-                  }}>
-                    <div style={{ display: 'flex', gap: '2px', marginBottom: '2px' }}>
-                      {[t.primary, t.bg, t.header].map((c, i) => (
-                        <div key={i} style={{ width: '12px', height: '12px', borderRadius: '3px', background: c, border: '1px solid rgba(0,0,0,0.08)' }} />
-                      ))}
-                    </div>
-                    <span style={{ fontSize: '10px', fontWeight: 600, color: '#374151' }}>{(t as any).emoji} {t.naziv}</span>
-                  </button>
-                ))}
+            <Sec title="Skinovi" desc="Jedan klik primjenjuje kompletan vizualni identitet — boje, font, header, CSS">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {SKINOVI.map(skin => {
+                  const isActive = p.theme_primary_boja === skin.postavke.theme_primary_boja && p.theme_bg_stranica === skin.postavke.theme_bg_stranica
+                  return (
+                    <button key={skin.id} onClick={() => applySkin(skin)} style={{
+                      display: 'flex', alignItems: 'center', gap: '14px', padding: '14px 16px',
+                      border: '2px solid ' + (isActive ? 'var(--brand)' : '#E5E7EB'),
+                      borderRadius: '14px', cursor: 'pointer', fontFamily: 'inherit',
+                      background: isActive ? 'var(--brand-pale)' : 'white', textAlign: 'left',
+                      transition: 'all 0.15s', width: '100%',
+                    }}
+                      onMouseEnter={e => { if (!isActive) { (e.currentTarget as HTMLElement).style.borderColor = '#CBD5E1'; (e.currentTarget as HTMLElement).style.background = '#F8FAFC' }}}
+                      onMouseLeave={e => { if (!isActive) { (e.currentTarget as HTMLElement).style.borderColor = '#E5E7EB'; (e.currentTarget as HTMLElement).style.background = 'white' }}}
+                    >
+                      {/* Preview swatches */}
+                      <div style={{ display: 'flex', gap: '0', borderRadius: '10px', overflow: 'hidden', flexShrink: 0, width: '48px', height: '48px', flexDirection: 'column' }}>
+                        <div style={{ flex: 1, background: skin.preview[0] }} />
+                        <div style={{ height: '4px', background: skin.preview[1] }} />
+                        <div style={{ flex: 1, background: skin.preview[2] }} />
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '3px' }}>
+                          <span style={{ fontSize: '16px' }}>{skin.emoji}</span>
+                          <span style={{ fontSize: '14px', fontWeight: 700, color: isActive ? 'var(--brand)' : '#111827' }}>{skin.naziv}</span>
+                          {isActive && <span style={{ fontSize: '10px', fontWeight: 700, padding: '2px 8px', background: 'var(--brand)', color: 'white', borderRadius: '100px' }}>Aktivan</span>}
+                        </div>
+                        <p style={{ fontSize: '12px', color: '#6B7280', margin: 0 }}>{skin.opis}</p>
+                      </div>
+                    </button>
+                  )
+                })}
               </div>
             </Sec>
             <Sec title="Primarne boje">
