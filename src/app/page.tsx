@@ -12,6 +12,8 @@ const WarmTemplate = dynamic(() => import('@/app/templates/warm-editorial'), { s
 const DarkTemplate = dynamic(() => import('@/app/templates/obsidian-dark'), { ssr: false })
 const MegaTemplate = dynamic(() => import('@/app/templates/mega-catalog'), { ssr: false })
 const LuxuryTemplate = dynamic(() => import('@/app/templates/luxury-brand'), { ssr: false })
+const McMasterTemplate = dynamic(() => import('@/app/templates/mcmaster-search'), { ssr: false })
+const GraingerTemplate = dynamic(() => import('@/app/templates/grainger-pro'), { ssr: false })
 import HeroBanner from '@/components/shop/HeroBanner'
 import HeroSlider from '@/components/shop/HeroSlider'
 import FooterComponent from '@/components/layout/Footer'
@@ -901,6 +903,8 @@ export default function HomePage() {
   if (shopTemplate === 'dark') return <DarkTemplate />
   if (shopTemplate === 'mega') return <MegaTemplate />
   if (shopTemplate === 'luxury') return <LuxuryTemplate />
+  if (shopTemplate === 'mcmaster') return <McMasterTemplate />
+  if (shopTemplate === 'grainger') return <GraingerTemplate />
 
   return (
     <div className="min-h-screen" style={{ background: "var(--surface)" }}>

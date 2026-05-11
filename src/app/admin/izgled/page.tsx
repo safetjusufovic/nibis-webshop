@@ -588,6 +588,8 @@ export default function IzgledPage() {
                   { id: 'dark', naziv: 'Obsidian Dark', emoji: '⚫', opis: 'Tamni layout, neon akcenti, glow hover. Za tech/IT B2B kompanije.' },
                   { id: 'mega', naziv: 'Mega Catalog', emoji: '🏭', opis: 'Sidebar filtri, dense grid+lista, toolbar — kao Würth i RS Components. Profesionalan B2B.' },
                   { id: 'luxury', naziv: 'Luxury Brand', emoji: '⬛', opis: 'Editorial hero, 3-kolona grid, minimalan bijeli, zoom na hover. Premium brand identity.' },
+                  { id: 'mcmaster', naziv: 'McMaster Search', emoji: '🔴', opis: 'Search-first dizajn — veliki search bar, dense tabela, qty input po redu. Za tehnički katalog s 5000+ SKU.' },
+                  { id: 'grainger', naziv: 'Grainger Pro', emoji: '🔷', opis: 'Procurement-focused, trust bar, kategorije tabs, list+grid switcher, qty input. Profesionalni B2B.' },
                 ].map(t => {
                   const isActive = (p.shop_template || 'default') === t.id
                   return (
