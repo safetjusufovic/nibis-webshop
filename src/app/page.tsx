@@ -10,6 +10,8 @@ const WurthTemplate = dynamic(() => import('@/app/templates/wurth-industrial'), 
 const SaasTemplate = dynamic(() => import('@/app/templates/saas-modern'), { ssr: false })
 const WarmTemplate = dynamic(() => import('@/app/templates/warm-editorial'), { ssr: false })
 const DarkTemplate = dynamic(() => import('@/app/templates/obsidian-dark'), { ssr: false })
+const MegaTemplate = dynamic(() => import('@/app/templates/mega-catalog'), { ssr: false })
+const LuxuryTemplate = dynamic(() => import('@/app/templates/luxury-brand'), { ssr: false })
 import HeroBanner from '@/components/shop/HeroBanner'
 import HeroSlider from '@/components/shop/HeroSlider'
 import FooterComponent from '@/components/layout/Footer'
@@ -897,6 +899,8 @@ export default function HomePage() {
   if (shopTemplate === 'saas') return <SaasTemplate />
   if (shopTemplate === 'warm') return <WarmTemplate />
   if (shopTemplate === 'dark') return <DarkTemplate />
+  if (shopTemplate === 'mega') return <MegaTemplate />
+  if (shopTemplate === 'luxury') return <LuxuryTemplate />
 
   return (
     <div className="min-h-screen" style={{ background: "var(--surface)" }}>

@@ -586,6 +586,8 @@ export default function IzgledPage() {
                   { id: 'saas', naziv: 'SaaS Modern', emoji: '✨', opis: 'Glassmorphism header, gradient hero, kartice s glow animacijom. Kao Shopify Dawn.' },
                   { id: 'warm', naziv: 'Warm Editorial', emoji: '🍂', opis: 'Serif naslovi, left sidebar, lista s velikom slikom. Magazinski premium stil.' },
                   { id: 'dark', naziv: 'Obsidian Dark', emoji: '⚫', opis: 'Tamni layout, neon akcenti, glow hover. Za tech/IT B2B kompanije.' },
+                  { id: 'mega', naziv: 'Mega Catalog', emoji: '🏭', opis: 'Sidebar filtri, dense grid+lista, toolbar — kao Würth i RS Components. Profesionalan B2B.' },
+                  { id: 'luxury', naziv: 'Luxury Brand', emoji: '⬛', opis: 'Editorial hero, 3-kolona grid, minimalan bijeli, zoom na hover. Premium brand identity.' },
                 ].map(t => {
                   const isActive = (p.shop_template || 'default') === t.id
                   return (
