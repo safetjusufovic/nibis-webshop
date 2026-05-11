@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { SlidersHorizontal, ChevronRight, ChevronDown, Package, ShoppingCart, Plus, LayoutGrid, LayoutList } from 'lucide-react'
 import Header from '@/components/layout/Header'
 import AkcijeSlider from '@/components/shop/AkcijeSlider'
@@ -744,7 +745,16 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true)
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(1)
-  const [activeGrupa, setActiveGrupa] = useState<number | null>(null)
+  const searchParams = useSearchParams()
+  const [activeGrupa, setActiveGrupa] = useState<number | null>(() => {
+    // Pokušaj čitati iz URL-a samo na client side
+    if (typeof window !== 'undefined') {
+      const p = new URLSearchParams(window.location.search)
+      const gid = p.get('grupaId')
+      return gid ? parseInt(gid) : null
+    }
+    return null
+  })
   const [search, setSearch] = useState('')
   const [searchInput, setSearchInput] = useState('')
   const [filterStock, setFilterStock] = useState(false)
@@ -800,6 +810,16 @@ export default function HomePage() {
       .catch(console.error)
   }, [])
 
+  // Sync activeGrupa s URL parametrom (Header linkovi rade full URL promjenu)
+  useEffect(() => {
+    const gid = searchParams?.get('grupaId')
+    const newGrupa = gid ? parseInt(gid) : null
+    if (newGrupa !== activeGrupa) {
+      setActiveGrupa(newGrupa)
+      setPage(1)
+    }
+  }, [searchParams])
+
   const loadArtikli = useCallback(async () => {
     setLoading(true)
     const params = new URLSearchParams({
@@ -850,6 +870,11 @@ export default function HomePage() {
     setActiveGrupa(id)
     setPage(1)
     setMobileFilters(false)
+    // Update URL bez reloada
+    const url = new URL(window.location.href)
+    if (id) url.searchParams.set('grupaId', String(id))
+    else url.searchParams.delete('grupaId')
+    window.history.pushState({}, '', url.toString())
   }
 
   const displayed = filterStock
