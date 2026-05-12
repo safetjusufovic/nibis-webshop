@@ -590,6 +590,8 @@ export default function IzgledPage() {
                   { id: 'luxury', naziv: 'Luxury Brand', emoji: '⬛', opis: 'Editorial hero, 3-kolona grid, minimalan bijeli, zoom na hover. Premium brand identity.' },
                   { id: 'mcmaster', naziv: 'McMaster Search', emoji: '🔴', opis: 'Search-first dizajn — veliki search bar, dense tabela, qty input po redu. Za tehnički katalog s 5000+ SKU.' },
                   { id: 'grainger', naziv: 'Grainger Pro', emoji: '🔷', opis: 'Procurement-focused, trust bar, kategorije tabs, list+grid switcher, qty input. Profesionalni B2B.' },
+                  { id: 'visual', naziv: 'Visual Catalog', emoji: '🎨', opis: 'Kategorije kao kartice sa slikom + boja overlay na hover, zatim grid artikala. Vizualan i moderan.' },
+                  { id: 'neon', naziv: 'Neon Tech', emoji: '🌌', opis: 'Tamna pozadina, animirani gradijent hero, neon boje po kartici, glassmorphism. Futuristično.' },
                 ].map(t => {
                   const isActive = (p.shop_template || 'default') === t.id
                   return (

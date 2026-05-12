@@ -14,6 +14,8 @@ const MegaTemplate = dynamic(() => import('@/app/templates/mega-catalog'), { ssr
 const LuxuryTemplate = dynamic(() => import('@/app/templates/luxury-brand'), { ssr: false })
 const McMasterTemplate = dynamic(() => import('@/app/templates/mcmaster-search'), { ssr: false })
 const GraingerTemplate = dynamic(() => import('@/app/templates/grainger-pro'), { ssr: false })
+const VisualTemplate = dynamic(() => import('@/app/templates/visual-catalog'), { ssr: false })
+const NeonTemplate = dynamic(() => import('@/app/templates/neon-tech'), { ssr: false })
 import HeroBanner from '@/components/shop/HeroBanner'
 import HeroSlider from '@/components/shop/HeroSlider'
 import FooterComponent from '@/components/layout/Footer'
@@ -905,6 +907,8 @@ export default function HomePage() {
   if (shopTemplate === 'luxury') return <LuxuryTemplate />
   if (shopTemplate === 'mcmaster') return <McMasterTemplate />
   if (shopTemplate === 'grainger') return <GraingerTemplate />
+  if (shopTemplate === 'visual') return <VisualTemplate />
+  if (shopTemplate === 'neon') return <NeonTemplate />
 
   return (
     <div className="min-h-screen" style={{ background: "var(--surface)" }}>
