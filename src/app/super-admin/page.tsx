@@ -237,7 +237,7 @@ export default function SuperAdminPage() {
                   )}
                 </div>
                 <div style={{ display: 'flex', gap: '5px', flexShrink: 0, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-                  <a href={'/' + s.slug} target="_blank" rel="noopener noreferrer"
+                  <a href={'/?shop=' + s.slug} target="_blank" rel="noopener noreferrer"
                     style={{ padding: '6px 10px', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '7px', color: '#94a3b8', textDecoration: 'none', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}>
                     <Globe size={12} /> Shop
                   </a>
