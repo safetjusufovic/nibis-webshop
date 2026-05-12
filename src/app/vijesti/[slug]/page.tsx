@@ -3,147 +3,97 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import Header from '@/components/layout/Header'
+import Footer from '@/components/layout/Footer'
 import Link from 'next/link'
-import { ChevronRight, Calendar, User, Tag } from 'lucide-react'
+import { Calendar, ChevronLeft, User, Tag } from 'lucide-react'
 
-interface Stranica {
-  id: string; slug: string; tip: string; naslov: string; podnaslov?: string
-  sadrzaj?: string; slika_url?: string; kategorija?: string; tagovi?: string
-  autor_naziv?: string; created_at: string; meta_naslov?: string; meta_opis?: string
+interface Clanak {
+  id: string; slug: string; naslov: string; podnaslov?: string
+  sadrzaj?: string; slika_url?: string; kategorija?: string
+  tagovi?: string; autor_naziv?: string; created_at: string
 }
 
-export default function StranicaPage() {
+export default function ClanakPage() {
   const params = useParams()
   const slug = params?.slug as string
-  const [stranica, setStranica] = useState<Stranica | null>(null)
+  const [clanak, setClanak] = useState<Clanak | null>(null)
   const [loading, setLoading] = useState(true)
-  const [notFound, setNotFound] = useState(false)
 
   useEffect(() => {
     if (!slug) return
-    fetch('/api/stranice?slug=' + slug)
-      .then(r => { if (!r.ok) throw new Error('not found'); return r.json() })
-      .then(d => { setStranica(d); setLoading(false) })
-      .catch(() => { setNotFound(true); setLoading(false) })
+    const shopSlug = new URLSearchParams(window.location.search).get('shop') || ''
+    const shopParam = shopSlug ? '&shop=' + shopSlug : ''
+    fetch('/api/stranice?slug=' + slug + shopParam)
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { setClanak(d); setLoading(false) })
+      .catch(() => setLoading(false))
   }, [slug])
+
+  const shopSlug = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('shop') || '' : ''
+  const shopParam = shopSlug ? '?shop=' + shopSlug : ''
 
   if (loading) return (
     <div style={{ minHeight: '100vh', background: 'var(--surface)' }}>
       <Header />
-      <div style={{ maxWidth: '800px', margin: '0 auto', padding: '48px 24px' }}>
-        <div style={{ height: '40px', background: '#F3F4F6', borderRadius: '8px', width: '60%', marginBottom: '16px', animation: 'pulse 1.5s infinite' }} />
-        <div style={{ height: '20px', background: '#F3F4F6', borderRadius: '6px', marginBottom: '12px', animation: 'pulse 1.5s infinite' }} />
-        <div style={{ height: '20px', background: '#F3F4F6', borderRadius: '6px', width: '80%', animation: 'pulse 1.5s infinite' }} />
+      <div style={{ maxWidth: '800px', margin: '40px auto', padding: '0 24px' }}>
+        {[1,2,3].map(i => <div key={i} style={{ height: '24px', background: 'var(--border)', borderRadius: '6px', marginBottom: '12px', animation: 'pulse 1.5s infinite', width: i === 1 ? '60%' : '100%' }} />)}
       </div>
     </div>
   )
 
-  if (notFound) return (
+  if (!clanak) return (
     <div style={{ minHeight: '100vh', background: 'var(--surface)' }}>
       <Header />
       <div style={{ maxWidth: '600px', margin: '80px auto', padding: '0 24px', textAlign: 'center' }}>
-        <div style={{ fontSize: '48px', marginBottom: '16px' }}>📄</div>
-        <h1 style={{ fontSize: '24px', fontWeight: 700, color: 'var(--text)', margin: '0 0 12px' }}>Stranica nije pronađena</h1>
-        <p style={{ fontSize: '14px', color: 'var(--text-muted)', marginBottom: '24px' }}>Stranica "{slug}" ne postoji ili nije objavljena.</p>
-        <Link href="/" style={{ padding: '10px 24px', background: 'var(--brand)', color: 'white', borderRadius: '8px', textDecoration: 'none', fontSize: '14px', fontWeight: 600 }}>
-          ← Nazad na shop
-        </Link>
+        <p style={{ fontSize: '18px', color: 'var(--text-muted)' }}>Članak nije pronađen.</p>
+        <Link href={'/vijesti' + shopParam} style={{ color: 'var(--brand)', textDecoration: 'none' }}>← Nazad na vijesti</Link>
       </div>
     </div>
   )
 
-  if (!stranica) return null
-
-  const isClanak = stranica.tip === 'clanak'
-  const tagList = stranica.tagovi ? stranica.tagovi.split(',').map(t => t.trim()).filter(Boolean) : []
-
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--surface)' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--surface)', display: 'flex', flexDirection: 'column' }}>
       <Header />
+      <article style={{ flex: 1, maxWidth: '800px', width: '100%', margin: '0 auto', padding: '32px 24px 64px' }}>
+        <Link href={'/vijesti' + shopParam} style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '13px', color: 'var(--text-muted)', textDecoration: 'none', marginBottom: '24px' }}
+          onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = 'var(--brand)'}
+          onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = 'var(--text-muted)'}
+        >
+          <ChevronLeft size={14} /> Vijesti
+        </Link>
 
-      {/* Hero slika ako postoji */}
-      {stranica.slika_url && (
-        <div style={{ width: '100%', height: '320px', position: 'relative', overflow: 'hidden' }}>
-          <img src={stranica.slika_url} alt={stranica.naslov} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-          <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.35)' }} />
+        {clanak.kategorija && <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--brand)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '10px' }}>{clanak.kategorija}</div>}
+        <h1 style={{ fontSize: '36px', fontWeight: 900, color: 'var(--text)', margin: '0 0 14px', letterSpacing: '-0.03em', lineHeight: 1.15 }}>{clanak.naslov}</h1>
+        {clanak.podnaslov && <p style={{ fontSize: '18px', color: 'var(--text-muted)', margin: '0 0 20px', lineHeight: 1.6 }}>{clanak.podnaslov}</p>}
+
+        <div style={{ display: 'flex', gap: '16px', fontSize: '13px', color: 'var(--text-muted)', marginBottom: '28px', paddingBottom: '20px', borderBottom: '1px solid var(--border)', flexWrap: 'wrap' }}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}><Calendar size={13} />{new Date(clanak.created_at).toLocaleDateString('bs-BA', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+          {clanak.autor_naziv && <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}><User size={13} />{clanak.autor_naziv}</span>}
+          {clanak.tagovi && <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}><Tag size={13} />{clanak.tagovi}</span>}
         </div>
-      )}
 
-      <div style={{ maxWidth: '800px', margin: '0 auto', padding: '48px 24px 80px' }}>
-        {/* Breadcrumb */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: 'var(--text-muted)', marginBottom: '24px' }}>
-          <Link href="/" style={{ color: 'var(--text-muted)', textDecoration: 'none' }}>Početna</Link>
-          <ChevronRight size={12} />
-          {isClanak && <><Link href="/vijesti" style={{ color: 'var(--text-muted)', textDecoration: 'none' }}>Blog</Link><ChevronRight size={12} /></>}
-          <span style={{ color: 'var(--text)' }}>{stranica.naslov}</span>
-        </div>
+        {clanak.slika_url && <img src={clanak.slika_url} alt={clanak.naslov} style={{ width: '100%', maxHeight: '420px', objectFit: 'cover', borderRadius: '12px', marginBottom: '32px' }} />}
 
-        {/* Header članka */}
-        {stranica.kategorija && (
-          <div style={{ display: 'inline-block', padding: '4px 12px', background: 'var(--brand-pale)', color: 'var(--brand)', fontSize: '11px', fontWeight: 700, borderRadius: '100px', marginBottom: '16px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-            {stranica.kategorija}
-          </div>
+        {clanak.sadrzaj && (
+          <div style={{ fontSize: '16px', lineHeight: 1.8, color: 'var(--text)' }}
+            dangerouslySetInnerHTML={{ __html: clanak.sadrzaj }}
+          />
         )}
-
-        <h1 style={{ fontSize: '36px', fontWeight: 800, color: 'var(--text)', margin: '0 0 12px', lineHeight: 1.2, letterSpacing: '-0.02em' }}>
-          {stranica.naslov}
-        </h1>
-
-        {stranica.podnaslov && (
-          <p style={{ fontSize: '18px', color: 'var(--text-muted)', margin: '0 0 24px', lineHeight: 1.6 }}>
-            {stranica.podnaslov}
-          </p>
-        )}
-
-        {isClanak && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', paddingBottom: '24px', borderBottom: '1px solid var(--border)', marginBottom: '32px' }}>
-            {stranica.autor_naziv && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: 'var(--text-muted)' }}>
-                <User size={13} /> {stranica.autor_naziv}
-              </div>
-            )}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: 'var(--text-muted)' }}>
-              <Calendar size={13} />
-              {new Date(stranica.created_at).toLocaleDateString('bs-BA', { day: 'numeric', month: 'long', year: 'numeric' })}
-            </div>
-          </div>
-        )}
-
-        {/* Sadržaj */}
-        <div
-          dangerouslySetInnerHTML={{ __html: stranica.sadrzaj || '' }}
-          style={{ lineHeight: 1.8, color: 'var(--text)', fontSize: '16px' }}
-          className="page-content"
-        />
-
-        {/* Tagovi */}
-        {tagList.length > 0 && (
-          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '40px', paddingTop: '24px', borderTop: '1px solid var(--border)' }}>
-            <Tag size={14} style={{ color: 'var(--text-muted)', marginTop: '2px' }} />
-            {tagList.map(tag => (
-              <span key={tag} style={{ padding: '4px 12px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '100px', fontSize: '12px', color: 'var(--text-muted)' }}>
-                {tag}
-              </span>
-            ))}
-          </div>
-        )}
-      </div>
-
+      </article>
+      <Footer />
       <style>{`
-        .page-content h1, .page-content h2, .page-content h3 { color: var(--text); font-weight: 700; margin: 2rem 0 1rem; line-height: 1.3; }
-        .page-content h1 { font-size: 28px; } .page-content h2 { font-size: 22px; } .page-content h3 { font-size: 18px; }
-        .page-content p { margin: 0 0 1.2rem; }
-        .page-content ul, .page-content ol { padding-left: 24px; margin: 0 0 1.2rem; }
-        .page-content li { margin-bottom: 6px; }
-        .page-content a { color: var(--brand); }
-        .page-content strong { font-weight: 700; color: var(--text); }
-        .page-content blockquote { border-left: 3px solid var(--brand); padding-left: 16px; margin: 24px 0; color: var(--text-muted); font-style: italic; }
-        .page-content hr { border: none; border-top: 1px solid var(--border); margin: 32px 0; }
-        .page-content img { max-width: 100%; border-radius: 10px; margin: 16px 0; }
-        .page-content table { width: 100%; border-collapse: collapse; margin: 16px 0; }
-        .page-content th { background: var(--surface); padding: 10px 14px; text-align: left; font-size: 12px; font-weight: 600; border-bottom: 2px solid var(--border); }
-        .page-content td { padding: 10px 14px; border-bottom: 1px solid var(--border); font-size: 14px; }
-        @keyframes pulse { 0%, 100% { opacity: 1 } 50% { opacity: 0.5 } }
+        @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+        article img { max-width: 100%; border-radius: 8px; margin: 16px 0; }
+        article h2 { font-size: 22px; font-weight: 700; margin: 28px 0 12px; color: var(--text); }
+        article h3 { font-size: 18px; font-weight: 600; margin: 22px 0 10px; color: var(--text); }
+        article p { margin: 0 0 16px; }
+        article ul, article ol { padding-left: 24px; margin: 0 0 16px; }
+        article li { margin-bottom: 6px; }
+        article blockquote { border-left: 3px solid var(--brand); padding: 8px 16px; margin: 20px 0; color: var(--text-muted); font-style: italic; background: var(--brand-pale); border-radius: 0 8px 8px 0; }
+        article a { color: var(--brand); }
+        article table { width: 100%; border-collapse: collapse; margin: 16px 0; }
+        article td, article th { border: 1px solid var(--border); padding: 10px 14px; }
+        article th { background: var(--surface); font-weight: 600; }
       `}</style>
     </div>
   )
