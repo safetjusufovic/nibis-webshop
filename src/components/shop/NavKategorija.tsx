@@ -39,12 +39,12 @@ export default function NavKategorija({ activeId, onSelect }: Props) {
   const h = 48
 
   useEffect(() => {
-    fetch('/api/grupe')
+    shopFetch('/api/grupe')
       .then(r => r.json())
       .then(d => setGrupe(d.items || []))
       .catch(() => {})
 
-    fetch('/api/postavke?kljuci=navkat_boja,navkat_tekst_boja,navkat_visina,navkat_akcijski_dugme,navkat_akcijski_tekst,navkat_akcijski_boja,navkat_featured')
+    shopFetch('/api/postavke?kljuci=navkat_boja,navkat_tekst_boja,navkat_visina,navkat_akcijski_dugme,navkat_akcijski_tekst,navkat_akcijski_boja,navkat_featured')
       .then(r => r.json())
       .then(d => {
         if (d.navkat_boja) setConfig(prev => ({ ...prev, boja: d.navkat_boja }))

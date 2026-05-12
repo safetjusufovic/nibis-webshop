@@ -24,7 +24,7 @@ export default function HeroSlider() {
   const [paused, setPaused] = useState(false)
 
   useEffect(() => {
-    fetch('/api/postavke?kljuci=hero_slides,hero_visina,hero_aktivan')
+    shopFetch('/api/postavke?kljuci=hero_slides,hero_visina,hero_aktivan')
       .then(r => r.json())
       .then(d => {
         if (d.hero_visina) setVisina(parseInt(d.hero_visina) || 480)
@@ -33,7 +33,7 @@ export default function HeroSlider() {
         }
         // Fallback — stari HeroBanner format
         if (!d.hero_slides || d.hero_slides === '[]') {
-          fetch('/api/postavke?kljuci=hero_naslov,hero_podnaslov,hero_dugme_tekst,hero_dugme_url,hero_slika_url,hero_boja_pozadine,hero_tekst_boja,hero_tekst_pozicija,hero_overlay_opacity')
+          shopFetch('/api/postavke?kljuci=hero_naslov,hero_podnaslov,hero_dugme_tekst,hero_dugme_url,hero_slika_url,hero_boja_pozadine,hero_tekst_boja,hero_tekst_pozicija,hero_overlay_opacity')
             .then(r => r.json())
             .then(h => {
               setSlides([{

@@ -1,5 +1,6 @@
 'use client'
 
+import { shopFetch } from '@/lib/shopFetch'
 import { useState, useEffect } from 'react'
 import { siteConfig } from '@/lib/config'
 
@@ -9,9 +10,9 @@ export default function Footer() {
   const [grupe, setGrupe] = useState<any[]>([])
 
   useEffect(() => {
-    fetch('/api/postavke?kljuci=shop_naziv,shop_email,shop_telefon,shop_adresa,shop_grad,shop_web,theme_footer_tekst,theme_footer_boja,theme_footer_bg_slika,theme_footer_logo_url,footer_kolone_aktivan,footer_kolona1_naslov,footer_kolona1_sadrzaj,footer_kolona2_naslov,footer_kolona2_sadrzaj,footer_kolona3_naslov,footer_kolona3_sadrzaj,footer_social_facebook,footer_social_instagram,footer_social_linkedin,footer_social_twitter,footer_social_youtube,footer_social_tiktok,footer_social_whatsapp,footer_social_viber,shop_watermark')
+    shopFetch('/api/postavke?kljuci=shop_naziv,shop_email,shop_telefon,shop_adresa,shop_grad,shop_web,theme_footer_tekst,theme_footer_boja,theme_footer_bg_slika,theme_footer_logo_url,footer_kolone_aktivan,footer_kolona1_naslov,footer_kolona1_sadrzaj,footer_kolona2_naslov,footer_kolona2_sadrzaj,footer_kolona3_naslov,footer_kolona3_sadrzaj,footer_social_facebook,footer_social_instagram,footer_social_linkedin,footer_social_twitter,footer_social_youtube,footer_social_tiktok,footer_social_whatsapp,footer_social_viber,shop_watermark')
       .then(r => r.json()).then(setP).catch(() => {})
-    fetch('/api/grupe')
+    shopFetch('/api/grupe')
       .then(r => r.json()).then(d => setGrupe((d.items || []).filter((g: any) => !g.parentId).slice(0, 8)))
       .catch(() => {})
   }, [])
