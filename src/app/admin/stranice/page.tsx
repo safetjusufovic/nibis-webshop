@@ -67,19 +67,48 @@ function RichEditor({ value, onChange, editorId }: {
   async function handleImageUpload(file: File) {
     if (file.size > 8 * 1024 * 1024) { alert('Max 8MB'); return }
     setUploading(true)
-    try {
-      const ext = file.name.split('.').pop() || 'jpg'
-      const path = 'clanci/' + Date.now() + '.' + ext
-      const { error } = await supabase.storage.from('slike').upload(path, file, { upsert: true })
-      if (!error) {
-        const { data } = supabase.storage.from('slike').getPublicUrl(path)
-        insertHTML('<img src="' + data.publicUrl + '" alt="" style="max-width:100%;border-radius:8px;margin:12px 0"/>')
+
+    function insertImg(src: string) {
+      const img = '<img src="' + src + '" alt="" style="max-width:100%;border-radius:8px;margin:12px 0 12px;display:block"/>'
+      // Focus editor first
+      editorRef.current?.focus()
+      // Try to restore saved selection, otherwise append at end
+      const sel = window.getSelection()
+      if (lastSelRef.current && sel) {
+        try {
+          sel.removeAllRanges()
+          sel.addRange(lastSelRef.current)
+          document.execCommand('insertHTML', false, img)
+        } catch {
+          // Fallback — append at end
+          if (editorRef.current) editorRef.current.innerHTML += img
+        }
       } else {
-        const reader = new FileReader()
-        reader.onload = ev => insertHTML('<img src="' + ev.target?.result + '" alt="" style="max-width:100%;border-radius:8px;margin:12px 0"/>')
-        reader.readAsDataURL(file)
+        if (editorRef.current) editorRef.current.innerHTML += img
       }
-    } catch {}
+      if (editorRef.current) onChange(editorRef.current.innerHTML)
+    }
+
+    try {
+      const { error } = await supabase.storage.from('slike').upload(
+        'clanci/' + Date.now() + '.' + (file.name.split('.').pop() || 'jpg'),
+        file, { upsert: true }
+      )
+      if (!error) {
+        // Shouldn't happen without bucket, but handle it
+        const { data } = supabase.storage.from('slike').getPublicUrl('clanci/' + Date.now())
+        insertImg(data.publicUrl)
+      } else {
+        throw error
+      }
+    } catch {
+      // Base64 fallback — always works
+      const reader = new FileReader()
+      reader.onload = ev => {
+        if (ev.target?.result) insertImg(ev.target.result as string)
+      }
+      reader.readAsDataURL(file)
+    }
     setUploading(false)
   }
 
