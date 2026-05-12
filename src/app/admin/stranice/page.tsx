@@ -95,6 +95,23 @@ function RichEditor({ value, onChange, editorId }: {
     display: 'flex', flexDirection: 'column',
   } : { position: 'relative' }
 
+  // Set initial HTML once — never via dangerouslySetInnerHTML (causes cursor jump)
+  const initializedRef = useRef(false)
+  useEffect(() => {
+    if (!initializedRef.current && editorRef.current) {
+      editorRef.current.innerHTML = value || ''
+      initializedRef.current = true
+    }
+  }, [])
+
+  // When editing a different article, reset
+  useEffect(() => {
+    if (editorRef.current) {
+      editorRef.current.innerHTML = value || ''
+      initializedRef.current = true
+    }
+  }, [editorId])
+
   return (
     <div style={containerStyle}>
       {/* Toolbar */}
@@ -161,7 +178,6 @@ function RichEditor({ value, onChange, editorId }: {
         onSelect={saveSelection}
         onKeyUp={saveSelection}
         onMouseUp={saveSelection}
-        dangerouslySetInnerHTML={{ __html: value || '' }}
         style={{
           minHeight: fullscreen ? 'calc(100vh - 60px)' : '380px',
           padding: '20px 24px',
