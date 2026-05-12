@@ -792,8 +792,8 @@ export default function HomePage() {
   // BATCH LOAD — sve postavke + grupe u jednom Promise.all
   useEffect(() => {
     Promise.all([
-      fetch('/api/postavke?kljuci=default_view,per_page,artikal_dugme_tekst,shop_template,sidebar_sirina,sidebar_boja_pozadine,sidebar_visina_kategorije,sekcija_features_naslov,sekcija_features_items,sekcija_banner_tekst,sekcija_banner_podnaslov,sekcija_banner_dugme,sekcija_banner_boja,sekcija_newsletter_naslov,sekcija_newsletter_podnaslov,page_sekcije' + (shopSlug ? '&shop=' + shopSlug : '')).then(r => r.json()),
-      fetch('/api/grupe' + (shopSlug ? '?shop=' + shopSlug : '')).then(r => r.json()),
+      fetch('/api/postavke?kljuci=default_view,per_page,artikal_dugme_tekst,shop_template,sidebar_sirina,sidebar_boja_pozadine,sidebar_visina_kategorije,sekcija_features_naslov,sekcija_features_items,sekcija_banner_tekst,sekcija_banner_podnaslov,sekcija_banner_dugme,sekcija_banner_boja,sekcija_newsletter_naslov,sekcija_newsletter_podnaslov,page_sekcije' + (window.location.search.includes('shop=') ? '&shop=' + new URLSearchParams(window.location.search).get('shop') : '')).then(r => r.json()),
+      fetch('/api/grupe' + (window.location.search.includes('shop=') ? '?shop=' + new URLSearchParams(window.location.search).get('shop') : '')).then(r => r.json()),
     ]).then(([d, grupeData]) => {
       // Postavke
       if (d.default_view === 'table' || d.default_view === 'grid') setViewMode(d.default_view)
@@ -844,11 +844,10 @@ export default function HomePage() {
     }
   }, [])
 
-  // Čitaj shop slug direktno iz URL-a (ne state - izbjegava race condition)
-  const shopSlug = typeof window !== 'undefined' ? (new URLSearchParams(window.location.search).get('shop') || '') : ''
-
   const loadArtikli = useCallback(async () => {
     setLoading(true)
+    // Čitaj shop slug svaki put fresh iz URL-a
+    const shopSlug = new URLSearchParams(window.location.search).get('shop') || ''
     const params = new URLSearchParams({
       page: String(page),
       perPage: String(perPage),
