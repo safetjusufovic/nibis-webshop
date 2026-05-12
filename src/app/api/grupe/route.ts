@@ -1,30 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase, supabaseAdmin } from '@/lib/supabase'
-
-async function resolveShopId(req: NextRequest): Promise<string | null> {
-  const shopSlug = req.nextUrl.searchParams.get('shop')
-  if (!shopSlug) return null
-  const { data } = await supabaseAdmin
-    .from('shopovi')
-    .select('id')
-    .eq('slug', shopSlug)
-    .eq('status', 'aktivan')
-    .single()
-  return data?.id || null
-}
+import { supabaseAdmin } from '@/lib/supabase'
 
 export async function GET(req: NextRequest) {
   try {
-    const shopId = await resolveShopId(req)
+    const shopSlug = req.nextUrl.searchParams.get('shop') || ''
 
-    let query = supabase
+    let query = supabaseAdmin
       .from('grupe')
       .select('id, sifra, naziv, opis, prefix, nivo, parent_id, boja, ikona_url', { count: 'exact' })
       .order('nivo').order('naziv')
 
-    // Klijentski shop filtrira po shop_id, glavni NE filtrira
-    if (shopId) {
-      query = query.eq('shop_id', shopId)
+    if (shopSlug) {
+      const { data: shopData } = await supabaseAdmin
+        .from('shopovi')
+        .select('id')
+        .eq('slug', shopSlug)
+        .eq('status', 'aktivan')
+        .single()
+      
+      if (shopData?.id) {
+        query = query.eq('shop_id', shopData.id)
+      } else {
+        return NextResponse.json({ items: [], total: 0 })
+      }
     }
 
     const { data, error, count } = await query
@@ -41,6 +39,7 @@ export async function GET(req: NextRequest) {
       { headers: { 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600' } }
     )
   } catch (e: any) {
+    console.error('[GRUPE]', e)
     return NextResponse.json({ items: [], total: 0, error: e.message }, { status: 500 })
   }
 }
