@@ -3,15 +3,27 @@ import { supabase } from '@/lib/supabase'
 
 // Helper — dohvati shop_id iz headera ili query params
 async function getShopId(req: NextRequest): Promise<string | null> {
-  // 1. Explicit shop_id query param (za super admin)
-  const explicit = req.nextUrl.searchParams.get('shop_id')
-  if (explicit) return explicit
+  // 1. Explicit shop_id (super admin)
+  const shopId = req.nextUrl.searchParams.get('shop_id')
+  if (shopId) return shopId
 
-  // 2. Hostname → shop lookup
-  const hostname = req.headers.get('host') || ''
+  // 2. ?shop=slug query param (multi-tenant na istoj domeni)
+  const shopSlug = req.nextUrl.searchParams.get('shop')
+  if (shopSlug) {
+    const { data } = await supabase.from('shopovi').select('id').eq('slug', shopSlug).eq('status', 'aktivan').single()
+    return data?.id || null
+  }
+
+  // 3. Hostname → shop lookup (custom domena ili subdomena)
+  const hostname = (req.headers.get('host') || '').split(':')[0]
+  const slug = hostname.split('.')[0]
+
+  // Ne tražimo za localhost ili vercel preview
+  if (['localhost', 'nibis-webshop', '127'].includes(slug)) return null
+
   const { data } = await supabase.from('shopovi')
     .select('id')
-    .or(`slug.eq.${hostname.split('.')[0]},domena.eq.${hostname}`)
+    .or(`slug.eq.${slug},domena.eq.${hostname}`)
     .eq('status', 'aktivan')
     .single()
 

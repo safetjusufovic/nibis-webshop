@@ -792,8 +792,8 @@ export default function HomePage() {
   // BATCH LOAD — sve postavke + grupe u jednom Promise.all
   useEffect(() => {
     Promise.all([
-      fetch('/api/postavke?kljuci=default_view,per_page,artikal_dugme_tekst,shop_template,sidebar_sirina,sidebar_boja_pozadine,sidebar_visina_kategorije,sekcija_features_naslov,sekcija_features_items,sekcija_banner_tekst,sekcija_banner_podnaslov,sekcija_banner_dugme,sekcija_banner_boja,sekcija_newsletter_naslov,sekcija_newsletter_podnaslov,page_sekcije').then(r => r.json()),
-      fetch('/api/grupe').then(r => r.json()),
+      fetch('/api/postavke?kljuci=default_view,per_page,artikal_dugme_tekst,shop_template,sidebar_sirina,sidebar_boja_pozadine,sidebar_visina_kategorije,sekcija_features_naslov,sekcija_features_items,sekcija_banner_tekst,sekcija_banner_podnaslov,sekcija_banner_dugme,sekcija_banner_boja,sekcija_newsletter_naslov,sekcija_newsletter_podnaslov,page_sekcije' + (shopSlug ? '&shop=' + shopSlug : '')).then(r => r.json()),
+      fetch('/api/grupe' + (shopSlug ? '?shop=' + shopSlug : '')).then(r => r.json()),
     ]).then(([d, grupeData]) => {
       // Postavke
       if (d.default_view === 'table' || d.default_view === 'grid') setViewMode(d.default_view)
@@ -824,7 +824,7 @@ export default function HomePage() {
 
   // grupe loaded in batch fetch below
 
-  // Čitaj grupaId iz URL-a pri mount i pri navigaciji
+  // Čitaj grupaId i shop iz URL-a pri mount i pri navigaciji
   useEffect(() => {
     function syncFromUrl() {
       const p = new URLSearchParams(window.location.search)
@@ -837,13 +837,17 @@ export default function HomePage() {
     }
     syncFromUrl()
     window.addEventListener('popstate', syncFromUrl)
-    // Custom event kad Header Link navigira
     window.addEventListener('grupaChanged', syncFromUrl)
     return () => {
       window.removeEventListener('popstate', syncFromUrl)
       window.removeEventListener('grupaChanged', syncFromUrl)
     }
   }, [])
+
+  // Čitaj shop slug iz URL ?shop=slug i proslijedi API pozivima
+  const shopSlug = typeof window !== 'undefined'
+    ? new URLSearchParams(window.location.search).get('shop') || ''
+    : ''
 
   const loadArtikli = useCallback(async () => {
     setLoading(true)
@@ -857,6 +861,7 @@ export default function HomePage() {
       ...(cijenaDo && { cijenaDo }),
     })
     try {
+      if (shopSlug) params.set('shop', shopSlug)
       const data: PaginatedResponse<Artikal> = await fetch(`/api/artikli?${params}`).then(r => r.json())
       setArtikli(data.items ?? [])
       setTotal(data.total ?? 0)

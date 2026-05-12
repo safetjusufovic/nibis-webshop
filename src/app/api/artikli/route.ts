@@ -1,6 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 
+async function resolveShopId(req: NextRequest): Promise<string | null> {
+  const shopSlug = req.nextUrl.searchParams.get('shop')
+  if (!shopSlug) return null
+  const { createClient } = await import('@supabase/supabase-js')
+  const sb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+  const { data } = await sb.from('shopovi').select('id').eq('slug', shopSlug).eq('status', 'aktivan').single()
+  return data?.id || null
+}
+
 export async function GET(req: NextRequest) {
   const sp = req.nextUrl.searchParams
   const page = parseInt(sp.get('page') ?? '1')
@@ -29,6 +38,10 @@ export async function GET(req: NextRequest) {
       query = query.or(`naziv.ilike.%${search}%,sifra.ilike.%${search}%`)
     }
     if (grupaId) query = query.eq('grupa_id', grupaId)
+
+  // Multi-tenant: filter po shopu
+  const shopId = await resolveShopId(req)
+  if (shopId) query = query.eq('shop_id', shopId)
     if (sp.get('akcija') === 'true') query = query.gt('akcija_popust', 0)
 
     // Filter cijene
