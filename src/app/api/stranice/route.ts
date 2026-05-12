@@ -4,7 +4,12 @@ import { supabase, supabaseAdmin } from '@/lib/supabase'
 async function resolveShopId(req: NextRequest): Promise<string | null> {
   const shopSlug = req.nextUrl.searchParams.get('shop')
   if (!shopSlug) return null
-  const { data } = await supabaseAdmin.from('shopovi').select('id').eq('slug', shopSlug).eq('status', 'aktivan').single()
+  const { data } = await supabaseAdmin
+    .from('shopovi')
+    .select('id')
+    .eq('slug', shopSlug)
+    .eq('status', 'aktivan')
+    .single()
   return data?.id || null
 }
 
@@ -14,13 +19,17 @@ export async function GET(req: NextRequest) {
   const sve = req.nextUrl.searchParams.get('sve')
   const shopId = await resolveShopId(req)
 
-  let q = supabase.from('stranice').select('*').order('redoslijed').order('created_at', { ascending: false })
+  let q = supabase
+    .from('stranice')
+    .select('*')
+    .order('redoslijed')
+    .order('created_at', { ascending: false })
 
   if (slug) q = q.eq('slug', slug).single() as any
   if (tip) q = q.eq('tip', tip)
   if (!sve) q = q.eq('objavljen', true)
 
-  // Shop izolacija
+  // Klijentski shop filtrira po shop_id, glavni NE filtrira
   if (shopId) {
     q = q.eq('shop_id', shopId)
   } else {

@@ -4,7 +4,12 @@ import { supabase, supabaseAdmin } from '@/lib/supabase'
 async function resolveShopId(req: NextRequest): Promise<string | null> {
   const shopSlug = req.nextUrl.searchParams.get('shop')
   if (!shopSlug) return null
-  const { data } = await supabaseAdmin.from('shopovi').select('id').eq('slug', shopSlug).eq('status', 'aktivan').single()
+  const { data } = await supabaseAdmin
+    .from('shopovi')
+    .select('id')
+    .eq('slug', shopSlug)
+    .eq('status', 'aktivan')
+    .single()
   return data?.id || null
 }
 
@@ -19,10 +24,18 @@ export async function GET(req: NextRequest) {
   const cijenaOd = parseFloat(sp.get('cijenaOd') || '0')
   const cijenaDo = parseFloat(sp.get('cijenaDo') || '0')
 
+  const shopId = await resolveShopId(req)
+
   let query = supabase
     .from('artikli')
     .select('id, sifra, barkod, naziv, naziv2, jedinica_mjere, proc_poreza, planska_maloprodajna_cijena, planska_veleprodajna_cijena, slika_url, grupa_id, akcija_popust, akcija_do, aktivan, grupe:grupa_id(id,naziv)', { count: 'exact' })
     .eq('aktivan', true)
+
+  // Izolacija: klijentski shop filtrira po shop_id, glavni shop NE filtrira
+  if (shopId) {
+    query = query.eq('shop_id', shopId)
+  }
+  // Bez shop param = glavni shop = svi artikli bez filtra
 
   if (search) query = query.or(`naziv.ilike.%${search}%,sifra.ilike.%${search}%,barkod.ilike.%${search}%`)
   if (grupaId) query = query.eq('grupa_id', grupaId)
@@ -30,15 +43,6 @@ export async function GET(req: NextRequest) {
   if (cijenaOd > 0) query = query.gte('planska_maloprodajna_cijena', cijenaOd)
   if (cijenaDo > 0) query = query.lte('planska_maloprodajna_cijena', cijenaDo)
 
-  // Shop izolacija — svaki shop vidi SAMO svoje artikle
-  const shopId = await resolveShopId(req)
-  if (shopId) {
-    query = query.eq('shop_id', shopId)
-  } else {
-    query = query.is('shop_id', null)
-  }
-
-  // Sortiranje
   if (sortBy === 'naziv_asc') query = query.order('naziv', { ascending: true })
   else if (sortBy === 'naziv_desc') query = query.order('naziv', { ascending: false })
   else if (sortBy === 'cijena_asc') query = query.order('planska_maloprodajna_cijena', { ascending: true })

@@ -23,8 +23,12 @@ export default function HeroSlider() {
   const timerRef = useRef<NodeJS.Timeout | null>(null)
   const [paused, setPaused] = useState(false)
 
+
+
+  const _shopParam = typeof window !== 'undefined' ? (new URLSearchParams(window.location.search).get('shop') ? '&shop=' + new URLSearchParams(window.location.search).get('shop') : '') : ''
+
   useEffect(() => {
-    fetch('/api/postavke?kljuci=hero_slides,hero_visina,hero_aktivan' + (typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('shop') ? ('&shop=' + new URLSearchParams(window.location.search).get('shop')) : ''))
+    fetch('/api/postavke?kljuci=hero_slides,hero_visina,hero_aktivan' + _shopParam)
       .then(r => r.json())
       .then(d => {
         if (d.hero_visina) setVisina(parseInt(d.hero_visina) || 480)
@@ -33,7 +37,7 @@ export default function HeroSlider() {
         }
         // Fallback — stari HeroBanner format
         if (!d.hero_slides || d.hero_slides === '[]') {
-          fetch('/api/postavke?kljuci=hero_naslov,hero_podnaslov,hero_dugme_tekst,hero_dugme_url,hero_slika_url,hero_boja_pozadine,hero_tekst_boja,hero_tekst_pozicija,hero_overlay_opacity' + (typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('shop') ? ('&shop=' + new URLSearchParams(window.location.search).get('shop')) : ''))
+          fetch('/api/postavke?kljuci=hero_naslov,hero_podnaslov,hero_dugme_tekst,hero_dugme_url,hero_slika_url,hero_boja_pozadine,hero_tekst_boja,hero_tekst_pozicija,hero_overlay_opacity' + _shopParam)
             .then(r => r.json())
             .then(h => {
               setSlides([{

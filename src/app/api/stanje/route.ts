@@ -5,7 +5,12 @@ import { siteConfig } from '@/lib/config'
 async function resolveShopId(req: NextRequest): Promise<string | null> {
   const shopSlug = req.nextUrl.searchParams.get('shop')
   if (!shopSlug) return null
-  const { data } = await supabaseAdmin.from('shopovi').select('id').eq('slug', shopSlug).eq('status', 'aktivan').single()
+  const { data } = await supabaseAdmin
+    .from('shopovi')
+    .select('id')
+    .eq('slug', shopSlug)
+    .eq('status', 'aktivan')
+    .single()
   return data?.id || null
 }
 
@@ -24,10 +29,9 @@ export async function GET(req: NextRequest) {
 
     if (artikalIds?.length) query = query.in('artikal_id', artikalIds)
 
+    // Klijentski shop filtrira po shop_id, glavni NE filtrira
     if (shopId) {
       query = query.eq('shop_id', shopId)
-    } else {
-      query = query.is('shop_id', null)
     }
 
     const { data, error } = await query
