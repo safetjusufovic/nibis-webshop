@@ -34,7 +34,7 @@ export default function AkcijeSlider() {
   const _shopParam = typeof window !== 'undefined' ? (new URLSearchParams(window.location.search).get('shop') ? '&shop=' + new URLSearchParams(window.location.search).get('shop') : '') : ''
 
   useEffect(() => {
-    fetch(_sp('/api/artikli?akcija=true&perPage=24&page=1'))
+    fetch('/api/artikli?akcija=true&perPage=24&page=1' + _shopParam)
       .then(r => r.json())
       .then(async d => {
         const items = (d.items ?? []).filter((a: any) => a.akcija_popust > 0)
