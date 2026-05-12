@@ -13,27 +13,23 @@ export async function GET(req: NextRequest) {
 
   let query = supabaseAdmin
     .from('artikli')
-    .select('id, sifra, barkod, naziv, naziv2, proc_poreza, planska_maloprodajna_cijena, planska_veleprodajna_cijena, slika_url, grupa_id, akcija_popust, akcija_do, aktivan, grupe:grupa_id(id,naziv)', { count: 'exact' })
+    .select('id, sifra, barkod, naziv, naziv2, proc_poreza, planska_maloprodajna_cijena, planska_veleprodajna_cijena, slika_url, grupa_id, akcija_popust, akcija_do, aktivan, webshop_aktivan, grupe:grupa_id(id,naziv)', { count: 'exact' })
     .eq('aktivan', true)
+    .eq('webshop_aktivan', true)
 
-  // Shop izolacija - samo ako je shop param prisutan
   if (shopSlug) {
-    // Dohvati shop_id za ovaj slug
     const { data: shopData } = await supabaseAdmin
       .from('shopovi')
       .select('id')
       .eq('slug', shopSlug)
       .eq('status', 'aktivan')
       .single()
-    
     if (shopData?.id) {
       query = query.eq('shop_id', shopData.id)
     } else {
-      // Shop ne postoji - vrati prazno
       return NextResponse.json({ items: [], total: 0 })
     }
   }
-  // Bez ?shop= - glavni shop - vrati sve artikle
 
   if (search) query = query.or(`naziv.ilike.%${search}%,sifra.ilike.%${search}%,barkod.ilike.%${search}%`)
   if (grupaId) query = query.eq('grupa_id', grupaId)
@@ -54,13 +50,20 @@ export async function GET(req: NextRequest) {
   }
 
   const items = (data || []).map((a: any) => ({
-    id: a.id, sifra: a.sifra, barkod: a.barkod, naziv: a.naziv, naziv2: a.naziv2,
-    jedinicaMjere: null, procPoreza: a.proc_poreza,
+    id: a.id,
+    sifra: a.sifra,
+    barkod: a.barkod,
+    naziv: a.naziv,
+    naziv2: a.naziv2,
+    procPoreza: a.proc_poreza,
     planskaMaloprodajnaCijena: a.planska_maloprodajna_cijena,
     planskaVeleprodajnaCijena: a.planska_veleprodajna_cijena,
-    slika_url: a.slika_url, grupaId: a.grupa_id,
-    akcija_popust: a.akcija_popust, akcija_do: a.akcija_do,
-    aktivan: a.aktivan, grupa: a.grupe,
+    slika_url: a.slika_url,
+    grupaId: a.grupa_id,
+    akcija_popust: a.akcija_popust,
+    akcija_do: a.akcija_do,
+    aktivan: a.aktivan,
+    grupa: a.grupe,
   }))
 
   return NextResponse.json({ items, total: count ?? 0 })
