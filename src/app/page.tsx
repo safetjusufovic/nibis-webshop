@@ -844,12 +844,8 @@ export default function HomePage() {
     }
   }, [])
 
-  // Čitaj shop slug iz URL ?shop=slug
-  const [shopSlug, setShopSlug] = useState('')
-  useEffect(() => {
-    const slug = new URLSearchParams(window.location.search).get('shop') || ''
-    setShopSlug(slug)
-  }, [])
+  // Čitaj shop slug direktno iz URL-a (ne state - izbjegava race condition)
+  const shopSlug = typeof window !== 'undefined' ? (new URLSearchParams(window.location.search).get('shop') || '') : ''
 
   const loadArtikli = useCallback(async () => {
     setLoading(true)
