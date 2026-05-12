@@ -29,6 +29,8 @@ export default function SuperAdminPage() {
   const [saving, setSaving] = useState(false)
   const [toast, setToast] = useState('')
   const [stats, setStats] = useState({ ukupno: 0, aktivnih: 0, prihod_procjena: 0 })
+  const [syncing, setSyncing] = useState<string | null>(null)
+  const [syncResults, setSyncResults] = useState<Record<string, string>>({})
 
   function showToast(msg: string) { setToast(msg); setTimeout(() => setToast(''), 3000) }
 
@@ -112,6 +114,34 @@ export default function SuperAdminPage() {
 
   const planBoja = (plan: string) => plan === 'enterprise' ? '#7C3AED' : plan === 'pro' ? '#2563EB' : '#374151'
   const planCijena = (plan: string) => plan === 'enterprise' ? '199 KM' : plan === 'pro' ? '99 KM' : '49 KM'
+
+  async function testShopConnection(shop: Shop) {
+    setSyncing('test_' + shop.id)
+    try {
+      const res = await fetch('/api/sync', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ shop_id: shop.id }) })
+      const data = await res.json()
+      setSyncResults(prev => ({ ...prev, [shop.id]: data.ok ? '✓ Konekcija OK' : '✗ ' + (data.error || 'Greška') }))
+    } catch { setSyncResults(prev => ({ ...prev, [shop.id]: '✗ Greška konekcije' })) }
+    setSyncing(null)
+  }
+
+  async function syncShop(shop: Shop) {
+    setSyncing('sync_' + shop.id)
+    setSyncResults(prev => ({ ...prev, [shop.id]: '⏳ Syncanje...' }))
+    try {
+      const secret = prompt('Unesi CRON_SECRET za autorizaciju:')
+      if (!secret) { setSyncing(null); return }
+      const res = await fetch('/api/sync?shop_id=' + shop.id + '&secret=' + secret)
+      const data = await res.json()
+      if (data.ok) {
+        setSyncResults(prev => ({ ...prev, [shop.id]: `✓ Synced: ${data.artikliCount} artikala, ${data.stanjeCount} stanja` }))
+        showToast('Sync završen za ' + shop.naziv)
+      } else {
+        setSyncResults(prev => ({ ...prev, [shop.id]: '✗ ' + (data.error || 'Sync greška') }))
+      }
+    } catch (e: any) { setSyncResults(prev => ({ ...prev, [shop.id]: '✗ ' + e.message })) }
+    setSyncing(null)
+  }
 
   return (
     <div style={{ minHeight: '100vh', background: '#0f172a', fontFamily: "'Inter', system-ui, sans-serif", color: '#e2e8f0' }}>
@@ -249,19 +279,41 @@ export default function SuperAdminPage() {
               </div>
 
               {/* Actions */}
-              <div style={{ display: 'flex', gap: '5px', flexShrink: 0 }}>
-                <a href={'/' + s.slug} target="_blank" rel="noopener noreferrer"
-                  style={{ padding: '6px 10px', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '7px', background: 'transparent', color: '#94a3b8', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px' }}>
-                  <Globe size={12} /> Shop
-                </a>
-                <button onClick={() => toggleStatus(s)}
-                  style={{ padding: '6px 10px', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '7px', background: 'transparent', cursor: 'pointer', color: s.status === 'aktivan' ? '#f59e0b' : '#10b981', fontFamily: 'inherit', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  {s.status === 'aktivan' ? <><EyeOff size={12} /> Suspenduj</> : <><Eye size={12} /> Aktiviraj</>}
-                </button>
-                <button onClick={() => deleteShop(s.id)}
-                  style={{ padding: '6px 8px', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '7px', background: 'transparent', cursor: 'pointer', color: '#ef4444', display: 'flex' }}>
-                  <Trash2 size={12} />
-                </button>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', alignItems: 'flex-end' }}>
+                <div style={{ display: 'flex', gap: '5px' }}>
+                  <a href={'/' + s.slug} target="_blank" rel="noopener noreferrer"
+                    style={{ padding: '6px 10px', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '7px', background: 'transparent', color: '#94a3b8', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px' }}>
+                    <Globe size={12} /> Shop
+                  </a>
+                  {s.nibis_api_url && (
+                    <button onClick={() => testShopConnection(s)} disabled={syncing === 'test_' + s.id}
+                      style={{ padding: '6px 10px', border: '1px solid rgba(99,102,241,0.3)', borderRadius: '7px', background: 'transparent', cursor: 'pointer', color: '#818cf8', fontFamily: 'inherit', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      {syncing === 'test_' + s.id ? '...' : '🔌 Test API'}
+                    </button>
+                  )}
+                  {s.nibis_api_url && (
+                    <button onClick={() => syncShop(s)} disabled={!!syncing}
+                      style={{ padding: '6px 10px', border: '1px solid rgba(16,185,129,0.3)', borderRadius: '7px', background: 'transparent', cursor: 'pointer', color: '#10b981', fontFamily: 'inherit', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      {syncing === 'sync_' + s.id ? '⏳' : '🔄 Sync'}
+                    </button>
+                  )}
+                  <button onClick={() => toggleStatus(s)}
+                    style={{ padding: '6px 10px', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '7px', background: 'transparent', cursor: 'pointer', color: s.status === 'aktivan' ? '#f59e0b' : '#10b981', fontFamily: 'inherit', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    {s.status === 'aktivan' ? <><EyeOff size={12} /> Suspenduj</> : <><Eye size={12} /> Aktiviraj</>}
+                  </button>
+                  <button onClick={() => deleteShop(s.id)}
+                    style={{ padding: '6px 8px', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '7px', background: 'transparent', cursor: 'pointer', color: '#ef4444', display: 'flex' }}>
+                    <Trash2 size={12} />
+                  </button>
+                </div>
+                {syncResults[s.id] && (
+                  <div style={{ fontSize: '11px', color: syncResults[s.id].startsWith('✓') ? '#10b981' : '#ef4444', textAlign: 'right' }}>
+                    {syncResults[s.id]}
+                  </div>
+                )}
+                {!s.nibis_api_url && (
+                  <div style={{ fontSize: '11px', color: '#64748b' }}>⚠ Nema NIBIS API konfiguracije</div>
+                )}
               </div>
             </div>
           ))}

@@ -1,21 +1,28 @@
 import type {
-  PaginatedResponse,
-  Artikal,
-  ArtikalGrupa,
-  StanjeSkladista,
-  NarudzbaCreate,
-  NarudzbaResponse,
-  Partner,
+  PaginatedResponse, Artikal, ArtikalGrupa,
+  StanjeSkladista, NarudzbaCreate, NarudzbaResponse, Partner,
 } from '@/types/nibis'
 
-const BASE_URL = process.env.NIBIS_API_URL || 'https://api.nextvision.ba/integration/robno-materijalno'
-const API_KEY = process.env.NIBIS_API_KEY || ''
-const COMPANY_YEAR = process.env.NIBIS_COMPANY_YEAR || new Date().getFullYear().toString()
+// ─── Per-shop konfiguracija ───────────────────────────────────────────────────
+export interface NibisConfig {
+  baseUrl: string
+  apiKey: string
+  companyYear?: string
+  orgJedId?: number
+}
 
-function nibisHeaders(): HeadersInit {
+// Default (iz .env) — koristi se kad nema shop-specific konfiguracije
+export const defaultConfig: NibisConfig = {
+  baseUrl: process.env.NIBIS_API_URL || 'https://api.nextvision.ba/integration/robno-materijalno',
+  apiKey: process.env.NIBIS_API_KEY || '',
+  companyYear: process.env.NIBIS_COMPANY_YEAR || new Date().getFullYear().toString(),
+  orgJedId: parseInt(process.env.ORG_JED_ID || '1'),
+}
+
+function nibisHeaders(config: NibisConfig): HeadersInit {
   return {
-    ApiKey: API_KEY,
-    'Company-Year': COMPANY_YEAR,
+    ApiKey: config.apiKey,
+    'Company-Year': config.companyYear || new Date().getFullYear().toString(),
     'Accept-Language': 'bs-BA',
     'Content-Type': 'application/json',
   }
@@ -28,15 +35,17 @@ export interface ListParams {
   sortName?: string
   sortDirection?: 'ASC' | 'DESC'
   filters?: Array<{ name: string; operator: string; value: string }>
+  since?: string
 }
 
-function buildUrl(path: string, params: ListParams = {}): string {
-  const url = new URL(`${BASE_URL}${path}`)
+function buildUrl(baseUrl: string, path: string, params: ListParams = {}): string {
+  const url = new URL(`${baseUrl}${path}`)
   url.searchParams.set('page', String(params.page ?? 1))
   url.searchParams.set('perPage', String(params.perPage ?? 50))
   if (params.search) url.searchParams.set('search', params.search)
   if (params.sortName) url.searchParams.set('sort.name', params.sortName)
   if (params.sortDirection) url.searchParams.set('sort.direction', params.sortDirection)
+  if (params.since) url.searchParams.set('dateModifiedFrom', params.since)
   params.filters?.forEach((f, i) => {
     url.searchParams.set(`filters[${i}].name`, f.name)
     url.searchParams.set(`filters[${i}].operator`, f.operator)
@@ -45,76 +54,48 @@ function buildUrl(path: string, params: ListParams = {}): string {
   return url.toString()
 }
 
-async function nibisGet<T>(path: string, params?: ListParams): Promise<T> {
-  const url = buildUrl(path, params)
-  const res = await fetch(url, {
-    headers: nibisHeaders(),
-    next: { revalidate: 60 }, // Next.js ISR cache — 60s
-  })
-  if (!res.ok) {
-    const body = await res.text().catch(() => '')
-    throw new Error(`NIBIS API ${res.status}: ${body}`)
-  }
+async function nibisGet<T>(config: NibisConfig, path: string, params: ListParams = {}): Promise<PaginatedResponse<T>> {
+  const url = buildUrl(config.baseUrl, path, params)
+  const res = await fetch(url, { headers: nibisHeaders(config), cache: 'no-store' })
+  if (!res.ok) throw new Error(`NIBIS ${path} ${res.status}: ${await res.text()}`)
   return res.json()
 }
 
-// ─── Artikli ─────────────────────────────────────────────────────────────────
-export async function getArtikli(params: ListParams & { grupaId?: number; aktivni?: boolean; since?: string } = {}) {
-  const filters: Array<{ name: string; operator: string; value: string }> = [
-    ...(params.filters ?? []),
-  ]
-  if (params.grupaId) filters.push({ name: 'grupaId', operator: 'eq', value: String(params.grupaId) })
-  if (params.aktivni !== undefined) filters.push({ name: 'aktivan', operator: 'eq', value: String(params.aktivni) })
-  if (params.since) filters.push({ name: 'dateModified', operator: 'gte', value: params.since })
-  return nibisGet<PaginatedResponse<Artikal>>('/artikli', { ...params, filters, sortName: params.sortName ?? 'naziv' })
+// ─── API funkcije — sve primaju config ────────────────────────────────────────
+
+export function getArtikli(params: ListParams = {}, config = defaultConfig) {
+  return nibisGet<Artikal>(config, '/artikli', params)
 }
 
-export async function getArtikalById(id: number): Promise<Artikal | null> {
-  const data = await getArtikli({ filters: [{ name: 'id', operator: 'eq', value: String(id) }], perPage: 1 })
-  return data.items[0] ?? null
+export function getGrupe(params: ListParams = {}, config = defaultConfig) {
+  return nibisGet<ArtikalGrupa>(config, '/grupe', params)
 }
 
-// ─── Grupe ───────────────────────────────────────────────────────────────────
-export async function getGrupe(params: ListParams = {}) {
-  return nibisGet<PaginatedResponse<ArtikalGrupa>>('/artikli-grupe', {
-    ...params,
-    perPage: params.perPage ?? 100,
-    sortName: 'naziv',
-  })
+export function getStanje(orgJedId: number, page = 1, since?: string, config = defaultConfig) {
+  return nibisGet<StanjeSkladista>(config, `/stanje-skladista/${orgJedId}`, { page, perPage: 500, ...(since && { since }) })
 }
 
-// ─── Stanje skladišta ────────────────────────────────────────────────────────
-export async function getStanje(orgJedId: number, page: number = 1, since?: string) {
-  const filters: Array<{ name: string; operator: string; value: string }> = [
-    { name: 'orgJedId', operator: 'eq', value: String(orgJedId) },
-  ]
-  if (since) filters.push({ name: 'dateModified', operator: 'gte', value: since })
-  return nibisGet<PaginatedResponse<StanjeSkladista>>('/stanje-skladista', {
-    filters,
-    page,
-    perPage: 100,
-  })
+export function getPartneri(params: ListParams = {}, config = defaultConfig) {
+  return nibisGet<Partner>(config, '/partneri', params)
 }
 
-// ─── Narudžba ────────────────────────────────────────────────────────────────
-export async function createNarudzba(payload: NarudzbaCreate): Promise<NarudzbaResponse> {
-  const res = await fetch(`${BASE_URL}/dokumenti/narudzba`, {
+export async function createNarudzba(narudzba: NarudzbaCreate, config = defaultConfig): Promise<NarudzbaResponse> {
+  const res = await fetch(`${config.baseUrl}/narudzbe`, {
     method: 'POST',
-    headers: nibisHeaders(),
-    body: JSON.stringify(payload),
+    headers: nibisHeaders(config),
+    body: JSON.stringify(narudzba),
   })
-  if (!res.ok) {
-    const body = await res.text().catch(() => '')
-    throw new Error(`NIBIS narudžba ${res.status}: ${body}`)
-  }
+  if (!res.ok) throw new Error(`NIBIS narudzba ${res.status}: ${await res.text()}`)
   return res.json()
 }
 
-// ─── Partneri ─────────────────────────────────────────────────────────────────
-export async function getPartneri(params: ListParams = {}) {
-  return nibisGet<PaginatedResponse<Partner>>('/partner', {
-    ...params,
-    perPage: params.perPage ?? 100,
-    sortName: 'naziv',
-  })
+export async function testConnection(config: NibisConfig): Promise<{ ok: boolean; error?: string }> {
+  try {
+    const res = await fetch(buildUrl(config.baseUrl, '/grupe', { page: 1, perPage: 1 }), {
+      headers: nibisHeaders(config), signal: AbortSignal.timeout(5000)
+    })
+    return { ok: res.ok, ...(!res.ok && { error: `HTTP ${res.status}` }) }
+  } catch (e: any) {
+    return { ok: false, error: e.message }
+  }
 }
