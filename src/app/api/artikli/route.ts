@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { supabase, supabaseAdmin } from '@/lib/supabase'
 
 async function resolveShopId(req: NextRequest): Promise<string | null> {
   const shopSlug = req.nextUrl.searchParams.get('shop')
   if (!shopSlug) return null
-  const { createClient } = await import('@supabase/supabase-js')
+  const { data } = await supabaseAdmin.from('shopovi').select('id').eq('slug', shopSlug).eq('status', 'aktivan').single()
+  return data?.id || null
+} = await import('@supabase/supabase-js')
   const sb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
   const { data } = await sb.from('shopovi').select('id').eq('slug', shopSlug).eq('status', 'aktivan').single()
   return data?.id || null

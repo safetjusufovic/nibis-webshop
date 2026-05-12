@@ -87,8 +87,8 @@ export default function SuperAdminPage() {
     if (!shop.nibis_api_url) { showToast('Postavi NIBIS API URL i Key prvo'); return }
     setSyncing('sync_' + shop.id)
     setSyncResults(prev => ({ ...prev, [shop.id]: '⏳ Syncanje u toku...' }))
-    const cronSecret = process.env.NEXT_PUBLIC_CRON_SECRET || prompt('Unesi CRON_SECRET:') || ''
-    const res = await fetch('/api/sync?shop_id=' + shop.id + '&secret=' + cronSecret)
+    // Sync se autorizuje kroz super-admin API rutu (service role)
+    const res = await fetch('/api/super-admin/sync?shop_id=' + shop.id, { headers: HEADERS })
     const data = await res.json()
     setSyncResults(prev => ({
       ...prev,
