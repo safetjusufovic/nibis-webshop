@@ -7,8 +7,6 @@ async function resolveShopId(req: NextRequest): Promise<string | null> {
   if (!shopSlug) return null
   const { data } = await supabaseAdmin.from('shopovi').select('id').eq('slug', shopSlug).eq('status', 'aktivan').single()
   return data?.id || null
-} = await supabase.from('shopovi').select('id').eq('slug', shopSlug).eq('status', 'aktivan').single()
-  return data?.id || null
 }
 
 export async function GET(req: NextRequest) {
@@ -21,12 +19,11 @@ export async function GET(req: NextRequest) {
   try {
     let query = supabase
       .from('stanje_skladista')
-      .select('id, artikal_id, org_jed_id, raspoloziva_kolicina, nabavna_cijena, vpcijena, mpcijena, shop_id')
+      .select('id, artikal_id, org_jed_id, raspoloziva_kolicina, nabavna_cijena, vpcijena, mpcijena')
       .eq('org_jed_id', orgJedId)
 
     if (artikalIds?.length) query = query.in('artikal_id', artikalIds)
 
-    // Shop izolacija
     if (shopId) {
       query = query.eq('shop_id', shopId)
     } else {

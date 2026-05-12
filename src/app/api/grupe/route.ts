@@ -6,8 +6,6 @@ async function resolveShopId(req: NextRequest): Promise<string | null> {
   if (!shopSlug) return null
   const { data } = await supabaseAdmin.from('shopovi').select('id').eq('slug', shopSlug).eq('status', 'aktivan').single()
   return data?.id || null
-} = await supabase.from('shopovi').select('id').eq('slug', shopSlug).eq('status', 'aktivan').single()
-  return data?.id || null
 }
 
 export async function GET(req: NextRequest) {
@@ -20,15 +18,12 @@ export async function GET(req: NextRequest) {
       .order('nivo').order('naziv')
 
     if (shopId) {
-      // Vlastite grupe shopa
       query = query.eq('shop_id', shopId)
     } else {
-      // Glavni shop — grupe bez shop_id
       query = query.is('shop_id', null)
     }
 
     const { data, error, count } = await query
-
     if (error) throw error
 
     const items = (data || []).map(g => ({
