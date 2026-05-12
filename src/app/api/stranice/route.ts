@@ -1,16 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { supabase, supabaseAdmin } from '@/lib/supabase'
+
+async function resolveShopId(req: NextRequest): Promise<string | null> {
+  const shopSlug = req.nextUrl.searchParams.get('shop')
+  if (!shopSlug) return null
+  const { data } = await supabaseAdmin.from('shopovi').select('id').eq('slug', shopSlug).eq('status', 'aktivan').single()
+  return data?.id || null
+}
 
 export async function GET(req: NextRequest) {
   const tip = req.nextUrl.searchParams.get('tip')
   const slug = req.nextUrl.searchParams.get('slug')
-  const sve = req.nextUrl.searchParams.get('sve') // admin - sve uključujući neobjavljene
+  const sve = req.nextUrl.searchParams.get('sve')
+  const shopId = await resolveShopId(req)
 
   let q = supabase.from('stranice').select('*').order('redoslijed').order('created_at', { ascending: false })
 
   if (slug) q = q.eq('slug', slug).single() as any
   if (tip) q = q.eq('tip', tip)
   if (!sve) q = q.eq('objavljen', true)
+
+  // Shop izolacija
+  if (shopId) {
+    q = q.eq('shop_id', shopId)
+  } else {
+    q = q.is('shop_id', null)
+  }
 
   const { data, error } = await q as any
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
@@ -19,8 +34,10 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   const body = await req.json()
+  const shopId = await resolveShopId(req)
   const { data, error } = await supabase.from('stranice').insert({
     ...body,
+    ...(shopId && { shop_id: shopId }),
     updated_at: new Date().toISOString(),
   }).select().single()
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })

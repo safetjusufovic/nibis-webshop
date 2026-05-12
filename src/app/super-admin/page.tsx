@@ -25,6 +25,8 @@ export default function SuperAdminPage() {
   const [newShop, setNewShop] = useState<NewShop>(EMPTY)
   const [saving, setSaving] = useState(false)
   const [syncing, setSyncing] = useState<string | null>(null)
+  const [editingApi, setEditingApi] = useState<string | null>(null)
+  const [editApiData, setEditApiData] = useState({ nibis_api_url: '', nibis_api_key: '' })
   const [syncResults, setSyncResults] = useState<Record<string, string>>({})
   const [toast, setToast] = useState('')
 
@@ -98,6 +100,16 @@ export default function SuperAdminPage() {
     }))
     setSyncing(null)
     if (data.ok) showToast('✓ Sync završen za ' + shop.naziv)
+  }
+
+  async function saveApiConfig(shopId: string) {
+    await fetch('/api/super-admin', {
+      method: 'PATCH', headers: HEADERS,
+      body: JSON.stringify({ id: shopId, nibis_api_url: editApiData.nibis_api_url, nibis_api_key: editApiData.nibis_api_key })
+    })
+    setShopovi(prev => prev.map(s => s.id === shopId ? { ...s, nibis_api_url: editApiData.nibis_api_url, nibis_api_key: editApiData.nibis_api_key } : s))
+    setEditingApi(null)
+    showToast('✓ API konfiguracija sačuvana')
   }
 
   const aktivnih = shopovi.filter(s => s.status === 'aktivan').length
@@ -229,7 +241,25 @@ export default function SuperAdminPage() {
                     <span>✉ {s.admin_email}</span>
                     <span>📅 {new Date(s.created_at).toLocaleDateString('bs-BA')}</span>
                   </div>
-                  {!s.nibis_api_url && <div style={{ fontSize: '11px', color: '#f59e0b', marginTop: '4px' }}>⚠ NIBIS API nije konfigurisan</div>}
+                  {!s.nibis_api_url && (
+                  <div style={{ marginTop: '6px' }}>
+                    {editingApi === s.id ? (
+                      <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
+                        <input value={editApiData.nibis_api_url} onChange={e => setEditApiData(p => ({ ...p, nibis_api_url: e.target.value }))}
+                          placeholder="NIBIS API URL" style={{ padding: '5px 9px', fontSize: '12px', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '6px', background: 'rgba(255,255,255,0.06)', color: '#e2e8f0', fontFamily: 'inherit', width: '280px', outline: 'none' }} />
+                        <input value={editApiData.nibis_api_key} onChange={e => setEditApiData(p => ({ ...p, nibis_api_key: e.target.value }))}
+                          placeholder="API Key" style={{ padding: '5px 9px', fontSize: '12px', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '6px', background: 'rgba(255,255,255,0.06)', color: '#e2e8f0', fontFamily: 'inherit', width: '200px', outline: 'none' }} />
+                        <button onClick={() => saveApiConfig(s.id)} style={{ padding: '5px 12px', background: '#10b981', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontFamily: 'inherit', fontWeight: 600 }}>Sačuvaj</button>
+                        <button onClick={() => setEditingApi(null)} style={{ padding: '5px 10px', background: 'transparent', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', color: '#94a3b8', fontFamily: 'inherit' }}>✕</button>
+                      </div>
+                    ) : (
+                      <button onClick={() => { setEditingApi(s.id); setEditApiData({ nibis_api_url: s.nibis_api_url || '', nibis_api_key: s.nibis_api_key || '' }) }}
+                        style={{ fontSize: '11px', color: '#f59e0b', background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.3)', borderRadius: '6px', padding: '3px 10px', cursor: 'pointer', fontFamily: 'inherit' }}>
+                        ⚠ Postavi NIBIS API →
+                      </button>
+                    )}
+                  </div>
+                )}
                   {syncResults[s.id] && (
                     <div style={{ fontSize: '12px', marginTop: '6px', padding: '5px 10px', background: syncResults[s.id].startsWith('✓') ? 'rgba(16,185,129,0.1)' : syncResults[s.id].startsWith('⏳') ? 'rgba(245,158,11,0.1)' : 'rgba(239,68,68,0.1)', borderRadius: '6px', color: syncResults[s.id].startsWith('✓') ? '#10b981' : syncResults[s.id].startsWith('⏳') ? '#f59e0b' : '#ef4444', fontFamily: 'monospace' }}>
                       {syncResults[s.id]}
