@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
 
   let query = supabaseAdmin
     .from('artikli')
-    .select('id, sifra, barkod, naziv, naziv2, jedinica_mjere, proc_poreza, planska_maloprodajna_cijena, planska_veleprodajna_cijena, slika_url, grupa_id, akcija_popust, akcija_do, aktivan, grupe:grupa_id(id,naziv)', { count: 'exact' })
+    .select('id, sifra, barkod, naziv, naziv2, proc_poreza, planska_maloprodajna_cijena, planska_veleprodajna_cijena, slika_url, grupa_id, akcija_popust, akcija_do, aktivan, grupe:grupa_id(id,naziv)', { count: 'exact' })
     .eq('aktivan', true)
 
   // Shop izolacija - samo ako je shop param prisutan
@@ -55,7 +55,7 @@ export async function GET(req: NextRequest) {
 
   const items = (data || []).map((a: any) => ({
     id: a.id, sifra: a.sifra, barkod: a.barkod, naziv: a.naziv, naziv2: a.naziv2,
-    jedinicaMjere: a.jedinica_mjere, procPoreza: a.proc_poreza,
+    jedinicaMjere: null, procPoreza: a.proc_poreza,
     planskaMaloprodajnaCijena: a.planska_maloprodajna_cijena,
     planskaVeleprodajnaCijena: a.planska_veleprodajna_cijena,
     slika_url: a.slika_url, grupaId: a.grupa_id,
