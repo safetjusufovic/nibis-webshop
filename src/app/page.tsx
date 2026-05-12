@@ -844,10 +844,12 @@ export default function HomePage() {
     }
   }, [])
 
-  // Čitaj shop slug iz URL ?shop=slug i proslijedi API pozivima
-  const shopSlug = typeof window !== 'undefined'
-    ? new URLSearchParams(window.location.search).get('shop') || ''
-    : ''
+  // Čitaj shop slug iz URL ?shop=slug
+  const [shopSlug, setShopSlug] = useState('')
+  useEffect(() => {
+    const slug = new URLSearchParams(window.location.search).get('shop') || ''
+    setShopSlug(slug)
+  }, [])
 
   const loadArtikli = useCallback(async () => {
     setLoading(true)
@@ -867,7 +869,7 @@ export default function HomePage() {
       setTotal(data.total ?? 0)
       if (data.items?.length) {
         // Fetch stanje paralelno dok se artikli renderuju
-        fetch(`/api/stanje?ids=${data.items.map(a => a.id).join(',')}`)
+        fetch(`/api/stanje?ids=${data.items.map(a => a.id).join(',')}${shopSlug ? '&shop=' + shopSlug : ''}`)
           .then(r => r.json())
           .then((sd: PaginatedResponse<StanjeSkladista>) => {
             const map: Record<number, StanjeSkladista> = {}

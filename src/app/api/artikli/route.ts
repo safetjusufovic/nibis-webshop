@@ -39,9 +39,15 @@ export async function GET(req: NextRequest) {
     }
     if (grupaId) query = query.eq('grupa_id', grupaId)
 
-  // Multi-tenant: filter po shopu
+  // Multi-tenant: svaki shop ima VLASTITE artikle — nikad dijeljenje
   const shopId = await resolveShopId(req)
-  if (shopId) query = query.eq('shop_id', shopId)
+  if (shopId) {
+    // Shop je identifikovan — prikaži SAMO njegove artikle
+    query = query.eq('shop_id', shopId)
+  } else {
+    // Glavni shop — artikli bez shop_id (tvoji)
+    query = query.is('shop_id', null)
+  }
     if (sp.get('akcija') === 'true') query = query.gt('akcija_popust', 0)
 
     // Filter cijene

@@ -1,28 +1,45 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 
-export async function GET() {
+async function resolveShopId(req: NextRequest): Promise<string | null> {
+  const shopSlug = req.nextUrl.searchParams.get('shop')
+  if (!shopSlug) return null
+  const { data } = await supabase.from('shopovi').select('id').eq('slug', shopSlug).eq('status', 'aktivan').single()
+  return data?.id || null
+}
+
+export async function GET(req: NextRequest) {
   try {
-    const { data, error, count } = await supabase
+    const shopId = await resolveShopId(req)
+
+    let query = supabase
       .from('grupe')
       .select('id, sifra, naziv, opis, prefix, nivo, parent_id, boja, ikona_url', { count: 'exact' })
-      .order('naziv')
-      .limit(200)
+      .order('nivo').order('naziv')
+
+    if (shopId) {
+      // Vlastite grupe shopa
+      query = query.eq('shop_id', shopId)
+    } else {
+      // Glavni shop — grupe bez shop_id
+      query = query.is('shop_id', null)
+    }
+
+    const { data, error, count } = await query
 
     if (error) throw error
 
-    const items = (data ?? []).map((g: any) => ({
-      id: g.id, sifra: g.sifra, naziv: g.naziv,
-      opis: g.opis, prefix: g.prefix, nivo: g.nivo,
-      parentId: g.parent_id,
+    const items = (data || []).map(g => ({
+      id: g.id, sifra: g.sifra, naziv: g.naziv, opis: g.opis,
+      prefix: g.prefix, nivo: g.nivo, parentId: g.parent_id,
       boja: g.boja, ikonaUrl: g.ikona_url,
     }))
 
     return NextResponse.json(
-      { total: count ?? 0, filtered: count ?? 0, page: 1, perPage: 200, items },
+      { items, total: count ?? items.length },
       { headers: { 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600' } }
     )
-  } catch (e) {
-    return NextResponse.json({ error: String(e) }, { status: 500 })
+  } catch (e: any) {
+    return NextResponse.json({ items: [], total: 0, error: e.message }, { status: 500 })
   }
 }
