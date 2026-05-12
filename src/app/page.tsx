@@ -789,31 +789,40 @@ export default function HomePage() {
   const suggestTimer = useRef<NodeJS.Timeout | null>(null)
 
   // Učitaj dinamičke postavke iz baze
+  // BATCH LOAD — sve postavke + grupe u jednom Promise.all
   useEffect(() => {
-    fetch('/api/postavke?kljuci=default_view,per_page,artikal_dugme_tekst,shop_template,artikal_prikaz_dvije_cijene,artikal_prikaz_sifra,artikal_prikaz_kategorija,sidebar_pozicija,sidebar_sirina,sidebar_boja_pozadine,sidebar_visina_kategorije')
-      .then(r => r.json())
-      .then(d => {
-        if (d.default_view === 'table' || d.default_view === 'grid') setViewMode(d.default_view)
-        if (d.per_page) setPerPage(parseInt(d.per_page) || siteConfig.perPage)
-        if (d.artikal_dugme_tekst) setDugmeTekst(d.artikal_dugme_tekst)
-        if (d.shop_template) setShopTemplate(d.shop_template)
-        if (d.sidebar_sirina) setSidebarSirina(parseInt(d.sidebar_sirina))
-        if (d.sidebar_boja_pozadine || d.sidebar_visina_kategorije) {
-          setSidebarConfig(prev => ({
-            bojaPozadine: d.sidebar_boja_pozadine || prev.bojaPozadine,
-            visinaKategorije: parseInt(d.sidebar_visina_kategorije || '52'),
-          }))
-        }
-      })
-      .catch(() => {})
+    Promise.all([
+      fetch('/api/postavke?kljuci=default_view,per_page,artikal_dugme_tekst,shop_template,sidebar_sirina,sidebar_boja_pozadine,sidebar_visina_kategorije,sekcija_features_naslov,sekcija_features_items,sekcija_banner_tekst,sekcija_banner_podnaslov,sekcija_banner_dugme,sekcija_banner_boja,sekcija_newsletter_naslov,sekcija_newsletter_podnaslov,page_sekcije').then(r => r.json()),
+      fetch('/api/grupe').then(r => r.json()),
+    ]).then(([d, grupeData]) => {
+      // Postavke
+      if (d.default_view === 'table' || d.default_view === 'grid') setViewMode(d.default_view)
+      if (d.per_page) setPerPage(parseInt(d.per_page) || siteConfig.perPage)
+      if (d.artikal_dugme_tekst) setDugmeTekst(d.artikal_dugme_tekst)
+      if (d.shop_template) setShopTemplate(d.shop_template)
+      if (d.sidebar_sirina) setSidebarSirina(parseInt(d.sidebar_sirina))
+      if (d.sidebar_boja_pozadine || d.sidebar_visina_kategorije) {
+        setSidebarConfig(prev => ({
+          bojaPozadine: d.sidebar_boja_pozadine || prev.bojaPozadine,
+          visinaKategorije: parseInt(d.sidebar_visina_kategorije || '52'),
+        }))
+      }
+      // Sekcije
+      if (d.page_sekcije) { try { setPageSekcije(JSON.parse(d.page_sekcije)) } catch {} }
+      if (d.sekcija_features_naslov) setSekcijaFeatureNaslov?.(d.sekcija_features_naslov)
+      if (d.sekcija_features_items) { try { setSekcijaFeatureItems?.(JSON.parse(d.sekcija_features_items)) } catch {} }
+      if (d.sekcija_banner_tekst) setSekcijabannerTekst?.(d.sekcija_banner_tekst)
+      if (d.sekcija_banner_podnaslov) setSekcijaBannerPodnaslov?.(d.sekcija_banner_podnaslov)
+      if (d.sekcija_banner_dugme) setSekcijaBannerDugme?.(d.sekcija_banner_dugme)
+      if (d.sekcija_banner_boja) setSekcijaBannerBoja?.(d.sekcija_banner_boja)
+      if (d.sekcija_newsletter_naslov) setSekcijaNewsletterNaslov?.(d.sekcija_newsletter_naslov)
+      if (d.sekcija_newsletter_podnaslov) setSekcijaNewsletterPodnaslov?.(d.sekcija_newsletter_podnaslov)
+      // Grupe
+      setGrupe(grupeData.items ?? [])
+    }).catch(() => {})
   }, [])
 
-  useEffect(() => {
-    fetch('/api/grupe')
-      .then(r => r.json())
-      .then((d: PaginatedResponse<ArtikalGrupa>) => setGrupe(d.items ?? []))
-      .catch(console.error)
-  }, [])
+  // grupe loaded in batch fetch below
 
   // Čitaj grupaId iz URL-a pri mount i pri navigaciji
   useEffect(() => {
@@ -848,17 +857,19 @@ export default function HomePage() {
       ...(cijenaDo && { cijenaDo }),
     })
     try {
-      const res = await fetch(`/api/artikli?${params}`)
-      const data: PaginatedResponse<Artikal> = await res.json()
+      const data: PaginatedResponse<Artikal> = await fetch(`/api/artikli?${params}`).then(r => r.json())
       setArtikli(data.items ?? [])
       setTotal(data.total ?? 0)
       if (data.items?.length) {
-        const ids = data.items.map(a => a.id).join(',')
-        const sr = await fetch(`/api/stanje?ids=${ids}`)
-        const sd: PaginatedResponse<StanjeSkladista> = await sr.json()
-        const map: Record<number, StanjeSkladista> = {}
-        sd.items?.forEach(s => { map[s.artikalId] = s })
-        setStanje(map)
+        // Fetch stanje paralelno dok se artikli renderuju
+        fetch(`/api/stanje?ids=${data.items.map(a => a.id).join(',')}`)
+          .then(r => r.json())
+          .then((sd: PaginatedResponse<StanjeSkladista>) => {
+            const map: Record<number, StanjeSkladista> = {}
+            sd.items?.forEach(s => { map[s.artikalId] = s })
+            setStanje(map)
+          })
+          .catch(() => {})
       }
     } catch (e) {
       console.error(e)

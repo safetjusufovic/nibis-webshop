@@ -8,6 +8,6 @@ export async function GET(req: NextRequest) {
   const map: Record<string, string> = {}
   data?.forEach(p => { map[p.kljuc] = p.vrijednost })
   return NextResponse.json(map, {
-    headers: { 'Cache-Control': 'public, s-maxage=60' }
+    headers: { 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600' }
   })
 }
