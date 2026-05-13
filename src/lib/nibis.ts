@@ -74,7 +74,7 @@ export function getArtikli(params: ListParams = {}, config = defaultConfig) {
 }
 
 export function getGrupe(params: ListParams = {}, config = defaultConfig) {
-  return nibisGet<ArtikalGrupa>(config, '/grupe', params)
+  return nibisGet<ArtikalGrupa>(config, '/artikli-grupe', params)
 }
 
 export function getStanje(orgJedId: number, page = 1, since?: string, config = defaultConfig) {
