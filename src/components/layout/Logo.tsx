@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase'
 import { siteConfig } from '@/lib/config'
 
 interface LogoConfig {
@@ -9,31 +8,25 @@ interface LogoConfig {
   theme_logo_url: string
 }
 
-// Cache da ne fetcha svaki put
-let cachedConfig: LogoConfig | null = null
-
-export default function Logo({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) {
+export default function Logo({ shopSlug = '', size = 'md' }: { shopSlug?: string; size?: 'sm' | 'md' | 'lg' }) {
   const [cfg, setCfg] = useState<LogoConfig & { logo_visina?: string }>({
     shop_naziv: siteConfig.name || '',
     theme_logo_url: siteConfig.logoUrl || '',
   })
 
   useEffect(() => {
-    if (cachedConfig) { setCfg(cachedConfig); return }
-    supabase.from('postavke').select('kljuc, vrijednost')
-      .in('kljuc', ['shop_naziv', 'theme_logo_url', 'header_logo_visina'])
-      .then(({ data }) => {
-        const m: any = {}
-        data?.forEach(r => { m[r.kljuc] = r.vrijednost })
-        const config: any = {
+    const shopParam = shopSlug ? '&shop=' + shopSlug : ''
+    fetch('/api/postavke?kljuci=shop_naziv,theme_logo_url,header_logo_visina' + shopParam)
+      .then(r => r.json())
+      .then((m: any) => {
+        setCfg({
           shop_naziv: m.shop_naziv || siteConfig.name || 'WebShop',
           theme_logo_url: m.theme_logo_url || siteConfig.logoUrl || '',
           logo_visina: m.header_logo_visina || '34',
-        }
-        cachedConfig = config
-        setCfg(config)
+        } as any)
       })
-  }, [])
+      .catch(() => {})
+  }, [shopSlug])
 
   const defaultSize = size === 'sm' ? 28 : size === 'md' ? 34 : 44
   const s = parseInt(cfg.logo_visina || '') || defaultSize

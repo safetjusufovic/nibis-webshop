@@ -41,20 +41,14 @@ export default function AdminKatalogPage() {
 
   const load = useCallback(async () => {
     setLoading(true)
-    let q = supabase
-      .from('artikli')
-      .select('id, sifra, naziv, planska_maloprodajna_cijena, webshop_aktivan, akcija_popust, akcija_do, grupa_id, grupe:grupa_id(naziv)', { count: 'exact' })
-      .order('naziv')
-      .range((page - 1) * PER_PAGE, page * PER_PAGE - 1)
-
-    if (search) q = q.ilike('naziv', `%${search}%`)
-    if (filterAktivan === 'aktivan') q = q.eq('webshop_aktivan', true)
-    if (filterAktivan === 'neaktivan') q = q.eq('webshop_aktivan', false)
-    if (filterAkcija) q = q.gt('akcija_popust', 0)
-
-    const { data, count } = await q
-    setArtikli((data ?? []) as Artikal[])
-    setTotal(count ?? 0)
+    const sp = new URLSearchParams({ page: String(page), perPage: String(PER_PAGE) })
+    if (search) sp.set('search', search)
+    if (filterAkcija) sp.set('akcija', 'true')
+    if (shopSlug) sp.set('shop', shopSlug)
+    const res = await fetch('/api/artikli?' + sp.toString())
+    const d = await res.json()
+    setArtikli((d.items ?? []) as Artikal[])
+    setTotal(d.total ?? 0)
     setLoading(false)
   }, [page, search, filterAktivan, filterAkcija])
 

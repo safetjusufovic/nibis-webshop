@@ -1,4 +1,5 @@
 'use client'
+import { useParams } from 'next/navigation'
 
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
@@ -263,18 +264,14 @@ export default function AdminStranicePage() {
 
   async function load() {
     setLoading(true)
-    let q = supabase.from('stranice').select('*').order('redoslijed').order('created_at', { ascending: false })
-    if (shopId) {
-      q = q.eq('shop_id', shopId)
-    } else {
-      q = q.is('shop_id', null)
-    }
-    const { data } = await q
-    setItems(data || [])
+    const shopParam = shopSlug ? '&shop=' + shopSlug : ''
+    const res = await fetch('/api/stranice?sve=true' + shopParam)
+    const data = await res.json()
+    setItems(Array.isArray(data) ? data : [])
     setLoading(false)
   }
 
-  useEffect(() => { load() }, [shopId])
+  useEffect(() => { load() }, [shopSlug])
 
   function slugify(s: string) {
     return s.toLowerCase()
@@ -293,10 +290,16 @@ export default function AdminStranicePage() {
       ...(shopId ? { shop_id: shopId } : { shop_id: null }),
     }
     if (editing.id) {
-      const { error } = await supabase.from('stranice').update(payload).eq('id', editing.id)
+      const shopParam = shopSlug ? '?shop=' + shopSlug : ''
+      const res = await fetch('/api/stranice' + shopParam, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+      const resData = await res.json()
+      const error = resData.error ? { message: resData.error } : null
       if (error) { showToast('Greška: ' + error.message); setSaving(false); return }
     } else {
-      const { error } = await supabase.from('stranice').insert(payload)
+      const shopParam2 = shopSlug ? '?shop=' + shopSlug : ''
+      const res2 = await fetch('/api/stranice' + shopParam2, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+      const resData2 = await res2.json()
+      const error = resData2.error ? { message: resData2.error } : null
       if (error) { showToast('Greška: ' + error.message); setSaving(false); return }
     }
     setSaving(false); showToast('Sačuvano ✓')
@@ -304,7 +307,7 @@ export default function AdminStranicePage() {
   }
 
   async function toggleField(id: string, field: 'objavljen' | 'istaknuto', current: boolean) {
-    await supabase.from('stranice').update({ [field]: !current }).eq('id', id)
+    await fetch('/api/stranice', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, [field]: !current }) })
     setItems(prev => prev.map(s => s.id === id ? { ...s, [field]: !current } : s))
   }
 
@@ -322,7 +325,7 @@ export default function AdminStranicePage() {
 
   async function remove(id: string) {
     if (!confirm('Obrisati?')) return
-    await supabase.from('stranice').delete().eq('id', id)
+    await fetch('/api/stranice?id=' + id, { method: 'DELETE' })
     setItems(prev => prev.filter(s => s.id !== id))
     showToast('Obrisano')
   }
