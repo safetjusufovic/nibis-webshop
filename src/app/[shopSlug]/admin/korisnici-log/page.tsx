@@ -1,6 +1,5 @@
 'use client'
-// Klijentski shop admin — izolacija po shop_id
-import { useAdminShop } from '@/lib/useAdminShop'
+import { useParams } from 'next/navigation'
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
@@ -18,6 +17,9 @@ interface LoginLog {
 const PER_PAGE = 30
 
 export default function KorisniciLogPage() {
+  const params = useParams()
+  const shopSlug = params?.shopSlug as string || ''
+
   const [logs, setLogs] = useState<LoginLog[]>([])
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(1)

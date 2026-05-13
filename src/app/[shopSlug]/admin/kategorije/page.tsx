@@ -1,6 +1,5 @@
 'use client'
-// Klijentski shop admin — izolacija po shop_id
-import { useAdminShop } from '@/lib/useAdminShop'
+import { useParams } from 'next/navigation'
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
@@ -22,6 +21,9 @@ const PRESET_BOJE = [
 ]
 
 export default function AdminKategorijePage() {
+  const params = useParams()
+  const shopSlug = params?.shopSlug as string || ''
+
   const [grupe, setGrupe] = useState<Grupa[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
@@ -37,7 +39,7 @@ export default function AdminKategorijePage() {
   const [configSaved, setConfigSaved] = useState(false)
 
   useEffect(() => {
-    supabase.from('grupe').select('id, sifra, naziv, parent_id, boja, ikona_url').order('naziv')
+    (() => { let q = supabase.from('grupe').select('id, sifra, naziv, parent_id, boja, ikona_url').order('naziv'); return q })()
       .then(({ data }) => { setGrupe((data ?? []) as Grupa[]); setLoading(false) })
 
     supabase.from('postavke').select('kljuc, vrijednost')

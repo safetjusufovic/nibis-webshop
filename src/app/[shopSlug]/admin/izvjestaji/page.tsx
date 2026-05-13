@@ -1,6 +1,5 @@
 'use client'
-// Klijentski shop admin — izolacija po shop_id
-import { useAdminShop } from '@/lib/useAdminShop'
+import { useParams } from 'next/navigation'
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
@@ -42,6 +41,9 @@ const PERIODI = [
 ]
 
 export default function AdminIzvjestajiPage() {
+  const params = useParams()
+  const shopSlug = params?.shopSlug as string || ''
+
   const [period, setPeriod] = useState(30)
   const [loading, setLoading] = useState(true)
   const [stats, setStats] = useState({ ukupnoPromet: 0, ukupnoNarudzbi: 0, aktivniKupci: 0, prosjecnaVrijednost: 0 })

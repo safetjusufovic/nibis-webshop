@@ -1,6 +1,5 @@
 'use client'
-// Klijentski shop admin — izolacija po shop_id
-import { useAdminShop } from '@/lib/useAdminShop'
+import { useParams } from 'next/navigation'
 
 import { useEffect, useState, useRef } from 'react'
 import Image from 'next/image'
@@ -8,6 +7,9 @@ import { supabase } from '@/lib/supabase'
 import { Upload, Package, Search, X, Link as LinkIcon, CheckCircle, AlertCircle, Grid, List } from 'lucide-react'
 
 export default function AdminSlikePage() {
+  const params = useParams()
+  const shopSlug = params?.shopSlug as string || ''
+
   const [artikli, setArtikli] = useState<any[]>([])
   const [search, setSearch] = useState('')
   const [uploading, setUploading] = useState<number | null>(null)

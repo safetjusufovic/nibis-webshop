@@ -1,6 +1,5 @@
 'use client'
-// Klijentski shop admin — izolacija po shop_id
-import { useAdminShop } from '@/lib/useAdminShop'
+import { useParams } from 'next/navigation'
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
@@ -8,6 +7,9 @@ import { siteConfig } from '@/lib/config'
 import { RefreshCw } from 'lucide-react'
 
 export default function AdminSyncPage() {
+  const params = useParams()
+  const shopSlug = params?.shopSlug as string || ''
+
   const [logs, setLogs] = useState<any[]>([])
   const [syncing, setSyncing] = useState(false)
   const [result, setResult] = useState<any>(null)
@@ -29,7 +31,10 @@ export default function AdminSyncPage() {
     try {
       const secret = prompt('Upiši CRON_SECRET za pokretanje synca:')
       if (!secret) { setSyncing(false); return }
-      const res = await fetch(`/api/sync?secret=${secret}`)
+      const shopRes = await fetch('/api/super-admin/shop-id?slug=' + shopSlug, { headers: { 'x-super-admin-secret': 'nibis-super-2025' } })
+      const shopData = await shopRes.json()
+      const shopIdParam = shopData.id ? '&shop_id=' + shopData.id : ''
+      const res = await fetch(`/api/super-admin/sync?shop_id=${shopData.id}&secret=${secret}`, { headers: { 'x-super-admin-secret': 'nibis-super-2025' } })
       const data = await res.json()
       setResult(data)
       loadLogs()

@@ -1,8 +1,7 @@
 'use client'
-import { useShopContext } from '@/lib/useShopContext'
-import { useAdminShop } from '@/lib/useAdminShop'
 
 import { useEffect, useState, useCallback } from 'react'
+import { useParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { Search, Eye, EyeOff, Tag, X, Package } from 'lucide-react'
 import { formatCijena } from '@/lib/config'
@@ -26,7 +25,8 @@ interface AkcijaModal {
 const PER_PAGE = 30
 
 export default function AdminKatalogPage() {
-  const { shopId, shopSlug } = useShopContext()
+  const params = useParams()
+  const shopSlug = params?.shopSlug as string || ''
   const [artikli, setArtikli] = useState<Artikal[]>([])
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(1)
