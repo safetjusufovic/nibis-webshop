@@ -89,7 +89,7 @@ export function getPartneri(params: ListParams = {}, config = defaultConfig) {
 
 // Narudžbe — koristi direktno BASE_URL iz env, bez ikakve konfiguracije
 export async function createNarudzba(narudzba: NarudzbaCreate): Promise<NarudzbaResponse> {
-  const url = `${BASE_URL}/narudzbe`
+  const url = `${BASE_URL}/dokumenti/narudzba`
   const res = await fetch(url, {
     method: 'POST',
     headers: headers(API_KEY, COMPANY_YEAR),
