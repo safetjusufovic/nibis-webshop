@@ -196,8 +196,8 @@ function MobileMenu({ user, isAdmin, menuOpen, setMenuOpen, handleSignOut }: any
   if (!menuOpen) return null
   return (
     <div style={{ borderTop: '1px solid var(--border)', background: 'white', padding: '16px 24px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-      {[{ href: '/', label: 'Katalog' }, ...(user ? [{ href: '/moje-narudzbe', label: 'Narudžbe' }, { href: '/favoriti', label: 'Favoriti' }] : []), ...(isAdmin ? [{ href: '/admin', label: 'Admin', accent: true }] : [])].map(item => (
-        <Link key={item.href} href={shopSlug ? `/${shopSlug}${item.href}` : item.href} onClick={() => setMenuOpen(false)} style={{ padding: '10px 12px', fontSize: '15px', color: (item as any).accent ? 'var(--brand)' : 'var(--text)', fontWeight: (item as any).accent ? 500 : 400, textDecoration: 'none', borderRadius: '8px' }}>{item.label}</Link>
+      {[{ href: shopSlug ? `/${shopSlug}/` : '/', label: 'Katalog' }, ...(user ? [{ href: shopSlug ? `/${shopSlug}/moje-narudzbe` : '/moje-narudzbe', label: 'Narudžbe' }, { href: shopSlug ? `/${shopSlug}/favoriti` : '/favoriti', label: 'Favoriti' }] : []), ...(isAdmin ? [{ href: '/admin', label: 'Admin', accent: true }] : [])].map(item => (
+        <Link key={item.href} href={item.href} onClick={() => setMenuOpen(false)} style={{ padding: '10px 12px', fontSize: '15px', color: (item as any).accent ? 'var(--brand)' : 'var(--text)', fontWeight: (item as any).accent ? 500 : 400, textDecoration: 'none', borderRadius: '8px' }}>{item.label}</Link>
       ))}
       {user && <button onClick={handleSignOut} style={{ textAlign: 'left', padding: '10px 12px', fontSize: '15px', color: '#991B1B', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', borderRadius: '8px' }}>Odjava</button>}
     </div>
@@ -269,8 +269,8 @@ export default function Header({ onSearch, shopSlug = '' }: { onSearch?: (q: str
             <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text)' }}>{userName}</div>
             {partnerNaziv && <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>{partnerNaziv}</div>}
           </div>
-          {[{ href: '/moje-narudzbe', label: 'Moje narudžbe' }, { href: '/favoriti', label: 'Moji favoriti' }, ...(isAdmin ? [{ href: '/admin', label: 'Admin panel', accent: true }] : [])].map(item => (
-            <Link key={item.href} href={shopSlug ? `/${shopSlug}${item.href}` : item.href} onClick={() => setUserMenuOpen(false)} style={{ display: 'block', padding: '10px 16px', fontSize: '14px', color: (item as any).accent ? 'var(--brand)' : 'var(--text)', fontWeight: (item as any).accent ? 500 : 400, textDecoration: 'none' }}
+          {[{ href: shopSlug ? `/${shopSlug}/moje-narudzbe` : '/moje-narudzbe', label: 'Moje narudžbe' }, { href: shopSlug ? `/${shopSlug}/favoriti` : '/favoriti', label: 'Moji favoriti' }, ...(isAdmin ? [{ href: '/admin', label: 'Admin panel', accent: true }] : [])].map(item => (
+            <Link key={item.href} href={item.href} onClick={() => setUserMenuOpen(false)} style={{ display: 'block', padding: '10px 16px', fontSize: '14px', color: (item as any).accent ? 'var(--brand)' : 'var(--text)', fontWeight: (item as any).accent ? 500 : 400, textDecoration: 'none' }}
               onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--surface)'}
               onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}
             >{item.label}</Link>

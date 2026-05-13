@@ -76,7 +76,7 @@ export default function Footer({ shopSlug = '' }: { shopSlug?: string }) {
                 onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = 'var(--brand)'}
                 onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = '#6B7280'}
               >{line}</a></li>
-            )) : [{ label: 'O nama', href: '/stranica/o-nama' }, { label: 'Vijesti', href: '/vijesti' }, { label: 'Dostava i plaćanje', href: '/stranica/dostava-i-placanje' }, { label: 'Uvjeti korištenja', href: '/stranica/uvjeti-koristenja' }, { label: 'Kontakt', href: '/stranica/kontakt' }].map((item, i) => (
+            )) : [{ label: 'O nama', href: `${shopSlug ? '/' + shopSlug : ''}/stranica/o-nama` }, { label: 'Vijesti', href: `${shopSlug ? '/' + shopSlug : ''}/vijesti` }, { label: 'Dostava i plaćanje', href: `${shopSlug ? '/' + shopSlug : ''}/stranica/dostava-i-placanje` }, { label: 'Uvjeti korištenja', href: `${shopSlug ? '/' + shopSlug : ''}/stranica/uvjeti-koristenja` }, { label: 'Kontakt', href: `${shopSlug ? '/' + shopSlug : ''}/stranica/kontakt` }].map((item, i) => (
               <li key={i}><a href={item.href || '#'} style={{ fontSize: '13px', color: '#6B7280', textDecoration: 'none' }}
                 onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = 'var(--brand)'}
                 onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = '#6B7280'}
