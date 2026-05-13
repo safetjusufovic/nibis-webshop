@@ -197,7 +197,7 @@ function CategorySidebar({ grupe, activeId, onSelect, sirina = 240, sidebarConfi
 }
 
 // ─── Product Table Row ─────────────────────────────────────────────────────────
-function ProductRow({ artikal, stanje, dugmeTekst = 'Dodaj', onLoginRequired }: { artikal: Artikal; stanje: StanjeSkladista | null | undefined; dugmeTekst?: string; onLoginRequired?: () => void }) {
+function ProductRow({ artikal, stanje, dugmeTekst = 'Dodaj', onLoginRequired, shopSlug = '' }: { artikal: Artikal; stanje: StanjeSkladista | null | undefined; dugmeTekst?: string; onLoginRequired?: () => void; shopSlug?: string }) {
   const { cart, add } = useCart()
   const { rabat, user } = useAuth()
   const { favoriti, toggle: toggleFavorit } = useFavoriti()
@@ -885,7 +885,7 @@ export function ShopPage({ shopSlug = '' }: { shopSlug?: string }) {
                             </td></tr>
                           )
                           : displayed.map(a => (
-                            <ProductRow key={a.id} artikal={a} stanje={stanje[a.id]} dugmeTekst={dugmeTekst} onLoginRequired={() => setShowLoginPrompt(true)} />
+                            <ProductRow shopSlug={shopSlug} key={a.id} artikal={a} stanje={stanje[a.id]} dugmeTekst={dugmeTekst} onLoginRequired={() => setShowLoginPrompt(true)} />
                           ))
                         }
                       </tbody>
