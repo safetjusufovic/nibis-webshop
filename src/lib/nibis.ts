@@ -87,7 +87,7 @@ export function getStanje(page = 1, orgJedId?: number, since?: string, config = 
 }
 
 export function getPartneri(params: ListParams = {}, config = defaultConfig) {
-  return nibisGet<Partner>(config, '/partneri', params)
+  return nibisGet<Partner>(config, '/partner', params)
 }
 
 // Narudžbe — koristi direktno BASE_URL iz env, bez ikakve konfiguracije
