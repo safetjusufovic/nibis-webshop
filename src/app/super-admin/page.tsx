@@ -256,7 +256,7 @@ export default function SuperAdminPage() {
 
                   {/* Akcije */}
                   <div style={{ display: 'flex', gap: '5px', flexShrink: 0 }}>
-                    <a href={'/?shop=' + s.slug} target="_blank" rel="noopener noreferrer"
+                    <a href={'/' + s.slug + '/'} target="_blank" rel="noopener noreferrer"
                       style={{ padding: '6px 10px', border: '1px solid #E5E7EB', borderRadius: '7px', color: '#6B7280', textDecoration: 'none', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}>
                       <Globe size={12} /> Otvori
                     </a>
