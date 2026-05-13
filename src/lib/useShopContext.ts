@@ -1,16 +1,15 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState, useEffect } from 'react'
 
 interface ShopContext {
-  shopSlug: string       // '' = glavni shop
-  shopId: string | null  // null = glavni shop
-  shopParam: string      // '?shop=slug' ili ''
-  shopParamAmp: string   // '&shop=slug' ili ''
+  shopSlug: string
+  shopId: string | null
+  shopParam: string
+  shopParamAmp: string
   isMainShop: boolean
 }
 
-// Cache shop_id po slug-u da ne fetchujemo svaki put
 const slugToIdCache: Record<string, string> = {}
 
 export function useShopContext(): ShopContext {
@@ -18,20 +17,34 @@ export function useShopContext(): ShopContext {
   const [shopSlug, setShopSlug] = useState('')
 
   useEffect(() => {
-    // Čitaj slug iz URL-a
-    const slug = new URLSearchParams(window.location.search).get('shop') || ''
-    setShopSlug(slug)
+    // 1. Čitaj iz ?shop= query param
+    let slug = new URLSearchParams(window.location.search).get('shop') || ''
 
+    // 2. Ako nema query param, čitaj iz path-a
+    // Npr. /novishop/admin/izgled -> slug = novishop
+    // Npr. /novishop/ -> slug = novishop
+    if (!slug) {
+      const segments = window.location.pathname.split('/').filter(Boolean)
+      const adminIdx = segments.indexOf('admin')
+      if (adminIdx > 0) {
+        // /novishop/admin/... -> segments[0] = novishop
+        slug = segments[0]
+      } else if (segments.length > 0 && !['login', 'register', 'admin', 'super-admin', 'vijesti', 'stranica', 'proizvod', 'favoriti', 'moje-narudzbe'].includes(segments[0])) {
+        // /novishop/ -> segments[0] = novishop
+        slug = segments[0]
+      }
+    }
+
+    setShopSlug(slug)
     if (!slug) return
 
-    // Dohvati shop_id za ovaj slug
     if (slugToIdCache[slug]) {
       setShopId(slugToIdCache[slug])
       return
     }
 
     fetch('/api/super-admin/shop-id?slug=' + slug, {
-      headers: { 'x-super-admin-secret': process.env.NEXT_PUBLIC_SUPER_ADMIN_SECRET || 'nibis-super-2025' }
+      headers: { 'x-super-admin-secret': 'nibis-super-2025' }
     })
       .then(r => r.json())
       .then(d => {
@@ -46,11 +59,5 @@ export function useShopContext(): ShopContext {
   const shopParam = shopSlug ? '?shop=' + shopSlug : ''
   const shopParamAmp = shopSlug ? '&shop=' + shopSlug : ''
 
-  return {
-    shopSlug,
-    shopId,
-    shopParam,
-    shopParamAmp,
-    isMainShop: !shopSlug,
-  }
+  return { shopSlug, shopId, shopParam, shopParamAmp, isMainShop: !shopSlug }
 }
