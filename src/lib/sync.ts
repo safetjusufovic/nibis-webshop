@@ -68,7 +68,7 @@ async function syncArtikli(config: NibisConfig, shopId?: string): Promise<number
 
 // ─── Sync stanje ──────────────────────────────────────────────────────────────
 async function syncStanje(orgJedId: number, config: NibisConfig, shopId?: string, page = 1): Promise<number> {
-  const data = await getStanje(orgJedId, page, undefined, config)
+  const data = await getStanje(page, orgJedId, undefined, config)
   const rows = data.items.map(s => ({
     id: s.id, artikal_id: s.artikalId, org_jed_id: s.orgJedId,
     raspoloziva_kolicina: s.raspolozivaKolicina, nabavna_cijena: s.nabavnaCijena,
@@ -171,7 +171,7 @@ export async function runIncrementalSync(minutes = 5, shopId?: string) {
       artikliCount = rows.length
     }
 
-    const stanjeData = await getStanje(orgJedId, 1, since, config)
+    const stanjeData = await getStanje(1, orgJedId, since, config)
     if (stanjeData.items.length > 0) {
       const rows = stanjeData.items.map(s => ({
         id: s.id, artikal_id: s.artikalId, org_jed_id: s.orgJedId,

@@ -77,9 +77,12 @@ export function getGrupe(params: ListParams = {}, config = defaultConfig) {
   return nibisGet<ArtikalGrupa>(config, '/artikli-grupe', params)
 }
 
-export function getStanje(orgJedId: number, page = 1, since?: string, config = defaultConfig) {
-  return nibisGet<StanjeSkladista>(config, `/stanje-skladista/${orgJedId}`, {
-    page, perPage: 500, ...(since && { since }),
+export function getStanje(page = 1, orgJedId?: number, since?: string, config = defaultConfig) {
+  const filters = orgJedId ? [{ name: 'orgJedId', operator: 'eq', value: String(orgJedId) }] : []
+  return nibisGet<StanjeSkladista>(config, '/stanje-skladista', {
+    page, perPage: 500,
+    ...(since && { since }),
+    ...(filters.length && { filters }),
   })
 }
 
