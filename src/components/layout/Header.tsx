@@ -73,7 +73,7 @@ function AnnouncementBar({ p }: { p: HeaderPostavke }) {
   )
 }
 
-function NavKategorija({ p, grupe }: { p: HeaderPostavke; grupe: ArtikalGrupa[] }) {
+function NavKategorija({ p, grupe, shopSlug = '' }: { p: HeaderPostavke; grupe: ArtikalGrupa[]; shopSlug?: string }) {
   const [open, setOpen] = React.useState(false)
   const ref = React.useRef<HTMLDivElement>(null)
 
@@ -217,14 +217,18 @@ export default function Header({ onSearch, shopSlug = '' }: { onSearch?: (q: str
   const userMenuRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    supabase.from('postavke').select('kljuc, vrijednost')
-      .in('kljuc', [...Object.keys(D)])
-      .then(({ data }) => {
+    // Fetch postavke via API - respektuje shop izolaciju
+    const keys = Object.keys(D).join(',')
+    const shopParam = shopSlug ? '&shop=' + shopSlug : ''
+    fetch('/api/postavke?kljuci=' + keys + shopParam)
+      .then(r => r.json())
+      .then(data => {
         const map: any = { ...D }
-        data?.forEach(row => { map[row.kljuc] = row.vrijednost })
+        Object.entries(data).forEach(([k, v]) => { map[k] = v })
         setP(map)
       })
-  }, [])
+      .catch(() => {})
+  }, [shopSlug])
 
   useEffect(() => {
     if (p.navkat_aktivan === 'true') {
@@ -372,7 +376,7 @@ export default function Header({ onSearch, shopSlug = '' }: { onSearch?: (q: str
         <MobileMenu user={user} isAdmin={isAdmin} menuOpen={menuOpen} setMenuOpen={setMenuOpen} handleSignOut={handleSignOut} />
       </header>
 
-      <NavKategorija p={p} grupe={grupe} />
+      <NavKategorija p={p} grupe={grupe} shopSlug={shopSlug} />
 
       <style>{`
         @media (min-width: 768px) {

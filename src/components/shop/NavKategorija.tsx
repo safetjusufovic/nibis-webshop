@@ -26,7 +26,7 @@ interface Props {
   onSelect: (id: number | null) => void
 }
 
-export default function NavKategorija({ activeId, onSelect }: Props) {
+export default function NavKategorija({ activeId, onSelect }: Props, shopSlug = '') {
   const [grupe, setGrupe] = useState<Grupa[]>([])
   const [featured, setFeatured] = useState<FeaturedKat[]>([])
   const [config, setConfig] = useState({
@@ -40,7 +40,7 @@ export default function NavKategorija({ activeId, onSelect }: Props) {
 
 
 
-  const _shopParam = typeof window !== 'undefined' ? (new URLSearchParams(window.location.search).get('shop') ? '&shop=' + new URLSearchParams(window.location.search).get('shop') : '') : ''
+  const _shopParam = shopSlug ? '&shop=' + shopSlug : ''
 
   useEffect(() => {
     fetch('/api/grupe' + (_shopParam ? '?' + _shopParam.slice(1) : ''))

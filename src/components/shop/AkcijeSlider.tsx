@@ -17,7 +17,7 @@ interface ArtikalAkcija {
   akcija_do: string | null
 }
 
-export default function AkcijeSlider() {
+export default function AkcijeSlider({ shopSlug = '' }: { shopSlug?: string }) {
   const [artikli, setArtikli] = useState<ArtikalAkcija[]>([])
   const [loading, setLoading] = useState(true)
   const [paused, setPaused] = useState(false)
@@ -31,7 +31,7 @@ export default function AkcijeSlider() {
 
 
 
-  const _shopParam = typeof window !== 'undefined' ? (new URLSearchParams(window.location.search).get('shop') ? '&shop=' + new URLSearchParams(window.location.search).get('shop') : '') : ''
+  const _shopParam = shopSlug ? '&shop=' + shopSlug : ''
 
   useEffect(() => {
     fetch('/api/artikli?akcija=true&perPage=24&page=1' + _shopParam)
@@ -42,7 +42,7 @@ export default function AkcijeSlider() {
         // Fetch stanje za cijene - isto kao ProductCard
         const ids = items.map((a: any) => a.id).join(',')
         try {
-          const sr = await fetch('/api/stanje?ids=' + ids)
+          const sr = await fetch('/api/stanje?ids=' + ids + _shopParam)
           const stanjeData = sr.ok ? await sr.json() : { items: [] }
           const stanjeByArtikalId: Record<number, any> = {}
           ;(stanjeData.items || []).forEach((s: any) => { stanjeByArtikalId[s.artikalId] = s })

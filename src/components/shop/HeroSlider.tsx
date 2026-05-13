@@ -15,7 +15,7 @@ interface Slide {
   overlay?: string
 }
 
-export default function HeroSlider() {
+export default function HeroSlider({ shopSlug = '' }: { shopSlug?: string }) {
   const [slides, setSlides] = useState<Slide[]>([])
   const [current, setCurrent] = useState(0)
   const [visina, setVisina] = useState(480)
@@ -25,7 +25,7 @@ export default function HeroSlider() {
 
 
 
-  const _shopParam = typeof window !== 'undefined' ? (new URLSearchParams(window.location.search).get('shop') ? '&shop=' + new URLSearchParams(window.location.search).get('shop') : '') : ''
+  const _shopParam = shopSlug ? '&shop=' + shopSlug : ''
 
   useEffect(() => {
     fetch('/api/postavke?kljuci=hero_slides,hero_visina,hero_aktivan' + _shopParam)

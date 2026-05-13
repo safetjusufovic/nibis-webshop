@@ -751,14 +751,14 @@ export function ShopPage({ shopSlug = '' }: { shopSlug?: string }) {
 
   return (
     <div className="min-h-screen" style={{ background: "var(--surface)" }}>
-        <Header onSearch={q => setSearchInput(q)} />
+        <Header onSearch={q => setSearchInput(q)} shopSlug={shopSlug} />
 
         {/* Hero Slider */}
-        {pageSekcije.find(s => s.id === 'hero')?.aktivan !== false && <HeroSlider />}
+        {pageSekcije.find(s => s.id === 'hero')?.aktivan !== false && <HeroSlider shopSlug={shopSlug} />}
 
 
         {/* Akcije slider */}
-        {pageSekcije.find(s => s.id === 'akcije')?.aktivan !== false && <AkcijeSlider />}
+        {pageSekcije.find(s => s.id === 'akcije')?.aktivan !== false && <AkcijeSlider shopSlug={shopSlug} />}
 
         {/* Ostale sekcije */}
         {pageSekcije.filter(s => s.aktivan && !['hero','akcije','katalog'].includes(s.id)).map(s => {
