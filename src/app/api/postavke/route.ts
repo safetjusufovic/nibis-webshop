@@ -1,29 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { supabase, supabaseAdmin } from '@/lib/supabase'
 
 // Helper — dohvati shop_id iz headera ili query params
+const MAIN_HOSTS = ['nibis-webshop.vercel.app', 'localhost', '127.0.0.1']
+
 async function getShopId(req: NextRequest): Promise<string | null> {
   // 1. Explicit shop_id (super admin)
   const shopId = req.nextUrl.searchParams.get('shop_id')
   if (shopId) return shopId
 
-  // 2. ?shop=slug query param (multi-tenant na istoj domeni)
+  // 2. ?shop=slug query param
   const shopSlug = req.nextUrl.searchParams.get('shop')
   if (shopSlug) {
-    const { data } = await supabase.from('shopovi').select('id').eq('slug', shopSlug).eq('status', 'aktivan').single()
+    const { data } = await supabaseAdmin.from('shopovi').select('id').eq('slug', shopSlug).eq('status', 'aktivan').single()
     return data?.id || null
   }
 
-  // 3. Hostname → shop lookup (custom domena ili subdomena)
+  // 3. Custom domena ili subdomena
   const hostname = (req.headers.get('host') || '').split(':')[0]
-  const slug = hostname.split('.')[0]
 
-  // Ne tražimo za localhost ili vercel preview
-  if (['localhost', 'nibis-webshop', '127'].includes(slug)) return null
+  // Glavni shop — vrati null (čita globalne postavke)
+  if (MAIN_HOSTS.some(h => hostname === h || hostname.endsWith('.vercel.app'))) return null
 
-  const { data } = await supabase.from('shopovi')
+  // Traži po custom domeni ili subdomeni
+  const { data } = await supabaseAdmin.from('shopovi')
     .select('id')
-    .or(`slug.eq.${slug},domena.eq.${hostname}`)
+    .or(`domena.eq.${hostname},slug.eq.${hostname.split('.')[0]}`)
     .eq('status', 'aktivan')
     .single()
 
