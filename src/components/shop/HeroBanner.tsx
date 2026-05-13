@@ -14,11 +14,11 @@ interface HeroConfig {
   hero_url_slike: string
 }
 
-export default function HeroBanner() {
+export default function HeroBanner({ shopSlug = '' }: { shopSlug?: string }) {
   const [config, setConfig] = useState<HeroConfig | null>(null)
 
   useEffect(() => {
-    supabase.from('postavke')
+    fetch('/api/postavke?kljuci=hero_aktivan,hero_naslov,hero_podnaslov,hero_slika_url,hero_boja_pozadine,hero_tekst_boja' + (shopSlug ? '&shop=' + shopSlug : '')).then(r => r.json())
       .select('kljuc, vrijednost')
       .in('kljuc', ['hero_aktivan', 'hero_naslov', 'hero_podnaslov', 'hero_dugme_tekst', 'hero_boja_pozadine', 'hero_url_slike'])
       .then(({ data }) => {
