@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import Header from '@/components/layout/Header'
 import Link from 'next/link'
+import { shopLink } from '@/lib/useShopLink'
 import { ShoppingCart, Heart, ChevronLeft, Package, Tag, Barcode, Layers, Check, X } from 'lucide-react'
 import { useCart } from '@/hooks/useCart'
 import { useAuth } from '@/hooks/useAuth'
@@ -58,7 +59,7 @@ export default function ProizvodPage() {
         <Package size={48} style={{ color: 'var(--border)', marginBottom: '16px' }} />
         <h1 style={{ fontSize: '22px', fontWeight: 700, color: 'var(--text)', margin: '0 0 10px' }}>Artikal nije pronađen</h1>
         <p style={{ color: 'var(--text-muted)', marginBottom: '24px' }}>Artikal #{id} ne postoji ili je uklonjen iz sistema.</p>
-        <Link href="/" style={{ padding: '10px 24px', background: 'var(--brand)', color: 'white', borderRadius: '8px', textDecoration: 'none', fontSize: '14px', fontWeight: 600 }}>← Nazad na katalog</Link>
+        <Link href={shopLink("/")} style={{ padding: '10px 24px', background: 'var(--brand)', color: 'white', borderRadius: '8px', textDecoration: 'none', fontSize: '14px', fontWeight: 600 }}>← Nazad na katalog</Link>
       </div>
     </div>
   )
@@ -94,7 +95,7 @@ export default function ProizvodPage() {
       <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '24px 24px 64px' }}>
         {/* Breadcrumb */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: 'var(--text-muted)', marginBottom: '28px' }}>
-          <Link href="/" style={{ color: 'var(--text-muted)', textDecoration: 'none' }}
+          <Link href={shopLink("/")} style={{ color: 'var(--text-muted)', textDecoration: 'none' }}
             onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = 'var(--brand)'}
             onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = 'var(--text-muted)'}>
             Katalog
@@ -102,7 +103,7 @@ export default function ProizvodPage() {
           <ChevronLeft size={12} style={{ transform: 'rotate(180deg)' }} />
           {artikal.grupa?.naziv && (
             <>
-              <Link href={'/?grupaId=' + artikal.grupaId} style={{ color: 'var(--text-muted)', textDecoration: 'none' }}
+              <Link href={shopLink('/?grupaId=' + artikal.grupaId)} style={{ color: 'var(--text-muted)', textDecoration: 'none' }}
                 onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = 'var(--brand)'}
                 onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = 'var(--text-muted)'}>
                 {artikal.grupa.naziv}
@@ -252,7 +253,7 @@ export default function ProizvodPage() {
             <p style={{ fontSize: '14px', color: 'var(--text-muted)', margin: '0 0 24px', lineHeight: 1.6 }}>Za narudžbu je potrebna prijava ili registracija.</p>
             <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
               <button onClick={() => setShowLoginPrompt(false)} style={{ padding: '10px 20px', background: '#F3F4F6', color: '#374151', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontFamily: 'inherit' }}>Zatvori</button>
-              <a href="/login" style={{ padding: '10px 24px', background: 'var(--brand)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: 700, textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}>Prijava →</a>
+              <a href={shopLink("/login")} style={{ padding: '10px 24px', background: 'var(--brand)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: 700, textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}>Prijava →</a>
             </div>
           </div>
         </div>

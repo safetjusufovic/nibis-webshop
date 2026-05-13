@@ -227,7 +227,7 @@ function ProductRow({ artikal, stanje, dugmeTekst = 'Dodaj', onLoginRequired }: 
   return (
     <tr className="border-b border-gray-100 hover:bg-slate-50/60 transition-all duration-150 group">
       <td className="py-2.5 pl-4 pr-2">
-        <Link href={`/proizvod/${artikal.id}`} className="text-[13px] font-medium text-gray-800 transition-colors leading-snug block" style={{ color: "var(--text)" }} onMouseEnter={e => (e.currentTarget as HTMLAnchorElement).style.color = "var(--brand)"} onMouseLeave={e => (e.currentTarget as HTMLAnchorElement).style.color = "var(--text)"}>
+        <Link href={shopLink(`/proizvod/${artikal.id}`)} className="text-[13px] font-medium text-gray-800 transition-colors leading-snug block" style={{ color: "var(--text)" }} onMouseEnter={e => (e.currentTarget as HTMLAnchorElement).style.color = "var(--brand)"} onMouseLeave={e => (e.currentTarget as HTMLAnchorElement).style.color = "var(--text)"}>
           {artikal.naziv}
         </Link>
         {artikal.naziv2 && <span className="text-[11px] text-gray-400">{artikal.naziv2}</span>}
