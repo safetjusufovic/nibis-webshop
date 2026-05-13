@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from 'react'
 import { supabase } from '@/lib/supabase'
+import { useShopContext } from '@/lib/useShopContext'
 import {
   Save, Undo2, Download, Upload, Eye, EyeOff, RefreshCw,
   ChevronRight, ChevronDown, X, Image as ImgIcon,
@@ -381,6 +382,7 @@ function AccordionSec({ title, icon, children, defaultOpen = false, badge }: {
 
 // ─── Glavni Page ───────────────────────────────────────────────────────────────
 export default function IzgledPage() {
+  const { shopId, shopSlug, isMainShop } = useShopContext()
   const [p, setP] = useState<Postavke>(DEFAULTS)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -394,20 +396,31 @@ export default function IzgledPage() {
   const iframeRef = useRef<HTMLIFrameElement>(null)
 
   useEffect(() => {
-    fetch('/api/grupe?perPage=100')
+    const shopParam = shopSlug ? '?shop=' + shopSlug : ''
+    fetch('/api/grupe' + shopParam)
       .then(r => r.json())
       .then(d => setGrupe((d.items || []).map((g: any) => ({ id: g.id, naziv: g.naziv }))))
       .catch(() => {})
+  }, [shopSlug])
 
-    supabase.from('postavke').select('kljuc, vrijednost')
+  useEffect(() => {
+    if (!isMainShop && shopId === null) return // čekaj da se shopId učita
+    let q = supabase.from('postavke').select('kljuc, vrijednost')
       .in('kljuc', Object.keys(DEFAULTS))
-      .then(({ data }) => {
-        const m: Postavke = { ...DEFAULTS }
-        data?.forEach(row => { m[row.kljuc] = row.vrijednost })
-        setP(m)
-        setLoading(false)
-      })
-  }, [])
+
+    if (shopId) {
+      q = q.eq('shop_id', shopId)
+    } else {
+      q = q.is('shop_id', null)
+    }
+
+    q.then(({ data }) => {
+      const m: Postavke = { ...DEFAULTS }
+      data?.forEach(row => { m[row.kljuc] = row.vrijednost })
+      setP(m)
+      setLoading(false)
+    })
+  }, [shopId, isMainShop])
 
   function set(key: string, value: string) {
     if (lastKeyRef.current !== key) {
@@ -488,10 +501,12 @@ export default function IzgledPage() {
 
   async function save() {
     setSaving(true)
-    await supabase.from('postavke').upsert(
-      Object.entries(p).map(([kljuc, vrijednost]) => ({ kljuc, vrijednost: vrijednost || '' })),
-      { onConflict: 'kljuc' }
-    )
+    const rows = Object.entries(p).map(([kljuc, vrijednost]) => ({
+      kljuc,
+      vrijednost: vrijednost || '',
+      ...(shopId ? { shop_id: shopId } : { shop_id: null }),
+    }))
+    await supabase.from('postavke').upsert(rows, { onConflict: 'kljuc,shop_id' })
     setSaving(false); setSaved(true); setChanged(false)
     setTimeout(() => setSaved(false), 2500)
   }

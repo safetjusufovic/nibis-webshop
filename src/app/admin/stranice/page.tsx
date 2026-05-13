@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
+import { useShopContext } from '@/lib/useShopContext'
 import {
   Plus, Edit2, Trash2, Eye, EyeOff, Star, StarOff,
   ExternalLink, Save, ChevronLeft, Upload, Bold, Italic,
@@ -249,6 +250,7 @@ function RichEditor({ value, onChange, editorId }: {
 
 // ─── Main Page ─────────────────────────────────────────────────────────────────
 export default function AdminStranicePage() {
+  const { shopId, shopSlug } = useShopContext()
   const [items, setItems] = useState<Stranica[]>([])
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState<Stranica | null>(null)
@@ -261,12 +263,18 @@ export default function AdminStranicePage() {
 
   async function load() {
     setLoading(true)
-    const { data } = await supabase.from('stranice').select('*').order('redoslijed').order('created_at', { ascending: false })
+    let q = supabase.from('stranice').select('*').order('redoslijed').order('created_at', { ascending: false })
+    if (shopId) {
+      q = q.eq('shop_id', shopId)
+    } else {
+      q = q.is('shop_id', null)
+    }
+    const { data } = await q
     setItems(data || [])
     setLoading(false)
   }
 
-  useEffect(() => { load() }, [])
+  useEffect(() => { load() }, [shopId])
 
   function slugify(s: string) {
     return s.toLowerCase()
@@ -282,6 +290,7 @@ export default function AdminStranicePage() {
       ...editing,
       slug: editing.slug || slugify(editing.naslov),
       updated_at: new Date().toISOString(),
+      ...(shopId ? { shop_id: shopId } : { shop_id: null }),
     }
     if (editing.id) {
       const { error } = await supabase.from('stranice').update(payload).eq('id', editing.id)
