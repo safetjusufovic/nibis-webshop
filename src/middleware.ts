@@ -1,27 +1,38 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-// Hostovi koji su glavni shop — ne redirectuju
-const MAIN_HOSTS = [
-  'nibis-webshop.vercel.app',
-  'localhost',
-  '127.0.0.1',
-]
+const MAIN_HOSTS = ['nibis-webshop.vercel.app', 'localhost', '127.0.0.1']
 
 export function middleware(req: NextRequest) {
   const hostname = req.headers.get('host')?.split(':')[0] ?? ''
   const url = req.nextUrl.clone()
+  const pathname = url.pathname
 
-  // Ako je već ima ?shop= param, pusti
-  if (url.searchParams.get('shop')) return NextResponse.next()
-
-  // Ako je glavni shop ili API ruta, pusti
-  if (MAIN_HOSTS.some(h => hostname === h || hostname.endsWith('.vercel.app'))) {
+  // Preskoči API, statiku, admin
+  if (pathname.startsWith('/api/') || pathname.startsWith('/_next/') || pathname.includes('.')) {
     return NextResponse.next()
   }
 
-  // Custom domena ili subdomena — dodaj shop param interno
-  // Ne radimo redirect, nego rewrite da URL ostane čist
-  // Shop se dohvata u API rutama direktno po hostu
+  // Ako već ima shop param, pusti
+  if (url.searchParams.get('shop')) return NextResponse.next()
+
+  // Glavni shop — pusti
+  if (MAIN_HOSTS.some(h => hostname === h) || hostname.endsWith('.vercel.app')) {
+    return NextResponse.next()
+  }
+
+  // Custom domena ili subdomena — API rute rješavaju po hostu automatski
+  // Za frontend — pokušaj sačuvati shop iz referer-a
+  const referer = req.headers.get('referer') || ''
+  if (referer) {
+    try {
+      const refShop = new URL(referer).searchParams.get('shop')
+      if (refShop) {
+        url.searchParams.set('shop', refShop)
+        return NextResponse.redirect(url)
+      }
+    } catch {}
+  }
+
   return NextResponse.next()
 }
 

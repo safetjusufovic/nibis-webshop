@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { shopLink } from '@/lib/useShopLink'
 import { ShoppingCart, Menu, X, Search, Phone, Mail, Clock, ChevronDown, MapPin } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'
 import React from 'react'
@@ -93,7 +94,7 @@ function NavKategorija({ p, grupe }: { p: HeaderPostavke; grupe: ArtikalGrupa[] 
     <div style={{ background: p.navkat_boja, borderBottom: '1px solid rgba(0,0,0,0.1)', position: 'relative', zIndex: 90 }} ref={ref}>
       <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 24px', display: 'flex', alignItems: 'center', height: navH + 'px', gap: '4px' }}>
         {p.navkat_akcijski_dugme === 'true' && (
-          <Link href="/?akcija=true" style={{ display: 'flex', alignItems: 'center', gap: '6px', background: p.navkat_akcijski_boja, color: 'white', padding: '6px 14px', borderRadius: '6px', fontSize: '13px', fontWeight: 700, textDecoration: 'none', marginRight: '6px', flexShrink: 0 }}>
+          <Link href={shopLink("/?akcija=true")} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: p.navkat_akcijski_boja, color: 'white', padding: '6px 14px', borderRadius: '6px', fontSize: '13px', fontWeight: 700, textDecoration: 'none', marginRight: '6px', flexShrink: 0 }}>
             ⚡ {p.navkat_akcijski_tekst}
           </Link>
         )}
@@ -288,7 +289,7 @@ export default function Header({ onSearch }: { onSearch?: (q: string) => void })
   const RightActions = () => (
     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
       {user ? (<><KorpaDugme p={p} totalQty={totalQty} onClick={() => setCartOpen(true)} /><UserMenu /></>) : (
-        <Link href="/login" style={{ padding: '8px 18px', background: 'var(--brand)', color: 'white', borderRadius: '10px', textDecoration: 'none', fontSize: '14px', fontWeight: 500 }}>Prijava</Link>
+        <Link href={shopLink("/login")} style={{ padding: '8px 18px', background: 'var(--brand)', color: 'white', borderRadius: '10px', textDecoration: 'none', fontSize: '14px', fontWeight: 500 }}>Prijava</Link>
       )}
       <button style={{ display: 'none', padding: '8px', background: 'none', border: '1px solid var(--border)', borderRadius: '8px', cursor: 'pointer', color: 'var(--text)' }} onClick={() => setMenuOpen(!menuOpen)} className="mobile-menu-btn">
         {menuOpen ? <X size={18} /> : <Menu size={18} />}
@@ -307,8 +308,8 @@ export default function Header({ onSearch }: { onSearch?: (q: string) => void })
           {/* Klasični layout — logo lijevo, search centar, akcije desno */}
           {layout === 'rs_stil' && (
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px', height: hVisina + 'px' }}>
-              <Link href="/" style={{ flexShrink: 0, textDecoration: 'none' }}><Logo size="md" /></Link>
-              <Link href="/vijesti" style={{ fontSize: '13px', fontWeight: 500, color: 'white', textDecoration: 'none', padding: '6px 10px', borderRadius: '7px', flexShrink: 0, whiteSpace: 'nowrap' as const, opacity: 0.85 }}
+              <Link href={shopLink("/")} style={{ flexShrink: 0, textDecoration: 'none' }}><Logo size="md" /></Link>
+              <Link href={shopLink("/vijesti")} style={{ fontSize: '13px', fontWeight: 500, color: 'white', textDecoration: 'none', padding: '6px 10px', borderRadius: '7px', flexShrink: 0, whiteSpace: 'nowrap' as const, opacity: 0.85 }}
                 onMouseEnter={e => { (e.currentTarget as HTMLElement).style.opacity = '1'; (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.1)' }}
                 onMouseLeave={e => { (e.currentTarget as HTMLElement).style.opacity = '0.85'; (e.currentTarget as HTMLElement).style.background = 'transparent' }}
               >Vijesti</Link>
@@ -323,8 +324,8 @@ export default function Header({ onSearch }: { onSearch?: (q: string) => void })
           {layout === 'centered' && (
             <>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: hVisina + 'px' }}>
-                {user ? <UserMenu /> : <Link href="/login" style={{ padding: '7px 16px', background: 'var(--brand)', color: 'white', borderRadius: '8px', textDecoration: 'none', fontSize: '13px' }}>Prijava</Link>}
-                <Link href="/" style={{ textDecoration: 'none', position: 'absolute', left: '50%', transform: 'translateX(-50%)' }}><Logo size="lg" /></Link>
+                {user ? <UserMenu /> : <Link href={shopLink("/login")} style={{ padding: '7px 16px', background: 'var(--brand)', color: 'white', borderRadius: '8px', textDecoration: 'none', fontSize: '13px' }}>Prijava</Link>}
+                <Link href={shopLink("/")} style={{ textDecoration: 'none', position: 'absolute', left: '50%', transform: 'translateX(-50%)' }}><Logo size="lg" /></Link>
                 {user && <KorpaDugme p={p} totalQty={totalQty} onClick={() => setCartOpen(true)} />}
               </div>
               {onSearch && p.header_search_stil !== 'hidden' && (
@@ -339,8 +340,8 @@ export default function Header({ onSearch }: { onSearch?: (q: string) => void })
           {(layout === 'minimal' || layout === 'mega') && (
             <>
               <div style={{ display: 'flex', alignItems: 'center', gap: '16px', height: hVisina + 'px' }}>
-                <Link href="/" style={{ flexShrink: 0, textDecoration: 'none' }}><Logo size="md" /></Link>
-                <Link href="/vijesti" style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text-muted)', textDecoration: 'none', padding: '6px 10px', borderRadius: '7px', flexShrink: 0, whiteSpace: 'nowrap' as const }}
+                <Link href={shopLink("/")} style={{ flexShrink: 0, textDecoration: 'none' }}><Logo size="md" /></Link>
+                <Link href={shopLink("/vijesti")} style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text-muted)', textDecoration: 'none', padding: '6px 10px', borderRadius: '7px', flexShrink: 0, whiteSpace: 'nowrap' as const }}
                   onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'var(--brand)'; (e.currentTarget as HTMLElement).style.background = 'var(--brand-pale)' }}
                   onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'var(--text-muted)'; (e.currentTarget as HTMLElement).style.background = 'transparent' }}
                 >Vijesti</Link>

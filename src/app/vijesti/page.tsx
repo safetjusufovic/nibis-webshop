@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import Header from '@/components/layout/Header'
 import Footer from '@/components/layout/Footer'
 import Link from 'next/link'
+import { shopLink } from '@/lib/useShopLink'
 import { Calendar, Tag, ArrowRight } from 'lucide-react'
 
 interface Clanak {

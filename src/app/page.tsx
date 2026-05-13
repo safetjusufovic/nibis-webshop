@@ -26,6 +26,7 @@ import type { Artikal, ArtikalGrupa, StanjeSkladista, PaginatedResponse } from '
 import { formatCijena, siteConfig } from '@/lib/config'
 import ProductCard from '@/components/shop/ProductCard'
 import Link from 'next/link'
+import { shopLink } from '@/lib/useShopLink'
 
 // ─── Collapsible Category Sidebar ─────────────────────────────────────────────
 function CategorySidebar({ grupe, activeId, onSelect, sirina = 240, sidebarConfig }: {
@@ -494,7 +495,7 @@ function renderBlockHTML(block: any, device: string = 'desktop'): string {
       return `<section style="padding:${p.paddingV||48}px ${isMobile?20:parseInt(p.paddingH)||40}px;background:${p.bgBoja||'#f8fafa'}">
         ${p.naslov ? `<h2 style="font-size:24px;font-weight:700;margin:0 0 28px;color:#0d1f1a">${p.naslov}</h2>` : ''}
         <div style="display:grid;grid-template-columns:repeat(${cols},1fr);gap:12px">
-          ${cats.slice(0,Math.min(8,parseInt(p.kolone||4)*2)).map(k => `<a href="/?q=${k}" style="display:flex;flex-direction:column;align-items:center;padding:16px 12px;background:${p.katBoja||'#fff'};border-radius:${p.katRadius||12}px;border:1px solid ${p.katBorder||'#e8edeb'};text-decoration:none"><div style="width:44px;height:44px;background:var(--brand);border-radius:10px;margin-bottom:8px"></div><span style="font-size:13px;font-weight:600;color:#0d1f1a">${k}</span></a>`).join('')}
+          ${cats.slice(0,Math.min(8,parseInt(p.kolone||4)*2)).map(k => `<a href={shopLink("/?q=${k}")} style="display:flex;flex-direction:column;align-items:center;padding:16px 12px;background:${p.katBoja||'#fff'};border-radius:${p.katRadius||12}px;border:1px solid ${p.katBorder||'#e8edeb'};text-decoration:none"><div style="width:44px;height:44px;background:var(--brand);border-radius:10px;margin-bottom:8px"></div><span style="font-size:13px;font-weight:600;color:#0d1f1a">${k}</span></a>`).join('')}
         </div>
       </section>`
     }
@@ -1148,13 +1149,13 @@ export default function HomePage() {
                   style={{ padding: '10px 20px', background: '#F3F4F6', color: '#374151', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: 500, fontFamily: 'inherit' }}>
                   Zatvori
                 </button>
-                <a href="/login"
+                <a href={shopLink("/login")}
                   style={{ padding: '10px 24px', background: 'var(--brand)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: 700, fontFamily: 'inherit', textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}>
                   Prijava →
                 </a>
               </div>
               <p style={{ fontSize: '12px', color: '#9CA3AF', margin: '16px 0 0' }}>
-                Nemate račun? <a href="/register" style={{ color: 'var(--brand)', textDecoration: 'none' }}>Registrujte se</a>
+                Nemate račun? <a href={shopLink("/register")} style={{ color: 'var(--brand)', textDecoration: 'none' }}>Registrujte se</a>
               </p>
             </div>
           </div>
