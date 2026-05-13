@@ -3,7 +3,13 @@ import type {
   StanjeSkladista, NarudzbaCreate, NarudzbaResponse, Partner,
 } from '@/types/nibis'
 
-// ─── Per-shop konfiguracija ───────────────────────────────────────────────────
+// Direktno iz env — kao originalno
+const BASE_URL = process.env.NIBIS_API_URL ?? ''
+const API_KEY = process.env.NIBIS_API_KEY ?? ''
+const COMPANY_YEAR = process.env.NIBIS_COMPANY_YEAR ?? new Date().getFullYear().toString()
+const ORG_JED_ID = parseInt(process.env.ORG_JED_ID ?? process.env.NEXT_PUBLIC_ORG_JED_ID ?? '1')
+
+// Za multi-tenant sync — prima config po shopu
 export interface NibisConfig {
   baseUrl: string
   apiKey: string
@@ -11,18 +17,17 @@ export interface NibisConfig {
   orgJedId?: number
 }
 
-// Default (iz .env) — koristi se kad nema shop-specific konfiguracije
 export const defaultConfig: NibisConfig = {
-  baseUrl: process.env.NIBIS_API_URL || 'https://api.nextvision.ba/integration/robno-materijalno',
-  apiKey: process.env.NIBIS_API_KEY || '',
-  companyYear: process.env.NIBIS_COMPANY_YEAR || new Date().getFullYear().toString(),
-  orgJedId: parseInt(process.env.ORG_JED_ID || '1'),
+  baseUrl: BASE_URL,
+  apiKey: API_KEY,
+  companyYear: COMPANY_YEAR,
+  orgJedId: ORG_JED_ID,
 }
 
-function nibisHeaders(config: NibisConfig): HeadersInit {
+function headers(apiKey: string, companyYear: string): HeadersInit {
   return {
-    ApiKey: config.apiKey,
-    'Company-Year': config.companyYear || new Date().getFullYear().toString(),
+    ApiKey: apiKey,
+    'Company-Year': companyYear,
     'Accept-Language': 'bs-BA',
     'Content-Type': 'application/json',
   }
@@ -56,12 +61,13 @@ function buildUrl(baseUrl: string, path: string, params: ListParams = {}): strin
 
 async function nibisGet<T>(config: NibisConfig, path: string, params: ListParams = {}): Promise<PaginatedResponse<T>> {
   const url = buildUrl(config.baseUrl, path, params)
-  const res = await fetch(url, { headers: nibisHeaders(config), cache: 'no-store' })
+  const res = await fetch(url, {
+    headers: headers(config.apiKey, config.companyYear ?? COMPANY_YEAR),
+    cache: 'no-store',
+  })
   if (!res.ok) throw new Error(`NIBIS ${path} ${res.status}: ${await res.text()}`)
   return res.json()
 }
-
-// ─── API funkcije — sve primaju config ────────────────────────────────────────
 
 export function getArtikli(params: ListParams = {}, config = defaultConfig) {
   return nibisGet<Artikal>(config, '/artikli', params)
@@ -72,17 +78,21 @@ export function getGrupe(params: ListParams = {}, config = defaultConfig) {
 }
 
 export function getStanje(orgJedId: number, page = 1, since?: string, config = defaultConfig) {
-  return nibisGet<StanjeSkladista>(config, `/stanje-skladista/${orgJedId}`, { page, perPage: 500, ...(since && { since }) })
+  return nibisGet<StanjeSkladista>(config, `/stanje-skladista/${orgJedId}`, {
+    page, perPage: 500, ...(since && { since }),
+  })
 }
 
 export function getPartneri(params: ListParams = {}, config = defaultConfig) {
   return nibisGet<Partner>(config, '/partneri', params)
 }
 
-export async function createNarudzba(narudzba: NarudzbaCreate, config = defaultConfig): Promise<NarudzbaResponse> {
-  const res = await fetch(`${config.baseUrl}/narudzbe`, {
+// Narudžbe — koristi direktno BASE_URL iz env, bez ikakve konfiguracije
+export async function createNarudzba(narudzba: NarudzbaCreate): Promise<NarudzbaResponse> {
+  const url = `${BASE_URL}/narudzbe`
+  const res = await fetch(url, {
     method: 'POST',
-    headers: nibisHeaders(config),
+    headers: headers(API_KEY, COMPANY_YEAR),
     body: JSON.stringify(narudzba),
   })
   if (!res.ok) throw new Error(`NIBIS narudzba ${res.status}: ${await res.text()}`)
@@ -91,9 +101,10 @@ export async function createNarudzba(narudzba: NarudzbaCreate, config = defaultC
 
 export async function testConnection(config: NibisConfig): Promise<{ ok: boolean; error?: string }> {
   try {
-    const res = await fetch(buildUrl(config.baseUrl, '/grupe', { page: 1, perPage: 1 }), {
-      headers: nibisHeaders(config), signal: AbortSignal.timeout(5000)
-    })
+    const res = await fetch(
+      buildUrl(config.baseUrl, '/grupe', { page: 1, perPage: 1 }),
+      { headers: headers(config.apiKey, config.companyYear ?? COMPANY_YEAR), signal: AbortSignal.timeout(5000) }
+    )
     return { ok: res.ok, ...(!res.ok && { error: `HTTP ${res.status}` }) }
   } catch (e: any) {
     return { ok: false, error: e.message }
