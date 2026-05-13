@@ -61,9 +61,24 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const { kljuc, vrijednost, shop_id } = await req.json()
-  const { error } = await supabase.from('postavke')
-    .upsert({ kljuc, vrijednost, shop_id: shop_id || null }, { onConflict: 'kljuc' })
+  const shopId = await getShopId(req)
+  const body = await req.json()
+  
+  // Bulk save - array of {kljuc, vrijednost}
+  if (Array.isArray(body)) {
+    const rows = body.map(({ kljuc, vrijednost }: any) => ({
+      kljuc, vrijednost: vrijednost || '', shop_id: shopId || null
+    }))
+    const { error } = await supabaseAdmin.from('postavke')
+      .upsert(rows, { onConflict: 'kljuc,shop_id' })
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ ok: true })
+  }
+  
+  // Single save
+  const { kljuc, vrijednost } = body
+  const { error } = await supabaseAdmin.from('postavke')
+    .upsert({ kljuc, vrijednost: vrijednost || '', shop_id: shopId || null }, { onConflict: 'kljuc,shop_id' })
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json({ ok: true })
 }
