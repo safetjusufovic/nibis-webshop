@@ -26,7 +26,6 @@ import type { Artikal, ArtikalGrupa, StanjeSkladista, PaginatedResponse } from '
 import { formatCijena, siteConfig } from '@/lib/config'
 import ProductCard from '@/components/shop/ProductCard'
 import Link from 'next/link'
-import { shopLink } from '@/lib/useShopLink'
 
 // ─── Collapsible Category Sidebar ─────────────────────────────────────────────
 function CategorySidebar({ grupe, activeId, onSelect, sirina = 240, sidebarConfig }: {
@@ -227,7 +226,7 @@ function ProductRow({ artikal, stanje, dugmeTekst = 'Dodaj', onLoginRequired }: 
   return (
     <tr className="border-b border-gray-100 hover:bg-slate-50/60 transition-all duration-150 group">
       <td className="py-2.5 pl-4 pr-2">
-        <Link href={shopLink(`/proizvod/${artikal.id}`)} className="text-[13px] font-medium text-gray-800 transition-colors leading-snug block" style={{ color: "var(--text)" }} onMouseEnter={e => (e.currentTarget as HTMLAnchorElement).style.color = "var(--brand)"} onMouseLeave={e => (e.currentTarget as HTMLAnchorElement).style.color = "var(--text)"}>
+        <Link href={`${shopSlug ? `/${shopSlug}` : ``}/proizvod/${artikal.id}`} className="text-[13px] font-medium text-gray-800 transition-colors leading-snug block" style={{ color: "var(--text)" }} onMouseEnter={e => (e.currentTarget as HTMLAnchorElement).style.color = "var(--brand)"} onMouseLeave={e => (e.currentTarget as HTMLAnchorElement).style.color = "var(--text)"}>
           {artikal.naziv}
         </Link>
         {artikal.naziv2 && <span className="text-[11px] text-gray-400">{artikal.naziv2}</span>}
@@ -751,7 +750,7 @@ function ScrollToTop() {
 
 
 // ─── Main Page ─────────────────────────────────────────────────────────────────
-export default function HomePage() {
+export function ShopPage({ shopSlug = '' }: { shopSlug?: string }) {
   const [grupe, setGrupe] = useState<ArtikalGrupa[]>([])
   const [artikli, setArtikli] = useState<Artikal[]>([])
   const [stanje, setStanje] = useState<Record<number, StanjeSkladista>>({})
@@ -793,8 +792,8 @@ export default function HomePage() {
   // BATCH LOAD — sve postavke + grupe u jednom Promise.all
   useEffect(() => {
     Promise.all([
-      fetch('/api/postavke?kljuci=default_view,per_page,artikal_dugme_tekst,shop_template,sidebar_sirina,sidebar_boja_pozadine,sidebar_visina_kategorije,sekcija_features_naslov,sekcija_features_items,sekcija_banner_tekst,sekcija_banner_podnaslov,sekcija_banner_dugme,sekcija_banner_boja,sekcija_newsletter_naslov,sekcija_newsletter_podnaslov,page_sekcije' + (window.location.search.includes('shop=') ? '&shop=' + new URLSearchParams(window.location.search).get('shop') : '')).then(r => r.json()),
-      fetch('/api/grupe' + (window.location.search.includes('shop=') ? '?shop=' + new URLSearchParams(window.location.search).get('shop') : '')).then(r => r.json()),
+      fetch('/api/postavke?kljuci=default_view,per_page,artikal_dugme_tekst,shop_template,sidebar_sirina,sidebar_boja_pozadine,sidebar_visina_kategorije,sekcija_features_naslov,sekcija_features_items,sekcija_banner_tekst,sekcija_banner_podnaslov,sekcija_banner_dugme,sekcija_banner_boja,sekcija_newsletter_naslov,sekcija_newsletter_podnaslov,page_sekcije' + (shopSlug ? '&shop=' + shopSlug : '')).then(r => r.json()),
+      fetch('/api/grupe' + (shopSlug ? '?shop=' + shopSlug : '')).then(r => r.json()),
     ]).then(([d, grupeData]) => {
       // Postavke
       if (d.default_view === 'table' || d.default_view === 'grid') setViewMode(d.default_view)
@@ -1149,13 +1148,13 @@ export default function HomePage() {
                   style={{ padding: '10px 20px', background: '#F3F4F6', color: '#374151', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: 500, fontFamily: 'inherit' }}>
                   Zatvori
                 </button>
-                <a href={shopLink("/login")}
+                <a href={shopSlug ? `/${shopSlug}/login` : "/login"}
                   style={{ padding: '10px 24px', background: 'var(--brand)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: 700, fontFamily: 'inherit', textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}>
                   Prijava →
                 </a>
               </div>
               <p style={{ fontSize: '12px', color: '#9CA3AF', margin: '16px 0 0' }}>
-                Nemate račun? <a href={shopLink("/register")} style={{ color: 'var(--brand)', textDecoration: 'none' }}>Registrujte se</a>
+                Nemate račun? <a href={shopSlug ? `/${shopSlug}/register` : "/register"} style={{ color: 'var(--brand)', textDecoration: 'none' }}>Registrujte se</a>
               </p>
             </div>
           </div>
@@ -1168,4 +1167,9 @@ export default function HomePage() {
 
       </div>
   )
+}
+
+
+export default function HomePage() {
+  return <ShopPage shopSlug="" />
 }
