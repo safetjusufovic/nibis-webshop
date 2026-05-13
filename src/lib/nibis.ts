@@ -80,7 +80,7 @@ export function getGrupe(params: ListParams = {}, config = defaultConfig) {
 export function getStanje(page = 1, orgJedId?: number, since?: string, config = defaultConfig) {
   const filters = orgJedId ? [{ name: 'orgJedId', operator: 'eq', value: String(orgJedId) }] : []
   return nibisGet<StanjeSkladista>(config, '/stanje-skladista', {
-    page, perPage: 500,
+    page, perPage: 100,
     ...(since && { since }),
     ...(filters.length && { filters }),
   })
