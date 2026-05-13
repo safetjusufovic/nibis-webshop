@@ -67,10 +67,11 @@ export default function AdminSlikePage() {
     setGoogleLoading(false)
   }
 
-  async function load() {
+  async function load(slug?: string) {
+    const activeSlug = slug !== undefined ? slug : shopSlug
     const sp = new URLSearchParams({ page: String(page), perPage: String(PER) })
     if (search) sp.set('search', search)
-    if (shopSlug) sp.set('shop', shopSlug)
+    if (activeSlug) sp.set('shop', activeSlug)
     const res = await fetch('/api/artikli?' + sp.toString())
     const d = await res.json()
     // filter sa/bez slike client-side
@@ -81,7 +82,11 @@ export default function AdminSlikePage() {
     setTotal(d.total ?? 0)
   }
 
-  useEffect(() => { load() }, [page, search, filter, shopSlug])
+  useEffect(() => {
+    setArtikli([])
+    setTotal(0)
+    load(shopSlug)
+  }, [page, search, filter, shopSlug])
 
   async function uploadFile(artikalId: number, file: File) {
     if (file.size > 8 * 1024 * 1024) { showToast('Slika je prevelika (max 8MB)', false); return }
