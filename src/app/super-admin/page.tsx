@@ -37,7 +37,7 @@ export default function SuperAdminPage() {
   const [syncing, setSyncing] = useState<string | null>(null)
   const [syncResults, setSyncResults] = useState<Record<string, { ok: boolean; msg: string }>>({})
   const [editApiId, setEditApiId] = useState<string | null>(null)
-  const [editApiData, setEditApiData] = useState({ nibis_api_url: '', nibis_api_key: '', domena: '' })
+  const [editApiData, setEditApiData] = useState({ nibis_api_url: '', nibis_api_key: '', domena: '', org_jed_id: '1', company_year: new Date().getFullYear().toString() })
   const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null)
 
   function showToast(msg: string, ok = true) {
@@ -85,7 +85,7 @@ export default function SuperAdminPage() {
   async function saveApiConfig(id: string) {
     await fetch('/api/super-admin', {
       method: 'PATCH', headers: H,
-      body: JSON.stringify({ id, ...editApiData })
+      body: JSON.stringify({ id, ...editApiData, org_jed_id: parseInt(editApiData.org_jed_id) || 1, company_year: parseInt(editApiData.company_year) || new Date().getFullYear() })
     })
     setShopovi(prev => prev.map(s => s.id === id ? { ...s, ...editApiData } : s))
     setEditApiId(null)
@@ -260,7 +260,7 @@ export default function SuperAdminPage() {
                       style={{ padding: '6px 10px', border: '1px solid #E5E7EB', borderRadius: '7px', color: '#6B7280', textDecoration: 'none', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}>
                       <Globe size={12} /> Otvori
                     </a>
-                    <button onClick={() => { setEditApiId(editApiId === s.id ? null : s.id); setEditApiData({ nibis_api_url: s.nibis_api_url || '', nibis_api_key: s.nibis_api_key || '', domena: s.domena || '' }) }}
+                    <button onClick={() => { setEditApiId(editApiId === s.id ? null : s.id); setEditApiData({ nibis_api_url: s.nibis_api_url || '', nibis_api_key: s.nibis_api_key || '', domena: s.domena || '', org_jed_id: (s as any).org_jed_id?.toString() || '1', company_year: (s as any).company_year?.toString() || new Date().getFullYear().toString() }) }}
                       style={{ padding: '6px 10px', border: '1px solid #E5E7EB', borderRadius: '7px', background: editApiId === s.id ? '#EEF2FF' : 'white', cursor: 'pointer', color: editApiId === s.id ? '#6366f1' : '#6B7280', fontFamily: 'inherit', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}>
                       <Settings size={12} /> Postavke
                     </button>
@@ -298,7 +298,7 @@ export default function SuperAdminPage() {
                 {/* Edit API panel */}
                 {editApiId === s.id && (
                   <div style={{ padding: '16px 20px', borderTop: '1px solid #E5E7EB', background: '#F9FAFB' }}>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '12px', marginBottom: '12px' }}>
                       <div>
                         <label style={{ fontSize: '11px', fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: '4px', textTransform: 'uppercase' as const, letterSpacing: '0.05em' }}>NIBIS API URL</label>
                         <input value={editApiData.nibis_api_url} onChange={e => setEditApiData(p => ({ ...p, nibis_api_url: e.target.value }))}
@@ -319,6 +319,22 @@ export default function SuperAdminPage() {
                         <label style={{ fontSize: '11px', fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: '4px', textTransform: 'uppercase' as const, letterSpacing: '0.05em' }}>Custom domena</label>
                         <input value={editApiData.domena} onChange={e => setEditApiData(p => ({ ...p, domena: e.target.value }))}
                           placeholder="shop.firma.ba"
+                          style={{ width: '100%', padding: '8px 10px', fontSize: '12px', border: '1px solid #E5E7EB', borderRadius: '7px', outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box' as const, background: 'white' }}
+                          onFocus={e => e.target.style.borderColor = '#6366f1'}
+                          onBlur={e => e.target.style.borderColor = '#E5E7EB'} />
+                      </div>
+                      <div>
+                        <label style={{ fontSize: '11px', fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: '4px', textTransform: 'uppercase' as const, letterSpacing: '0.05em' }}>Org. jedinica ID</label>
+                        <input value={editApiData.org_jed_id} onChange={e => setEditApiData(p => ({ ...p, org_jed_id: e.target.value }))}
+                          placeholder="1" type="number"
+                          style={{ width: '100%', padding: '8px 10px', fontSize: '12px', border: '1px solid #E5E7EB', borderRadius: '7px', outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box' as const, background: 'white' }}
+                          onFocus={e => e.target.style.borderColor = '#6366f1'}
+                          onBlur={e => e.target.style.borderColor = '#E5E7EB'} />
+                      </div>
+                      <div>
+                        <label style={{ fontSize: '11px', fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: '4px', textTransform: 'uppercase' as const, letterSpacing: '0.05em' }}>Poslovna godina</label>
+                        <input value={editApiData.company_year} onChange={e => setEditApiData(p => ({ ...p, company_year: e.target.value }))}
+                          placeholder="2025" type="number"
                           style={{ width: '100%', padding: '8px 10px', fontSize: '12px', border: '1px solid #E5E7EB', borderRadius: '7px', outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box' as const, background: 'white' }}
                           onFocus={e => e.target.style.borderColor = '#6366f1'}
                           onBlur={e => e.target.style.borderColor = '#E5E7EB'} />

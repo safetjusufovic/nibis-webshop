@@ -7,7 +7,7 @@ const BATCH_SIZE = 50
 export async function getShopConfig(shopId: string): Promise<NibisConfig> {
   const { data } = await supabaseAdmin
     .from('shopovi')
-    .select('nibis_api_url, nibis_api_key')
+    .select('nibis_api_url, nibis_api_key, org_jed_id, company_year')
     .eq('id', shopId)
     .single()
 
@@ -16,8 +16,8 @@ export async function getShopConfig(shopId: string): Promise<NibisConfig> {
   return {
     baseUrl: data.nibis_api_url,
     apiKey: data.nibis_api_key,
-    companyYear: new Date().getFullYear().toString(),
-    orgJedId: 1,
+    companyYear: data.company_year?.toString() || new Date().getFullYear().toString(),
+    orgJedId: data.org_jed_id || 1,
   }
 }
 

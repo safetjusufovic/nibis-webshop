@@ -213,12 +213,14 @@ export async function POST(req: NextRequest) {
 export async function PATCH(req: NextRequest) {
   if (!isAuth(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { id, status, nibis_api_url, nibis_api_key, domena } = await req.json()
+  const { id, status, nibis_api_url, nibis_api_key, domena, org_jed_id, company_year } = await req.json()
   const updates: any = { updated_at: new Date().toISOString() }
   if (status !== undefined) updates.status = status
   if (nibis_api_url !== undefined) updates.nibis_api_url = nibis_api_url
   if (nibis_api_key !== undefined) updates.nibis_api_key = nibis_api_key
   if (domena !== undefined) updates.domena = domena || null
+  if (org_jed_id !== undefined) updates.org_jed_id = org_jed_id || 1
+  if (company_year !== undefined) updates.company_year = company_year || new Date().getFullYear()
 
   const { error } = await supabaseAdmin.from('shopovi').update(updates).eq('id', id)
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
