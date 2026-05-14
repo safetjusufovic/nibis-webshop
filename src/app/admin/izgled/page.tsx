@@ -406,21 +406,14 @@ export default function IzgledPage() {
 
   useEffect(() => {
     if (!isMainShop && shopId === null) return // čekaj da se shopId učita
-    let q = supabase.from('postavke').select('kljuc, vrijednost')
-      .in('kljuc', Object.keys(DEFAULTS))
-
-    if (shopId) {
-      q = q.eq('shop_id', shopId)
-    } else {
-      q = q.is('shop_id', null)
-    }
-
-    q.then(({ data }) => {
-      const m: Postavke = { ...DEFAULTS }
-      data?.forEach(row => { m[row.kljuc] = row.vrijednost })
-      setP(m)
-      setLoading(false)
-    })
+    adminFetch('/api/postavke?kljuci=' + Object.keys(DEFAULTS).join(','))
+      .then(r => r.json())
+      .then(data => {
+        const m: Postavke = { ...DEFAULTS }
+        Object.entries(data || {}).forEach(([k, v]) => { if (v) m[k] = v as string })
+        setP(m)
+        setLoading(false)
+      })
   }, [shopId, isMainShop])
 
   function set(key: string, value: string) {
@@ -507,7 +500,7 @@ export default function IzgledPage() {
       vrijednost: vrijednost || '',
       ...(shopId ? { shop_id: shopId } : { shop_id: null }),
     }))
-    await supabase.from('postavke').upsert(rows, { onConflict: 'kljuc,shop_id' })
+    await adminFetch('/api/postavke', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(rows) })
     setSaving(false); setSaved(true); setChanged(false)
     setTimeout(() => setSaved(false), 2500)
   }

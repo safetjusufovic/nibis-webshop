@@ -264,18 +264,13 @@ export default function AdminStranicePage() {
 
   async function load() {
     setLoading(true)
-    let q = supabase.from('stranice').select('*').order('redoslijed').order('created_at', { ascending: false })
-    if (shopId) {
-      q = q.eq('shop_id', shopId)
-    } else {
-      q = q.is('shop_id', null)
-    }
-    const { data } = await q
-    setItems(data || [])
+    const res = await adminFetch('/api/stranice?sve=true')
+    const data = await res.json()
+    setItems(Array.isArray(data) ? data : [])
     setLoading(false)
   }
 
-  useEffect(() => { load() }, [shopId])
+  useEffect(() => { load() }, [])
 
   function slugify(s: string) {
     return s.toLowerCase()
@@ -294,10 +289,14 @@ export default function AdminStranicePage() {
       ...(shopId ? { shop_id: shopId } : { shop_id: null }),
     }
     if (editing.id) {
-      const { error } = await supabase.from('stranice').update(payload).eq('id', editing.id)
+      const r = await adminFetch('/api/stranice', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+      const rd = await r.json()
+      const error = rd.error ? { message: rd.error } : null
       if (error) { showToast('Greška: ' + error.message); setSaving(false); return }
     } else {
-      const { error } = await supabase.from('stranice').insert(payload)
+      const r2 = await adminFetch('/api/stranice', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+      const rd2 = await r2.json()
+      const error = rd2.error ? { message: rd2.error } : null
       if (error) { showToast('Greška: ' + error.message); setSaving(false); return }
     }
     setSaving(false); showToast('Sačuvano ✓')
@@ -305,7 +304,7 @@ export default function AdminStranicePage() {
   }
 
   async function toggleField(id: string, field: 'objavljen' | 'istaknuto', current: boolean) {
-    await supabase.from('stranice').update({ [field]: !current }).eq('id', id)
+    await adminFetch('/api/stranice', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, [field]: !current }) })
     setItems(prev => prev.map(s => s.id === id ? { ...s, [field]: !current } : s))
   }
 
@@ -316,14 +315,14 @@ export default function AdminStranicePage() {
     const other = list[dir === 'up' ? idx - 1 : idx + 1]
     const aRed = list[idx].redoslijed ?? idx
     const bRed = other.redoslijed ?? (dir === 'up' ? idx - 1 : idx + 1)
-    await supabase.from('stranice').update({ redoslijed: bRed }).eq('id', id)
-    await supabase.from('stranice').update({ redoslijed: aRed }).eq('id', other.id!)
+    await adminFetch('/api/stranice', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, redoslijed: bRed }) })
+    await adminFetch('/api/stranice', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: other.id, redoslijed: aRed }) })
     load()
   }
 
   async function remove(id: string) {
     if (!confirm('Obrisati?')) return
-    await supabase.from('stranice').delete().eq('id', id)
+    await adminFetch('/api/stranice?id=' + id, { method: 'DELETE' })
     setItems(prev => prev.filter(s => s.id !== id))
     showToast('Obrisano')
   }

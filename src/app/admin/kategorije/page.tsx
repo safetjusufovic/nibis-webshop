@@ -1,6 +1,5 @@
 'use client'
 import { adminFetch, adminApiUrl, getAdminShopId } from '@/lib/adminFetch'
-import { } from 'next/navigation'
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
@@ -37,7 +36,7 @@ export default function AdminKategorijePage() {
   const [configSaved, setConfigSaved] = useState(false)
 
   useEffect(() => {
-    supabase.from('grupe').select('id, sifra, naziv, parent_id, boja, ikona_url').order('naziv')
+    adminFetch('/api/grupe').then(r => r.json()).then((d: any) => d.items ?? [])
       .then(({ data }) => { setGrupe((data ?? []) as Grupa[]); setLoading(false) })
 
     supabase.from('postavke').select('kljuc, vrijednost')
