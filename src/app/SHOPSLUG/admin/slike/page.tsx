@@ -9,6 +9,7 @@ import { Upload, Package, Search, X, Link as LinkIcon, CheckCircle, AlertCircle,
 export default function AdminSlikePage() {
   const params = useParams()
   const shopSlug = params?.shopSlug as string || ''
+  console.log('SLIKE shopSlug:', shopSlug, 'params:', JSON.stringify(params))
 
   const [artikli, setArtikli] = useState<any[]>([])
   const [search, setSearch] = useState('')
