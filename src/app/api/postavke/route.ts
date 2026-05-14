@@ -1,54 +1,42 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 
-const MAIN_HOSTS = ['nibis-webshop.vercel.app', 'localhost', '127.0.0.1']
-
 async function getShopId(req: NextRequest): Promise<string | null> {
-  const shopId = req.nextUrl.searchParams.get('shop_id')
-  if (shopId) return shopId
-
   const shopSlug = req.nextUrl.searchParams.get('shop') || 'main'
   const { data } = await supabaseAdmin
     .from('shopovi').select('id')
     .eq('slug', shopSlug).eq('status', 'aktivan').single()
-  if (data?.id) return data.id
-
-  const hostname = (req.headers.get('host') || '').split(':')[0]
-  if (MAIN_HOSTS.some(h => hostname === h) || hostname.endsWith('.vercel.app')) return null
-
-  const { data } = await supabaseAdmin.from('shopovi')
-    .select('id')
-    .or(`domena.eq.${hostname},slug.eq.${hostname.split('.')[0]}`)
-    .eq('status', 'aktivan').single()
   return data?.id || null
 }
 
 export async function GET(req: NextRequest) {
   const kljuci = req.nextUrl.searchParams.get('kljuci')?.split(',') ?? []
   const shopId = await getShopId(req)
-
-  const q = supabaseAdmin.from('postavke')
-    .select('kljuc, vrijednost, shop_id')
-    .in('kljuc', kljuci.length > 0 ? kljuci : ['_'])
-
   if (!shopId) return NextResponse.json({})
-  const { data } = await q.eq('shop_id', shopId)
+
+  const { data } = await supabaseAdmin
+    .from('postavke')
+    .select('kljuc, vrijednost')
+    .in('kljuc', kljuci.length > 0 ? kljuci : ['_'])
+    .eq('shop_id', shopId)
 
   const map: Record<string, string> = {}
   data?.forEach(p => { map[p.kljuc] = p.vrijednost })
 
   return NextResponse.json(map, {
-    headers: { 'Cache-Control': 'no-store' }  // ne cachira — svaki shop mora dobiti svoje
+    headers: { 'Cache-Control': 'no-store' }
   })
 }
 
 export async function POST(req: NextRequest) {
   const shopId = await getShopId(req)
+  if (!shopId) return NextResponse.json({ error: 'Shop not found' }, { status: 404 })
+  
   const body = await req.json()
 
   if (Array.isArray(body)) {
     const rows = body.map(({ kljuc, vrijednost }: any) => ({
-      kljuc, vrijednost: vrijednost || '', shop_id: shopId || null
+      kljuc, vrijednost: vrijednost || '', shop_id: shopId
     }))
     const { error } = await supabaseAdmin.from('postavke')
       .upsert(rows, { onConflict: 'kljuc,shop_id' })
@@ -58,7 +46,7 @@ export async function POST(req: NextRequest) {
 
   const { kljuc, vrijednost } = body
   const { error } = await supabaseAdmin.from('postavke')
-    .upsert({ kljuc, vrijednost: vrijednost || '', shop_id: shopId || null }, { onConflict: 'kljuc,shop_id' })
+    .upsert({ kljuc, vrijednost: vrijednost || '', shop_id: shopId }, { onConflict: 'kljuc,shop_id' })
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json({ ok: true })
 }
