@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { supabase, supabaseAdmin } from '@/lib/supabase'
 
 async function resolveShopId(req: NextRequest): Promise<string | null> {
-  const shopSlug = req.nextUrl.searchParams.get('shop')
-  if (!shopSlug) return null
+  const shopSlug = req.nextUrl.searchParams.get('shop') || 'main'
   const { data } = await supabaseAdmin
     .from('shopovi')
     .select('id')

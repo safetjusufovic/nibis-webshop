@@ -7,13 +7,11 @@ async function getShopId(req: NextRequest): Promise<string | null> {
   const shopId = req.nextUrl.searchParams.get('shop_id')
   if (shopId) return shopId
 
-  const shopSlug = req.nextUrl.searchParams.get('shop')
-  if (shopSlug) {
-    const { data } = await supabaseAdmin
-      .from('shopovi').select('id')
-      .eq('slug', shopSlug).eq('status', 'aktivan').single()
-    return data?.id || null
-  }
+  const shopSlug = req.nextUrl.searchParams.get('shop') || 'main'
+  const { data } = await supabaseAdmin
+    .from('shopovi').select('id')
+    .eq('slug', shopSlug).eq('status', 'aktivan').single()
+  if (data?.id) return data.id
 
   const hostname = (req.headers.get('host') || '').split(':')[0]
   if (MAIN_HOSTS.some(h => hostname === h) || hostname.endsWith('.vercel.app')) return null
@@ -33,9 +31,8 @@ export async function GET(req: NextRequest) {
     .select('kljuc, vrijednost, shop_id')
     .in('kljuc', kljuci.length > 0 ? kljuci : ['_'])
 
-  const { data } = shopId
-    ? await q.eq('shop_id', shopId)        // klijentski shop — SAMO njegove
-    : await q.is('shop_id', null)          // glavni shop — SAMO globalne
+  if (!shopId) return NextResponse.json({})
+  const { data } = await q.eq('shop_id', shopId)
 
   const map: Record<string, string> = {}
   data?.forEach(p => { map[p.kljuc] = p.vrijednost })

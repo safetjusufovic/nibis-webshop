@@ -9,27 +9,26 @@ export async function GET(req: NextRequest) {
   const grupaId = sp.get('grupaId') || ''
   const sortBy = sp.get('sortBy') || 'naziv_asc'
   const akcija = sp.get('akcija') === 'true'
-  const shopSlug = sp.get('shop') || ''
+  const shopSlug = sp.get('shop') || 'main'
+
+  // Uvijek filtriraj po shop_id - svaki shop ima vlastite artikle
+  const { data: shopData } = await supabaseAdmin
+    .from('shopovi')
+    .select('id')
+    .eq('slug', shopSlug)
+    .eq('status', 'aktivan')
+    .single()
+  
+  if (!shopData?.id) {
+    return NextResponse.json({ items: [], total: 0 })
+  }
 
   let query = supabaseAdmin
     .from('artikli')
     .select('id, sifra, barkod, naziv, naziv2, proc_poreza, planska_maloprodajna_cijena, planska_veleprodajna_cijena, slika_url, grupa_id, akcija_popust, akcija_do, aktivan, webshop_aktivan, grupe:grupa_id(id,naziv)', { count: 'exact' })
     .eq('aktivan', true)
     .eq('webshop_aktivan', true)
-
-  if (shopSlug) {
-    const { data: shopData } = await supabaseAdmin
-      .from('shopovi')
-      .select('id')
-      .eq('slug', shopSlug)
-      .eq('status', 'aktivan')
-      .single()
-    if (shopData?.id) {
-      query = query.eq('shop_id', shopData.id)
-    } else {
-      return NextResponse.json({ items: [], total: 0 })
-    }
-  }
+    .eq('shop_id', shopData.id)
 
   if (search) query = query.or(`naziv.ilike.%${search}%,sifra.ilike.%${search}%,barkod.ilike.%${search}%`)
   if (grupaId) query = query.eq('grupa_id', grupaId)
