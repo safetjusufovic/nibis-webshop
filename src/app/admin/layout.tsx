@@ -1,42 +1,51 @@
 'use client'
 
 import { useAdminNotifikacije } from '@/hooks/useAdminNotifikacije'
-
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Users, ShoppingBag, Image, RefreshCw, LayoutDashboard, Settings, LayoutList, BarChart2, Activity, FolderTree, Paintbrush, FileText } from 'lucide-react'
 import AuthGuard from '@/components/auth/AuthGuard'
 import Header from '@/components/layout/Header'
 
-const NAV = [
-  { href: '/admin', label: 'Pregled', icon: LayoutDashboard, exact: true },
-  { href: '/admin/korisnici', label: 'Korisnici', icon: Users, badge: 'registracije' },
-  { href: '/admin/narudzbe', label: 'Narudžbe', icon: ShoppingBag, badge: 'narudzbe' },
-  { href: '/admin/slike', label: 'Slike artikala', icon: Image },
-  { href: '/admin/sync', label: 'Sinhronizacija', icon: RefreshCw },
-  { href: '/admin/katalog', label: 'Katalog', icon: LayoutList },
-  { href: '/admin/kategorije', label: 'Kategorije', icon: FolderTree },
-  { href: '/admin/izvjestaji', label: 'Izvještaji', icon: BarChart2 },
-  { href: '/admin/korisnici-log', label: 'Historija prijava', icon: Activity },
-  { href: '/admin/izgled', label: 'Izgled', icon: Paintbrush },
-  { href: '/admin/stranice', label: 'Stranice i članci', icon: FileText },
-  { href: '/admin/postavke', label: 'Postavke', icon: Settings },
+const NAV_ITEMS = [
+  { path: '', label: 'Pregled', icon: LayoutDashboard, exact: true },
+  { path: '/korisnici', label: 'Korisnici', icon: Users, badge: 'registracije' },
+  { path: '/narudzbe', label: 'Narudžbe', icon: ShoppingBag, badge: 'narudzbe' },
+  { path: '/slike', label: 'Slike artikala', icon: Image },
+  { path: '/sync', label: 'Sinhronizacija', icon: RefreshCw },
+  { path: '/katalog', label: 'Katalog', icon: LayoutList },
+  { path: '/kategorije', label: 'Kategorije', icon: FolderTree },
+  { path: '/izvjestaji', label: 'Izvještaji', icon: BarChart2 },
+  { path: '/korisnici-log', label: 'Historija prijava', icon: Activity },
+  { path: '/izgled', label: 'Izgled', icon: Paintbrush },
+  { path: '/stranice', label: 'Stranice i članci', icon: FileText },
+  { path: '/postavke', label: 'Postavke', icon: Settings },
 ]
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const notifikacije = useAdminNotifikacije()
   const pathname = usePathname()
 
+  // Izvuci shopSlug iz path-a: /novishop/admin/... -> novishop, /admin/... -> ''
+  const segs = pathname.split('/').filter(Boolean)
+  const adminIdx = segs.indexOf('admin')
+  const shopSlug = adminIdx > 0 ? segs[adminIdx - 1] : ''
+  const adminBase = shopSlug ? `/${shopSlug}/admin` : '/admin'
+
+  const shopSlugForHeader = shopSlug || 'main'
+
   return (
     <AuthGuard requireAdmin>
       <div className="min-h-screen bg-gray-50">
-        <Header />
+        <Header shopSlug={shopSlugForHeader} />
         <div className="max-w-7xl mx-auto px-4 py-6 flex gap-6">
-          {/* Sidebar */}
           <aside className="w-48 shrink-0">
             <div className="bg-white border border-gray-100 rounded-xl p-2 sticky top-20">
-              <p className="text-xs font-medium text-gray-400 uppercase tracking-wide px-3 py-2">Admin</p>
-              {NAV.map(({ href, label, icon: Icon, exact, badge: badgeKey }: any) => {
+              <p className="text-xs font-medium text-gray-400 uppercase tracking-wide px-3 py-2">
+                Admin{shopSlug ? ` · ${shopSlug}` : ''}
+              </p>
+              {NAV_ITEMS.map(({ path, label, icon: Icon, exact, badge: badgeKey }: any) => {
+                const href = adminBase + path
                 const active = exact ? pathname === href : pathname.startsWith(href)
                 const badgeCount = badgeKey === 'narudzbe' ? notifikacije.noveNarudzbe : badgeKey === 'registracije' ? notifikacije.noveRegistracije : 0
                 return (
@@ -61,7 +70,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               })}
             </div>
           </aside>
-          {/* Content */}
           <div className="flex-1 min-w-0">{children}</div>
         </div>
       </div>
