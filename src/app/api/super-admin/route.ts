@@ -161,6 +161,7 @@ export async function GET(req: NextRequest) {
   const { data, error } = await supabaseAdmin
     .from('shopovi')
     .select('*')
+    .neq('slug', 'main')
     .order('created_at', { ascending: false })
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })

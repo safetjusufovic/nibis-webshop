@@ -36,7 +36,7 @@ export default function AdminKategorijePage() {
   const [configSaved, setConfigSaved] = useState(false)
 
   useEffect(() => {
-    supabase.from('grupe').select('id, sifra, naziv, parent_id, boja, ikona_url').order('naziv')
+    fetch('/api/grupe?shop=' + shopSlug).then(r => r.json()).then(d => d.items ?? [])
       .then(({ data }) => { setGrupe((data ?? []) as Grupa[]); setLoading(false) })
 
     supabase.from('postavke').select('kljuc, vrijednost')
