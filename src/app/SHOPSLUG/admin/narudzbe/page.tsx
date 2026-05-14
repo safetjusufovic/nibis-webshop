@@ -142,7 +142,7 @@ export default function AdminNarudzbePage() {
   const shopSlug = (() => {
     const segs = pathname.split('/').filter(Boolean)
     const idx = segs.indexOf('admin')
-    return idx > 0 ? segs[idx - 1] : ''
+    return idx > 0 ? segs[idx - 1] : 'main'
   })()
 
   const [narudzbe, setNarudzbe] = useState<Narudzba[]>([])
