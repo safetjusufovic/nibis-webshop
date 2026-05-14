@@ -1,4 +1,5 @@
 'use client'
+import { usePathname } from 'next/navigation'
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
@@ -20,6 +21,11 @@ const PRESET_BOJE = [
 ]
 
 export default function AdminKategorijePage() {
+  // Čitaj shopSlug iz URL path-a: /novishop/admin/X -> novishop
+  const pathname = usePathname()
+  const _segments = pathname.split('/').filter(Boolean)
+  const _adminIdx = _segments.indexOf('admin')
+  const shopSlug = _adminIdx > 0 ? _segments[_adminIdx - 1] : ''
   const [grupe, setGrupe] = useState<Grupa[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')

@@ -1,11 +1,18 @@
 'use client'
 
 import { useEffect, useState, useRef } from 'react'
+import { usePathname } from 'next/navigation'
 import Image from 'next/image'
 import { supabase } from '@/lib/supabase'
 import { Upload, Package, Search, X, Link as LinkIcon, CheckCircle, AlertCircle, Grid, List } from 'lucide-react'
 
 export default function AdminSlikePage() {
+  // Čitaj shopSlug iz URL path-a: /novishop/admin/slike -> novishop
+  const pathname = usePathname()
+  const pathSegments = pathname.split('/').filter(Boolean)
+  const adminIdx = pathSegments.indexOf('admin')
+  const shopSlug = adminIdx > 0 ? pathSegments[adminIdx - 1] : ''
+
   const [artikli, setArtikli] = useState<any[]>([])
   const [search, setSearch] = useState('')
   const [uploading, setUploading] = useState<number | null>(null)
@@ -64,20 +71,21 @@ export default function AdminSlikePage() {
   }
 
   async function load() {
-    let q = supabase
-      .from('artikli')
-      .select('id, sifra, naziv, slika_url, grupe:grupa_id(naziv)', { count: 'exact' })
-      .order('naziv')
-      .range((page - 1) * PER, page * PER - 1)
-    if (search) q = q.or(`naziv.ilike.%${search}%,sifra.ilike.%${search}%`)
-    if (filter === 'sa_slikom') q = q.not('slika_url', 'is', null).neq('slika_url', '')
-    if (filter === 'bez_slike') q = q.or('slika_url.is.null,slika_url.eq.')
-    const { data, count } = await q
-    setArtikli(data ?? [])
-    setTotal(count ?? 0)
+    setLoading(true)
+    const sp = new URLSearchParams({ page: String(page), perPage: String(PER) })
+    if (search) sp.set('search', search)
+    if (shopSlug) sp.set('shop', shopSlug)
+    const res = await fetch('/api/artikli?' + sp.toString())
+    const d = await res.json()
+    let items = d.items ?? []
+    if (filter === 'sa_slikom') items = items.filter((a: any) => a.slika_url)
+    if (filter === 'bez_slike') items = items.filter((a: any) => !a.slika_url)
+    setArtikli(items)
+    setTotal(d.total ?? 0)
+    setLoading(false)
   }
 
-  useEffect(() => { load() }, [page, search, filter])
+  useEffect(() => { load() }, [page, search, filter, shopSlug])
 
   async function uploadFile(artikalId: number, file: File) {
     if (file.size > 8 * 1024 * 1024) { showToast('Slika je prevelika (max 8MB)', false); return }

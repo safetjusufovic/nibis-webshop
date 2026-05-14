@@ -1,4 +1,5 @@
 'use client'
+import { usePathname } from 'next/navigation'
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
@@ -21,6 +22,11 @@ interface Korisnik {
 }
 
 export default function AdminKorisniciPage() {
+  // Čitaj shopSlug iz URL path-a: /novishop/admin/X -> novishop
+  const pathname = usePathname()
+  const _segments = pathname.split('/').filter(Boolean)
+  const _adminIdx = _segments.indexOf('admin')
+  const shopSlug = _adminIdx > 0 ? _segments[_adminIdx - 1] : ''
   const [zahtjevi, setZahtjevi] = useState<Zahtjev[]>([])
   const [korisnici, setKorisnici] = useState<Korisnik[]>([])
   const [loading, setLoading] = useState(true)

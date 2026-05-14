@@ -1,4 +1,5 @@
 'use client'
+import { usePathname } from 'next/navigation'
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
@@ -40,6 +41,11 @@ const PERIODI = [
 ]
 
 export default function AdminIzvjestajiPage() {
+  // Čitaj shopSlug iz URL path-a: /novishop/admin/X -> novishop
+  const pathname = usePathname()
+  const _segments = pathname.split('/').filter(Boolean)
+  const _adminIdx = _segments.indexOf('admin')
+  const shopSlug = _adminIdx > 0 ? _segments[_adminIdx - 1] : ''
   const [period, setPeriod] = useState(30)
   const [loading, setLoading] = useState(true)
   const [stats, setStats] = useState({ ukupnoPromet: 0, ukupnoNarudzbi: 0, aktivniKupci: 0, prosjecnaVrijednost: 0 })
