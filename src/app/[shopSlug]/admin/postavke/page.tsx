@@ -1,5 +1,5 @@
 'use client'
-import { useParams } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 // Klijentski shop admin — izolacija po shop_id
 import { useAdminShop } from '@/lib/useAdminShop'
 
@@ -78,8 +78,13 @@ const SECTIONS = [
 ]
 
 export default function AdminPostavkePage() {
-  const params = useParams()
-  const shopSlug = params?.shopSlug as string || ''
+  const pathname = usePathname()
+  const shopSlug = (() => {
+    const segs = pathname.split('/').filter(Boolean)
+    const idx = segs.indexOf('admin')
+    return idx > 0 ? segs[idx - 1] : 'main'
+  })()
+
   const [postavke, setPostavke] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)

@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from 'react'
 import { supabase } from '@/lib/supabase'
-import { useParams } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import {
   Save, Undo2, Download, Upload, Eye, EyeOff, RefreshCw,
   ChevronRight, ChevronDown, X, Image as ImgIcon,
@@ -382,8 +382,13 @@ function AccordionSec({ title, icon, children, defaultOpen = false, badge }: {
 
 // ─── Glavni Page ───────────────────────────────────────────────────────────────
 export default function IzgledPage() {
-  const params = useParams()
-  const shopSlug = params?.shopSlug as string || ''
+  const pathname = usePathname()
+  const shopSlug = (() => {
+    const segs = pathname.split('/').filter(Boolean)
+    const idx = segs.indexOf('admin')
+    return idx > 0 ? segs[idx - 1] : 'main'
+  })()
+
   const [p, setP] = useState<Postavke>(DEFAULTS)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)

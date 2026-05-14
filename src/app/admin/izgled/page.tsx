@@ -386,7 +386,7 @@ export default function IzgledPage() {
   const shopSlug = (() => {
     const segs = pathname.split('/').filter(Boolean)
     const idx = segs.indexOf('admin')
-    return idx > 0 ? segs[idx - 1] : ''
+    return idx > 0 ? segs[idx - 1] : 'main'
   })()
 
   const [p, setP] = useState<Postavke>(DEFAULTS)

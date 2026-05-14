@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
-import { useParams } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { Search, Eye, EyeOff, Tag, X, Package } from 'lucide-react'
 import { formatCijena } from '@/lib/config'
@@ -25,8 +25,13 @@ interface AkcijaModal {
 const PER_PAGE = 30
 
 export default function AdminKatalogPage() {
-  const params = useParams()
-  const shopSlug = params?.shopSlug as string || ''
+  const pathname = usePathname()
+  const shopSlug = (() => {
+    const segs = pathname.split('/').filter(Boolean)
+    const idx = segs.indexOf('admin')
+    return idx > 0 ? segs[idx - 1] : 'main'
+  })()
+
   const [artikli, setArtikli] = useState<Artikal[]>([])
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(1)

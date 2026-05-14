@@ -166,14 +166,12 @@ export default function AdminNarudzbePage() {
       .range((page - 1) * PER_PAGE, page * PER_PAGE - 1)
     if (search) q = q.ilike('nibis_oznaka', `%${search}%`)
     if (filterStatus) q = q.eq('status', filterStatus)
-    if (shopSlug) {
-      const shopRes = await fetch('/api/super-admin/shop-id?slug=' + shopSlug, { headers: { 'x-super-admin-secret': 'nibis-super-2025' } })
-      const shopData = await shopRes.json()
-      if (shopData?.id) q = q.eq('shop_id', shopData.id)
-      else return // shop ne postoji
-    } else {
-      q = q.is('shop_id', null)
-    }
+    // Uvijek dohvati shop_id - main shop koristi slug 'main'
+    const activeSlug = shopSlug || 'main'
+    const shopRes = await fetch('/api/super-admin/shop-id?slug=' + activeSlug, { headers: { 'x-super-admin-secret': 'nibis-super-2025' } })
+    const shopData = await shopRes.json()
+    if (shopData?.id) q = q.eq('shop_id', shopData.id)
+    else return
     const { data, count } = await q
     setNarudzbe((data ?? []).map((n: any) => ({ ...n, stavke: n.stavke ?? [], partner: n.partner ?? null, korisnik: n.korisnik ?? null })))
     setTotal(count ?? 0)

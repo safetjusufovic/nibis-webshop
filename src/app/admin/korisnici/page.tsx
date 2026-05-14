@@ -26,17 +26,13 @@ export default function AdminKorisniciPage() {
   const shopSlug = (() => {
     const segs = pathname.split('/').filter(Boolean)
     const idx = segs.indexOf('admin')
-    return idx > 0 ? segs[idx - 1] : ''
+    return idx > 0 ? segs[idx - 1] : 'main'
   })()
 
   const [shopId, setShopId] = useState<string | null>(null)
 
   useEffect(() => {
-    if (!shopSlug) {
-      setShopId(null)
-      load()
-      return
-    }
+    // Uvijek dohvati shop_id - main shop koristi slug 'main'
     fetch('/api/super-admin/shop-id?slug=' + shopSlug, { headers: { 'x-super-admin-secret': 'nibis-super-2025' } })
       .then(r => r.json()).then(d => setShopId(d.id || null))
   }, [shopSlug])
@@ -56,15 +52,17 @@ export default function AdminKorisniciPage() {
 
   async function load() {
     const [z, k] = await Promise.all([
-      (() => { let q = supabase.from('registracija_zahtjevi').select('*').is('odobren', null).order('created_at'); return shopId ? q.eq('shop_id', shopId) : q.is('shop_id', null) })(),
-      (() => { let q = supabase.from('korisnici').select('*, partner:partneri(naziv)').order('created_at', { ascending: false }); return shopId ? q.eq('shop_id', shopId) : q.is('shop_id', null) })(),
+      supabase.from('registracija_zahtjevi').select('*').is('odobren', null).order('created_at').eq('shop_id', shopId!),
+      supabase.from('korisnici').select('*, partner:partneri(naziv)').order('created_at', { ascending: false }).eq('shop_id', shopId!),
     ])
     setZahtjevi(z.data ?? [])
     setKorisnici(k.data ?? [])
     setLoading(false)
   }
 
-  useEffect(() => { load() }, [])
+  useEffect(() => { 
+    if (shopId !== null) load()
+  }, [shopId])
 
   async function traziPartnere() {
     if (partnerSearch.length < 2) { setPartnerResults([]); return }
