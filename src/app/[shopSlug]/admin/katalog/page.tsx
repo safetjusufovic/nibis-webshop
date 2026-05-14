@@ -44,13 +44,13 @@ export default function AdminKatalogPage() {
     const sp = new URLSearchParams({ page: String(page), perPage: String(PER_PAGE) })
     if (search) sp.set('search', search)
     if (filterAkcija) sp.set('akcija', 'true')
-    if (shopSlug) sp.set('shop', shopSlug)
+    sp.set('shop', shopSlug) // uvijek pošalji, prazan string = glavni shop
     const res = await fetch('/api/artikli?' + sp.toString())
     const d = await res.json()
     setArtikli((d.items ?? []) as Artikal[])
     setTotal(d.total ?? 0)
     setLoading(false)
-  }, [page, search, filterAktivan, filterAkcija])
+  }, [page, search, filterAktivan, filterAkcija, shopSlug])
 
   useEffect(() => { load() }, [load])
 

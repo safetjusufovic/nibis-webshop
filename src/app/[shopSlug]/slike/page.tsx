@@ -1,5 +1,5 @@
 'use client'
-import { useParams } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 
 import { useEffect, useState, useRef } from 'react'
 import Image from 'next/image'
@@ -7,9 +7,15 @@ import { supabase } from '@/lib/supabase'
 import { Upload, Package, Search, X, Link as LinkIcon, CheckCircle, AlertCircle, Grid, List } from 'lucide-react'
 
 export default function AdminSlikePage() {
-  const params = useParams()
-  const shopSlug = params?.shopSlug as string || ''
-  console.log('SLIKE shopSlug:', shopSlug, 'params:', JSON.stringify(params))
+  const pathname = usePathname()
+  const shopSlug = (() => {
+    const segs = pathname.split('/').filter(Boolean)
+    const idx = segs.indexOf('admin')
+    const slug = idx > 0 ? segs[idx - 1] : ''
+    console.log('[SLIKE] pathname:', pathname, 'segs:', segs, 'idx:', idx, 'shopSlug:', slug)
+    return slug
+  })()
+
 
   const [artikli, setArtikli] = useState<any[]>([])
   const [search, setSearch] = useState('')

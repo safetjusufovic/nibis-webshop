@@ -1,5 +1,5 @@
 'use client'
-import { useParams } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
@@ -41,8 +41,13 @@ const PERIODI = [
 ]
 
 export default function AdminIzvjestajiPage() {
-  const params = useParams()
-  const shopSlug = params?.shopSlug as string || ''
+  const pathname = usePathname()
+  const shopSlug = (() => {
+    const segs = pathname.split('/').filter(Boolean)
+    const idx = segs.indexOf('admin')
+    return idx > 0 ? segs[idx - 1] : ''
+  })()
+
   const [shopId, setShopId] = useState<string | null>(null)
 
   useEffect(() => {

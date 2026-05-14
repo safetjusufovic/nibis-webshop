@@ -43,6 +43,14 @@ const PERIODI = [
 export default function AdminIzvjestajiPage() {
   const params = useParams()
   const shopSlug = params?.shopSlug as string || ''
+  const [shopId, setShopId] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!shopSlug) return
+    fetch('/api/super-admin/shop-id?slug=' + shopSlug, { headers: { 'x-super-admin-secret': 'nibis-super-2025' } })
+      .then(r => r.json()).then(d => setShopId(d.id || null))
+  }, [shopSlug])
+
 
   const [period, setPeriod] = useState(30)
   const [loading, setLoading] = useState(true)
@@ -52,8 +60,9 @@ export default function AdminIzvjestajiPage() {
   const [prometPoMjesecima, setPrometPoMjesecima] = useState<PrometPoMjesecu[]>([])
 
   useEffect(() => {
+    if (shopSlug && !shopId) return // čekaj shopId
     load()
-  }, [period])
+  }, [period, shopId])
 
   async function load() {
     setLoading(true)
@@ -62,11 +71,14 @@ export default function AdminIzvjestajiPage() {
     const odStr = od.toISOString()
 
     // Osnovne statistike
-    const { data: narudzbe } = await supabase
+    let qNar = supabase
       .from('narudzbe')
       .select('ukupno_sa_porezom, korisnik_id, partner_id, created_at, status')
       .gte('created_at', odStr)
       .neq('status', 'otkazana')
+    if (shopId) qNar = qNar.eq('shop_id', shopId)
+    else qNar = qNar.is('shop_id', null)
+    const { data: narudzbe } = await qNar
 
     const ukupnoPromet = narudzbe?.reduce((s, n) => s + (n.ukupno_sa_porezom ?? 0), 0) ?? 0
     const ukupnoNarudzbi = narudzbe?.length ?? 0

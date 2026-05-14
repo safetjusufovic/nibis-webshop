@@ -70,11 +70,14 @@ export default function AdminKategorijePage() {
   }
 
   async function sacuvajConfig() {
-    await supabase.from('postavke').upsert([
+    await fetch('/api/postavke' + (shopSlug ? '?shop=' + shopSlug : ''), {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify([
       { kljuc: 'sidebar_sirina', vrijednost: String(sirina) },
       { kljuc: 'sidebar_visina_kategorije', vrijednost: String(visina) },
       { kljuc: 'sidebar_boja_pozadine', vrijednost: bojaPozadine },
-    ], { onConflict: 'kljuc' })
+    ])}
+    )
     setConfigChanged(false)
     setConfigSaved(true)
     setTimeout(() => setConfigSaved(false), 2000)

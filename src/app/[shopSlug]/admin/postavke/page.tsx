@@ -92,7 +92,7 @@ export default function AdminPostavkePage() {
       setPostavke(map)
       setLoading(false)
     })
-  }, [])
+  }, [shopSlug])
 
   function update(key: string, val: string) {
     setPostavke(prev => ({ ...prev, [key]: val }))

@@ -1,5 +1,5 @@
 'use client'
-import { useParams } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 // Klijentski shop admin — izolacija po shop_id
 import { useAdminShop } from '@/lib/useAdminShop'
 
@@ -138,8 +138,13 @@ function printNarudzba(n: Narudzba) {
 const PER_PAGE = 25
 
 export default function AdminNarudzbePage() {
-  const params = useParams()
-  const shopSlug = params?.shopSlug as string || ''
+  const pathname = usePathname()
+  const shopSlug = (() => {
+    const segs = pathname.split('/').filter(Boolean)
+    const idx = segs.indexOf('admin')
+    return idx > 0 ? segs[idx - 1] : ''
+  })()
+
   const [narudzbe, setNarudzbe] = useState<Narudzba[]>([])
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(1)
@@ -162,8 +167,10 @@ export default function AdminNarudzbePage() {
     if (search) q = q.ilike('nibis_oznaka', `%${search}%`)
     if (filterStatus) q = q.eq('status', filterStatus)
     if (shopSlug) {
-      const { data: shopData } = await supabase.from('shopovi').select('id').eq('slug', shopSlug).single()
+      const shopRes = await fetch('/api/super-admin/shop-id?slug=' + shopSlug, { headers: { 'x-super-admin-secret': 'nibis-super-2025' } })
+      const shopData = await shopRes.json()
       if (shopData?.id) q = q.eq('shop_id', shopData.id)
+      else return // shop ne postoji
     } else {
       q = q.is('shop_id', null)
     }

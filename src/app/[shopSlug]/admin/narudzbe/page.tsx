@@ -1,4 +1,5 @@
 'use client'
+import { useParams } from 'next/navigation'
 // Klijentski shop admin — izolacija po shop_id
 import { useAdminShop } from '@/lib/useAdminShop'
 
@@ -137,6 +138,8 @@ function printNarudzba(n: Narudzba) {
 const PER_PAGE = 25
 
 export default function AdminNarudzbePage() {
+  const params = useParams()
+  const shopSlug = params?.shopSlug as string || ''
   const [narudzbe, setNarudzbe] = useState<Narudzba[]>([])
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(1)
@@ -158,13 +161,19 @@ export default function AdminNarudzbePage() {
       .range((page - 1) * PER_PAGE, page * PER_PAGE - 1)
     if (search) q = q.ilike('nibis_oznaka', `%${search}%`)
     if (filterStatus) q = q.eq('status', filterStatus)
+    if (shopSlug) {
+      const { data: shopData } = await supabase.from('shopovi').select('id').eq('slug', shopSlug).single()
+      if (shopData?.id) q = q.eq('shop_id', shopData.id)
+    } else {
+      q = q.is('shop_id', null)
+    }
     const { data, count } = await q
     setNarudzbe((data ?? []).map((n: any) => ({ ...n, stavke: n.stavke ?? [], partner: n.partner ?? null, korisnik: n.korisnik ?? null })))
     setTotal(count ?? 0)
     setLoading(false)
   }
 
-  useEffect(() => { load() }, [page, search, filterStatus])
+  useEffect(() => { load() }, [page, search, filterStatus, shopSlug])
   const totalPages = Math.ceil(total / PER_PAGE)
 
   async function promijeniStatus(id: string, status: string) {

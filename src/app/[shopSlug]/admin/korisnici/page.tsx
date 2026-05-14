@@ -24,6 +24,14 @@ interface Korisnik {
 export default function AdminKorisniciPage() {
   const params = useParams()
   const shopSlug = params?.shopSlug as string || ''
+  const [shopId, setShopId] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!shopSlug) return
+    fetch('/api/super-admin/shop-id?slug=' + shopSlug, { headers: { 'x-super-admin-secret': 'nibis-super-2025' } })
+      .then(r => r.json()).then(d => setShopId(d.id || null))
+  }, [shopSlug])
+
 
   const [zahtjevi, setZahtjevi] = useState<Zahtjev[]>([])
   const [korisnici, setKorisnici] = useState<Korisnik[]>([])
@@ -39,8 +47,8 @@ export default function AdminKorisniciPage() {
 
   async function load() {
     const [z, k] = await Promise.all([
-      supabase.from('registracija_zahtjevi').select('*').is('odobren', null).order('created_at'),
-      supabase.from('korisnici').select('*, partner:partneri(naziv)').order('created_at', { ascending: false }),
+      supabase.from('registracija_zahtjevi').select('*').is('odobren', null).order('created_at').eq('shop_id', shopId || '00000000-0000-0000-0000-000000000000'),
+      supabase.from('korisnici').select('*, partner:partneri(naziv)').order('created_at', { ascending: false }).eq('shop_id', shopId || '00000000-0000-0000-0000-000000000000'),
     ])
     setZahtjevi(z.data ?? [])
     setKorisnici(k.data ?? [])
