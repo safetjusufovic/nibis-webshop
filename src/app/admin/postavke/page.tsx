@@ -1,5 +1,6 @@
 'use client'
-import { usePathname } from 'next/navigation'
+import { adminFetch, adminApiUrl, getAdminShopId } from '@/lib/adminFetch'
+import { } from 'next/navigation'
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
@@ -76,18 +77,13 @@ const SECTIONS = [
 ]
 
 export default function AdminPostavkePage() {
-  // Čitaj shopSlug iz URL path-a: /novishop/admin/X -> novishop
-  const pathname = usePathname()
-  const _segments = pathname.split('/').filter(Boolean)
-  const _adminIdx = _segments.indexOf('admin')
-  const shopSlug = _adminIdx > 0 ? _segments[_adminIdx - 1] : ''
   const [postavke, setPostavke] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
 
   useEffect(() => {
-    fetch('/api/postavke?kljuci=shop_naziv,shop_email,shop_telefon,shop_adresa,shop_grad,shop_web,shop_pib,shop_pdv_broj,announcement_bar,baner_boja_pozadine,baner_boja_teksta,nacini_placanja,korpa_napomena,korpa_pdv_prikaz,min_narudzba,registracija_otvorena,registracija_poruka,email_potvrda_narudzba,email_admin_narudzba,email_admin_registracija,per_page,default_view,default_sort,artikal_prikaz_dvije_cijene,artikal_velep_label,artikal_malop_label,artikal_prikaz_pdv,artikal_prikaz_sifra,artikal_prikaz_kategorija,artikal_prikaz_barcode,artikal_dugme_tekst,artikal_badge_stanje,sidebar_sirina,sidebar_pozicija' + (shopSlug ? '&shop=' + shopSlug : '')).then(r => r.json()).then((data) => {
+    adminFetch('/api/postavke?kljuci=shop_naziv,shop_email,shop_telefon,shop_adresa,shop_grad,shop_web,shop_pib,shop_pdv_broj,announcement_bar,baner_boja_pozadine,baner_boja_teksta,nacini_placanja,korpa_napomena,korpa_pdv_prikaz,min_narudzba,registracija_otvorena,registracija_poruka,email_potvrda_narudzba,email_admin_narudzba,email_admin_registracija,per_page,default_view,default_sort,artikal_prikaz_dvije_cijene,artikal_velep_label,artikal_malop_label,artikal_prikaz_pdv,artikal_prikaz_sifra,artikal_prikaz_kategorija,artikal_prikaz_barcode,artikal_dugme_tekst,artikal_badge_stanje,sidebar_sirina,sidebar_pozicija').then(r => r.json()).then((data) => {
       const map: Record<string, string> = {}
       Object.entries(data || {}).forEach(([k, v]) => { if (v) map[k] = v as string })
       setPostavke(map)
@@ -102,7 +98,7 @@ export default function AdminPostavkePage() {
   async function save() {
     setSaving(true)
     const rows = Object.entries(postavke).map(([kljuc, vrijednost]) => ({ kljuc, vrijednost }))
-    await fetch('/api/postavke' + (shopSlug ? '?shop=' + shopSlug : ''), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(rows) })
+    await adminFetch('/api/postavke', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(rows) })
     setSaving(false)
     setSaved(true)
     setTimeout(() => setSaved(false), 2500)

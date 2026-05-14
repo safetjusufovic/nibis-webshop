@@ -1,17 +1,13 @@
 'use client'
+import { adminFetch, adminApiUrl, getAdminShopId } from '@/lib/adminFetch'
 
 import { useEffect, useState, useRef } from 'react'
-import { usePathname } from 'next/navigation'
+import { } from 'next/navigation'
 import Image from 'next/image'
 import { supabase } from '@/lib/supabase'
 import { Upload, Package, Search, X, Link as LinkIcon, CheckCircle, AlertCircle, Grid, List } from 'lucide-react'
 
 export default function AdminSlikePage() {
-  // Čitaj shopSlug iz URL path-a: /novishop/admin/slike -> novishop
-  const pathname = usePathname()
-  const pathSegments = pathname.split('/').filter(Boolean)
-  const adminIdx = pathSegments.indexOf('admin')
-  const shopSlug = adminIdx > 0 ? pathSegments[adminIdx - 1] : ''
 
   const [artikli, setArtikli] = useState<any[]>([])
   const [search, setSearch] = useState('')
@@ -75,8 +71,7 @@ export default function AdminSlikePage() {
     setLoading(true)
     const sp = new URLSearchParams({ page: String(page), perPage: String(PER) })
     if (search) sp.set('search', search)
-    if (shopSlug) sp.set('shop', shopSlug)
-    const res = await fetch('/api/artikli?' + sp.toString())
+    const res = await adminFetch('/api/artikli?' + sp.toString())
     const d = await res.json()
     let items = d.items ?? []
     if (filter === 'sa_slikom') items = items.filter((a: any) => a.slika_url)
@@ -86,7 +81,7 @@ export default function AdminSlikePage() {
     setLoading(false)
   }
 
-  useEffect(() => { load() }, [page, search, filter, shopSlug])
+  useEffect(() => { load() }, [page, search, filter])
 
   async function uploadFile(artikalId: number, file: File) {
     if (file.size > 8 * 1024 * 1024) { showToast('Slika je prevelika (max 8MB)', false); return }

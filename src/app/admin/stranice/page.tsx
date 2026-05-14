@@ -1,4 +1,5 @@
 'use client'
+import { adminFetch, adminApiUrl, getAdminShopId } from '@/lib/adminFetch'
 
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'

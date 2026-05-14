@@ -1,5 +1,6 @@
 'use client'
-import { usePathname } from 'next/navigation'
+import { adminFetch, adminApiUrl, getAdminShopId } from '@/lib/adminFetch'
+import { } from 'next/navigation'
 
 import { useEffect, useState, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
@@ -25,11 +26,6 @@ interface AkcijaModal {
 const PER_PAGE = 30
 
 export default function AdminKatalogPage() {
-  // Čitaj shopSlug iz URL path-a: /novishop/admin/X -> novishop
-  const pathname = usePathname()
-  const _segments = pathname.split('/').filter(Boolean)
-  const _adminIdx = _segments.indexOf('admin')
-  const shopSlug = _adminIdx > 0 ? _segments[_adminIdx - 1] : ''
   const [artikli, setArtikli] = useState<Artikal[]>([])
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(1)
@@ -47,13 +43,12 @@ export default function AdminKatalogPage() {
     const sp = new URLSearchParams({ page: String(page), perPage: String(PER_PAGE) })
     if (search) sp.set('search', search)
     if (filterAkcija) sp.set('akcija', 'true')
-    if (shopSlug) sp.set('shop', shopSlug)
-    const res = await fetch('/api/artikli?' + sp.toString())
+    const res = await adminFetch('/api/artikli?' + sp.toString())
     const d = await res.json()
     setArtikli((d.items ?? []) as Artikal[])
     setTotal(d.total ?? 0)
     setLoading(false)
-  }, [page, search, filterAktivan, filterAkcija, shopSlug])
+  }, [page, search, filterAktivan, filterAkcija])
 
   useEffect(() => { load() }, [load])
 

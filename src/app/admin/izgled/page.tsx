@@ -1,4 +1,5 @@
 'use client'
+import { adminFetch, adminApiUrl, getAdminShopId } from '@/lib/adminFetch'
 
 import { useEffect, useState, useRef } from 'react'
 import { supabase } from '@/lib/supabase'
@@ -397,7 +398,7 @@ export default function IzgledPage() {
 
   useEffect(() => {
     const shopParam = shopSlug ? '?shop=' + shopSlug : ''
-    fetch('/api/grupe' + shopParam)
+    adminFetch('/api/grupe')
       .then(r => r.json())
       .then(d => setGrupe((d.items || []).map((g: any) => ({ id: g.id, naziv: g.naziv }))))
       .catch(() => {})

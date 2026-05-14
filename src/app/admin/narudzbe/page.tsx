@@ -1,5 +1,6 @@
 'use client'
-import { usePathname } from 'next/navigation'
+import { adminFetch, adminApiUrl, getAdminShopId } from '@/lib/adminFetch'
+import { } from 'next/navigation'
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
@@ -136,11 +137,6 @@ function printNarudzba(n: Narudzba) {
 const PER_PAGE = 25
 
 export default function AdminNarudzbePage() {
-  // Čitaj shopSlug iz URL path-a: /novishop/admin/X -> novishop
-  const pathname = usePathname()
-  const _segments = pathname.split('/').filter(Boolean)
-  const _adminIdx = _segments.indexOf('admin')
-  const shopSlug = _adminIdx > 0 ? _segments[_adminIdx - 1] : ''
   const [narudzbe, setNarudzbe] = useState<Narudzba[]>([])
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(1)
