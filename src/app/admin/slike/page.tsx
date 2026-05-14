@@ -12,10 +12,10 @@ export default function AdminSlikePage() {
   const pathSegments = pathname.split('/').filter(Boolean)
   const adminIdx = pathSegments.indexOf('admin')
   const shopSlug = adminIdx > 0 ? pathSegments[adminIdx - 1] : ''
-  console.log('ADMIN SLIKE pathname:', pathname, 'shopSlug:', shopSlug)
 
   const [artikli, setArtikli] = useState<any[]>([])
   const [search, setSearch] = useState('')
+  const [loading, setLoading] = useState(false)
   const [uploading, setUploading] = useState<number | null>(null)
   const [urlInput, setUrlInput] = useState<Record<number, string>>({})
   const [showUrl, setShowUrl] = useState<Record<number, boolean>>({})
