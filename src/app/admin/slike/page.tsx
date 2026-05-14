@@ -1,5 +1,5 @@
 'use client'
-import { adminFetch, adminApiUrl, getAdminShopId } from '@/lib/adminFetch'
+import { usePathname } from 'next/navigation'
 
 import { useEffect, useState, useRef } from 'react'
 import Image from 'next/image'
@@ -7,10 +7,16 @@ import { supabase } from '@/lib/supabase'
 import { Upload, Package, Search, X, Link as LinkIcon, CheckCircle, AlertCircle, Grid, List } from 'lucide-react'
 
 export default function AdminSlikePage() {
+  const pathname = usePathname()
+  const shopSlug = (() => {
+    const segs = pathname.split('/').filter(Boolean)
+    const idx = segs.indexOf('admin')
+    return idx > 0 ? segs[idx - 1] : ''
+  })()
+
 
   const [artikli, setArtikli] = useState<any[]>([])
   const [search, setSearch] = useState('')
-  const [loading, setLoading] = useState(false)
   const [uploading, setUploading] = useState<number | null>(null)
   const [urlInput, setUrlInput] = useState<Record<number, string>>({})
   const [showUrl, setShowUrl] = useState<Record<number, boolean>>({})
@@ -66,21 +72,26 @@ export default function AdminSlikePage() {
     setGoogleLoading(false)
   }
 
-  async function load() {
-    setLoading(true)
+  async function load(slug?: string) {
+    const activeSlug = slug !== undefined ? slug : shopSlug
     const sp = new URLSearchParams({ page: String(page), perPage: String(PER) })
     if (search) sp.set('search', search)
-    const res = await adminFetch('/api/artikli?' + sp.toString())
+    if (activeSlug) sp.set('shop', activeSlug)
+    const res = await fetch('/api/artikli?' + sp.toString())
     const d = await res.json()
+    // filter sa/bez slike client-side
     let items = d.items ?? []
     if (filter === 'sa_slikom') items = items.filter((a: any) => a.slika_url)
     if (filter === 'bez_slike') items = items.filter((a: any) => !a.slika_url)
     setArtikli(items)
     setTotal(d.total ?? 0)
-    setLoading(false)
   }
 
-  useEffect(() => { load() }, [page, search, filter])
+  useEffect(() => {
+    setArtikli([])
+    setTotal(0)
+    load(shopSlug)
+  }, [page, search, filter, shopSlug])
 
   async function uploadFile(artikalId: number, file: File) {
     if (file.size > 8 * 1024 * 1024) { showToast('Slika je prevelika (max 8MB)', false); return }

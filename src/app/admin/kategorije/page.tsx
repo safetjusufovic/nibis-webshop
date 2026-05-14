@@ -1,5 +1,5 @@
 'use client'
-import { adminFetch, adminApiUrl, getAdminShopId } from '@/lib/adminFetch'
+import { usePathname } from 'next/navigation'
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
@@ -21,6 +21,14 @@ const PRESET_BOJE = [
 ]
 
 export default function AdminKategorijePage() {
+  const pathname = usePathname()
+  const shopSlug = (() => {
+    const segs = pathname.split('/').filter(Boolean)
+    const idx = segs.indexOf('admin')
+    return idx > 0 ? segs[idx - 1] : ''
+  })()
+
+
   const [grupe, setGrupe] = useState<Grupa[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
@@ -36,7 +44,7 @@ export default function AdminKategorijePage() {
   const [configSaved, setConfigSaved] = useState(false)
 
   useEffect(() => {
-    adminFetch('/api/grupe').then(r => r.json()).then((d: any) => d.items ?? [])
+    fetch('/api/grupe' + (shopSlug ? '?shop=' + shopSlug : '')).then(r => r.json()).then(d => d.items ?? [])
       .then(({ data }) => { setGrupe((data ?? []) as Grupa[]); setLoading(false) })
 
     supabase.from('postavke').select('kljuc, vrijednost')
@@ -67,11 +75,14 @@ export default function AdminKategorijePage() {
   }
 
   async function sacuvajConfig() {
-    await supabase.from('postavke').upsert([
+    await fetch('/api/postavke' + (shopSlug ? '?shop=' + shopSlug : ''), {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify([
       { kljuc: 'sidebar_sirina', vrijednost: String(sirina) },
       { kljuc: 'sidebar_visina_kategorije', vrijednost: String(visina) },
       { kljuc: 'sidebar_boja_pozadine', vrijednost: bojaPozadine },
-    ], { onConflict: 'kljuc' })
+    ])}
+    )
     setConfigChanged(false)
     setConfigSaved(true)
     setTimeout(() => setConfigSaved(false), 2000)

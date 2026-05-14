@@ -1,5 +1,5 @@
 'use client'
-import { adminFetch, adminApiUrl, getAdminShopId } from '@/lib/adminFetch'
+import { usePathname } from 'next/navigation'
 
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
@@ -264,13 +264,14 @@ export default function AdminStranicePage() {
 
   async function load() {
     setLoading(true)
-    const res = await adminFetch('/api/stranice?sve=true')
+    const shopParam = shopSlug ? '&shop=' + shopSlug : ''
+    const res = await fetch('/api/stranice?sve=true' + shopParam)
     const data = await res.json()
     setItems(Array.isArray(data) ? data : [])
     setLoading(false)
   }
 
-  useEffect(() => { load() }, [])
+  useEffect(() => { load() }, [shopSlug])
 
   function slugify(s: string) {
     return s.toLowerCase()
@@ -289,14 +290,16 @@ export default function AdminStranicePage() {
       ...(shopId ? { shop_id: shopId } : { shop_id: null }),
     }
     if (editing.id) {
-      const r = await adminFetch('/api/stranice', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
-      const rd = await r.json()
-      const error = rd.error ? { message: rd.error } : null
+      const shopParam = shopSlug ? '?shop=' + shopSlug : ''
+      const res = await fetch('/api/stranice' + shopParam, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+      const resData = await res.json()
+      const error = resData.error ? { message: resData.error } : null
       if (error) { showToast('Greška: ' + error.message); setSaving(false); return }
     } else {
-      const r2 = await adminFetch('/api/stranice', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
-      const rd2 = await r2.json()
-      const error = rd2.error ? { message: rd2.error } : null
+      const shopParam2 = shopSlug ? '?shop=' + shopSlug : ''
+      const res2 = await fetch('/api/stranice' + shopParam2, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+      const resData2 = await res2.json()
+      const error = resData2.error ? { message: resData2.error } : null
       if (error) { showToast('Greška: ' + error.message); setSaving(false); return }
     }
     setSaving(false); showToast('Sačuvano ✓')
@@ -304,7 +307,7 @@ export default function AdminStranicePage() {
   }
 
   async function toggleField(id: string, field: 'objavljen' | 'istaknuto', current: boolean) {
-    await adminFetch('/api/stranice', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, [field]: !current }) })
+    await fetch('/api/stranice', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, [field]: !current }) })
     setItems(prev => prev.map(s => s.id === id ? { ...s, [field]: !current } : s))
   }
 
@@ -315,14 +318,14 @@ export default function AdminStranicePage() {
     const other = list[dir === 'up' ? idx - 1 : idx + 1]
     const aRed = list[idx].redoslijed ?? idx
     const bRed = other.redoslijed ?? (dir === 'up' ? idx - 1 : idx + 1)
-    await adminFetch('/api/stranice', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, redoslijed: bRed }) })
-    await adminFetch('/api/stranice', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: other.id, redoslijed: aRed }) })
+    await supabase.from('stranice').update({ redoslijed: bRed }).eq('id', id)
+    await supabase.from('stranice').update({ redoslijed: aRed }).eq('id', other.id!)
     load()
   }
 
   async function remove(id: string) {
     if (!confirm('Obrisati?')) return
-    await adminFetch('/api/stranice?id=' + id, { method: 'DELETE' })
+    await fetch('/api/stranice?id=' + id, { method: 'DELETE' })
     setItems(prev => prev.filter(s => s.id !== id))
     showToast('Obrisano')
   }

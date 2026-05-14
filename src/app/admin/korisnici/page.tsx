@@ -1,5 +1,5 @@
 'use client'
-import { adminFetch, adminApiUrl, getAdminShopId } from '@/lib/adminFetch'
+import { usePathname } from 'next/navigation'
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
@@ -22,6 +22,22 @@ interface Korisnik {
 }
 
 export default function AdminKorisniciPage() {
+  const pathname = usePathname()
+  const shopSlug = (() => {
+    const segs = pathname.split('/').filter(Boolean)
+    const idx = segs.indexOf('admin')
+    return idx > 0 ? segs[idx - 1] : ''
+  })()
+
+  const [shopId, setShopId] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!shopSlug) return
+    fetch('/api/super-admin/shop-id?slug=' + shopSlug, { headers: { 'x-super-admin-secret': 'nibis-super-2025' } })
+      .then(r => r.json()).then(d => setShopId(d.id || null))
+  }, [shopSlug])
+
+
   const [zahtjevi, setZahtjevi] = useState<Zahtjev[]>([])
   const [korisnici, setKorisnici] = useState<Korisnik[]>([])
   const [loading, setLoading] = useState(true)
@@ -36,8 +52,8 @@ export default function AdminKorisniciPage() {
 
   async function load() {
     const [z, k] = await Promise.all([
-      supabase.from('registracija_zahtjevi').select('*').is('odobren', null).order('created_at'),
-      supabase.from('korisnici').select('*, partner:partneri(naziv)').order('created_at', { ascending: false }),
+      supabase.from('registracija_zahtjevi').select('*').is('odobren', null).order('created_at').eq('shop_id', shopId || '00000000-0000-0000-0000-000000000000'),
+      supabase.from('korisnici').select('*, partner:partneri(naziv)').order('created_at', { ascending: false }).eq('shop_id', shopId || '00000000-0000-0000-0000-000000000000'),
     ])
     setZahtjevi(z.data ?? [])
     setKorisnici(k.data ?? [])

@@ -1,9 +1,8 @@
 'use client'
-import { adminFetch, adminApiUrl, getAdminShopId } from '@/lib/adminFetch'
 
 import { useEffect, useState, useRef } from 'react'
 import { supabase } from '@/lib/supabase'
-import { useShopContext } from '@/lib/useShopContext'
+import { usePathname } from 'next/navigation'
 import {
   Save, Undo2, Download, Upload, Eye, EyeOff, RefreshCw,
   ChevronRight, ChevronDown, X, Image as ImgIcon,
@@ -383,7 +382,13 @@ function AccordionSec({ title, icon, children, defaultOpen = false, badge }: {
 
 // ─── Glavni Page ───────────────────────────────────────────────────────────────
 export default function IzgledPage() {
-  const { shopId, shopSlug, isMainShop } = useShopContext()
+  const pathname = usePathname()
+  const shopSlug = (() => {
+    const segs = pathname.split('/').filter(Boolean)
+    const idx = segs.indexOf('admin')
+    return idx > 0 ? segs[idx - 1] : ''
+  })()
+
   const [p, setP] = useState<Postavke>(DEFAULTS)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -398,15 +403,16 @@ export default function IzgledPage() {
 
   useEffect(() => {
     const shopParam = shopSlug ? '?shop=' + shopSlug : ''
-    adminFetch('/api/grupe')
+    fetch('/api/grupe' + shopParam)
       .then(r => r.json())
       .then(d => setGrupe((d.items || []).map((g: any) => ({ id: g.id, naziv: g.naziv }))))
       .catch(() => {})
   }, [shopSlug])
 
   useEffect(() => {
-    if (!isMainShop && shopId === null) return // čekaj da se shopId učita
-    adminFetch('/api/postavke?kljuci=' + Object.keys(DEFAULTS).join(','))
+    const keys = Object.keys(DEFAULTS).join(',')
+    const shopParam = shopSlug ? '&shop=' + shopSlug : ''
+    fetch('/api/postavke?kljuci=' + keys + shopParam)
       .then(r => r.json())
       .then(data => {
         const m: Postavke = { ...DEFAULTS }
@@ -414,7 +420,8 @@ export default function IzgledPage() {
         setP(m)
         setLoading(false)
       })
-  }, [shopId, isMainShop])
+      .catch(() => setLoading(false))
+  }, [shopSlug])
 
   function set(key: string, value: string) {
     if (lastKeyRef.current !== key) {
@@ -495,12 +502,15 @@ export default function IzgledPage() {
 
   async function save() {
     setSaving(true)
-    const rows = Object.entries(p).map(([kljuc, vrijednost]) => ({
-      kljuc,
-      vrijednost: vrijednost || '',
-      ...(shopId ? { shop_id: shopId } : { shop_id: null }),
-    }))
-    await adminFetch('/api/postavke', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(rows) })
+    const shopParam = shopSlug ? '?shop=' + shopSlug : ''
+    // Bulk save sve postavke u jednom pozivu
+    const rows = Object.entries(p).map(([kljuc, vrijednost]) => ({ kljuc, vrijednost: vrijednost || '' }))
+    const res = await fetch('/api/postavke' + shopParam, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(rows)
+    })
+    if (!res.ok) { setSaving(false); return }
     setSaving(false); setSaved(true); setChanged(false)
     setTimeout(() => setSaved(false), 2500)
   }

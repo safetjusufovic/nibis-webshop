@@ -1,7 +1,7 @@
 'use client'
-import { adminFetch, adminApiUrl, getAdminShopId } from '@/lib/adminFetch'
 
 import { useEffect, useState, useCallback } from 'react'
+import { usePathname } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { Search, Eye, EyeOff, Tag, X, Package } from 'lucide-react'
 import { formatCijena } from '@/lib/config'
@@ -25,6 +25,13 @@ interface AkcijaModal {
 const PER_PAGE = 30
 
 export default function AdminKatalogPage() {
+  const pathname = usePathname()
+  const shopSlug = (() => {
+    const segs = pathname.split('/').filter(Boolean)
+    const idx = segs.indexOf('admin')
+    return idx > 0 ? segs[idx - 1] : ''
+  })()
+
   const [artikli, setArtikli] = useState<Artikal[]>([])
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(1)
@@ -42,12 +49,13 @@ export default function AdminKatalogPage() {
     const sp = new URLSearchParams({ page: String(page), perPage: String(PER_PAGE) })
     if (search) sp.set('search', search)
     if (filterAkcija) sp.set('akcija', 'true')
-    const res = await adminFetch('/api/artikli?' + sp.toString())
+    sp.set('shop', shopSlug) // uvijek pošalji, prazan string = glavni shop
+    const res = await fetch('/api/artikli?' + sp.toString())
     const d = await res.json()
     setArtikli((d.items ?? []) as Artikal[])
     setTotal(d.total ?? 0)
     setLoading(false)
-  }, [page, search, filterAktivan, filterAkcija])
+  }, [page, search, filterAktivan, filterAkcija, shopSlug])
 
   useEffect(() => { load() }, [load])
 
