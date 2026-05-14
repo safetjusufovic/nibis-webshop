@@ -1,4 +1,5 @@
 'use client'
+import { usePathname } from 'next/navigation'
 
 import { useState } from 'react'
 import Link from 'next/link'
@@ -6,6 +7,13 @@ import { supabase } from '@/lib/supabase'
 import { siteConfig } from '@/lib/config'
 
 export default function RegisterPage() {
+  const pathname = usePathname()
+  const shopSlug = (() => {
+    const segs = pathname.split('/').filter(Boolean)
+    const idx = segs.indexOf('register')
+    return idx > 0 ? segs[idx - 1] : ''
+  })()
+
   const [form, setForm] = useState({
     email: '', password: '', ime: '', prezime: '',
     naziv_firme: '', pdv_broj: '', telefon: '',
@@ -39,6 +47,14 @@ export default function RegisterPage() {
 
     if (data.user) {
       // 2. Kreiraj zahtjev za registraciju (odobren: false — čeka admin)
+      // Dohvati shop_id za ovaj shop
+      let shopId = null
+      if (shopSlug) {
+        const shopRes = await fetch('/api/super-admin/shop-id?slug=' + shopSlug, { headers: { 'x-super-admin-secret': 'nibis-super-2025' } })
+        const shopData = await shopRes.json()
+        shopId = shopData.id || null
+      }
+
       const { error: profileError } = await supabase.from('registracija_zahtjevi').insert({
         user_id: data.user.id,
         email: form.email,
@@ -47,6 +63,7 @@ export default function RegisterPage() {
         naziv_firme: form.naziv_firme,
         pdv_broj: form.pdv_broj,
         telefon: form.telefon,
+        ...(shopId && { shop_id: shopId }),
       })
 
       if (profileError) {

@@ -167,8 +167,10 @@ export default function AdminNarudzbePage() {
     if (search) q = q.ilike('nibis_oznaka', `%${search}%`)
     if (filterStatus) q = q.eq('status', filterStatus)
     if (shopSlug) {
-      const { data: shopData } = await supabase.from('shopovi').select('id').eq('slug', shopSlug).single()
+      const shopRes = await fetch('/api/super-admin/shop-id?slug=' + shopSlug, { headers: { 'x-super-admin-secret': 'nibis-super-2025' } })
+      const shopData = await shopRes.json()
       if (shopData?.id) q = q.eq('shop_id', shopData.id)
+      else return // shop ne postoji
     } else {
       q = q.is('shop_id', null)
     }
