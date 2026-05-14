@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { usePathname } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { Search, Save, Palette, X } from 'lucide-react'
 
@@ -20,6 +21,9 @@ const PRESET_BOJE = [
 ]
 
 export default function AdminKategorijePage() {
+  const pathname = usePathname()
+  const shopSlug = (() => { const s = pathname.split('/').filter(Boolean); const i = s.indexOf('admin'); return i > 0 ? s[i-1] : 'main' })()
+
   const [grupe, setGrupe] = useState<Grupa[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
