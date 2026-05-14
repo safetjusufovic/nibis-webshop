@@ -11,7 +11,9 @@ export default function AdminSlikePage() {
   const shopSlug = (() => {
     const segs = pathname.split('/').filter(Boolean)
     const idx = segs.indexOf('admin')
-    return idx > 0 ? segs[idx - 1] : ''
+    const slug = idx > 0 ? segs[idx - 1] : ''
+    console.log('[SLIKE] pathname:', pathname, 'segs:', segs, 'idx:', idx, 'shopSlug:', slug)
+    return slug
   })()
 
 
