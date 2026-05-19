@@ -393,7 +393,7 @@ export default function Header({ onSearch, shopSlug = '' }: { onSearch?: (q: str
         }
       `}</style>
 
-      <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} />
+      <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} shopSlug={shopSlug} />
     </>
   )
 }

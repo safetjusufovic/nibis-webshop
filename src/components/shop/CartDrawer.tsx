@@ -15,7 +15,7 @@ interface CartDrawerProps {
 
 type OrderStatus = 'idle' | 'loading' | 'success' | 'error'
 
-export default function CartDrawer({ open, onClose }: CartDrawerProps) {
+export default function CartDrawer({ open, onClose , shopSlug = '' }: CartDrawerProps) {
   const { items, totalQty, setQty, remove, clear } = useCart()
   const { profil, rabat } = useAuth()
   const [status, setStatus] = useState<OrderStatus>('idle')
@@ -62,7 +62,8 @@ export default function CartDrawer({ open, onClose }: CartDrawerProps) {
       const { data: { session } } = await supabase.auth.getSession()
       const token = session?.access_token ?? ''
 
-      const res = await fetch('/api/narudzba', {
+      const shopParam = shopSlug ? '?shop=' + shopSlug : ''
+      const res = await fetch('/api/narudzba' + shopParam, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
