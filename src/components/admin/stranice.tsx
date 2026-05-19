@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
-import { useShopContext } from '@/lib/useShopContext'
 import {
   Plus, Edit2, Trash2, Eye, EyeOff, Star, StarOff,
   ExternalLink, Save, ChevronLeft, Upload, Bold, Italic,
@@ -250,7 +249,6 @@ function RichEditor({ value, onChange, editorId }: {
 
 // ─── Main Page ─────────────────────────────────────────────────────────────────
 export default function AdminStranicePage({ shopSlug = 'main' }: { shopSlug?: string }) {
-  const { shopId, shopSlug } = useShopContext()
   const [items, setItems] = useState<Stranica[]>([])
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState<Stranica | null>(null)
