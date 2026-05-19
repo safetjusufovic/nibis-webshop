@@ -109,6 +109,7 @@ export async function POST(req: NextRequest) {
     }
 
     // 4. Pošalji u NIBIS - koristi shop-specific config
+    console.log('[NARUDZBA] orgJedId:', orgJedId, 'baseUrl:', nibisConfig.baseUrl, 'stavke:', JSON.stringify(payload.stavke))
     const nibisResult = await createNarudzba(payload, nibisConfig)
 
     // 5. Spremi u Supabase
