@@ -67,7 +67,8 @@ export default function RegisterPage() {
       })
 
       if (profileError) {
-        setError('Greška pri slanju zahtjeva. Kontaktirajte administratora.')
+        console.error('[REGISTER] profileError:', profileError)
+        setError('Greška: ' + profileError.message)
         setStatus('error')
         return
       }
