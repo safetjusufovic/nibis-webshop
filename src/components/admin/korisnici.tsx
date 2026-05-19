@@ -59,13 +59,10 @@ export default function AdminKorisniciPage({ shopSlug = 'main' }: { shopSlug?: s
   async function traziPartnere() {
     if (partnerSearch.length < 2) { setPartnerResults([]); return }
     setPartnerLoading(true)
-    const { data } = await supabase
-      .from('partneri')
-      .select('id, naziv, sifra, pdv_broj, grad, rabat')
-      .ilike('naziv', `%${partnerSearch}%`)
-      .order('naziv')
-      .limit(15)
-    setPartnerResults(data ?? [])
+    // Pretraži partnere kroz NIBIS API za ovaj shop
+    const res = await fetch(`/api/partneri?search=${encodeURIComponent(partnerSearch)}&shop=${shopSlug}`)
+    const d = await res.json()
+    setPartnerResults(d.items ?? [])
     setPartnerLoading(false)
   }
 
