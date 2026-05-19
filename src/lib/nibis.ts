@@ -91,11 +91,11 @@ export function getPartneri(params: ListParams = {}, config = defaultConfig) {
 }
 
 // Narudžbe — koristi direktno BASE_URL iz env, bez ikakve konfiguracije
-export async function createNarudzba(narudzba: NarudzbaCreate): Promise<NarudzbaResponse> {
-  const url = `${BASE_URL}/dokumenti/narudzba`
+export async function createNarudzba(narudzba: NarudzbaCreate, config = defaultConfig): Promise<NarudzbaResponse> {
+  const url = `${config.baseUrl}/dokumenti/narudzba`
   const res = await fetch(url, {
     method: 'POST',
-    headers: headers(API_KEY, COMPANY_YEAR),
+    headers: headers(config.apiKey, config.companyYear ?? COMPANY_YEAR),
     body: JSON.stringify(narudzba),
   })
   if (!res.ok) throw new Error(`NIBIS narudzba ${res.status}: ${await res.text()}`)

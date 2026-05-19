@@ -4,15 +4,56 @@ import { supabaseAdmin } from '@/lib/supabase'
 import { createClient } from '@supabase/supabase-js'
 import { siteConfig } from '@/lib/config'
 import { sendOrderConfirmation, sendAdminOrderNotification } from '@/lib/email'
-import type { NarudzbaCreate } from '@/types/nibis'
+import type { NarudzbaCreate, NibisConfig } from '@/types/nibis'
+
+const MAIN_HOSTS = ['nibis-webshop.vercel.app', 'localhost', '127.0.0.1']
+
+async function getShopConfig(req: NextRequest): Promise<{ shopId: string | null; nibisConfig: NibisConfig; orgJedId: number }> {
+  const defaultConfig: NibisConfig = {
+    baseUrl: process.env.NIBIS_API_URL ?? '',
+    apiKey: process.env.NIBIS_API_KEY ?? '',
+    companyYear: process.env.NIBIS_COMPANY_YEAR ?? new Date().getFullYear().toString(),
+    orgJedId: parseInt(process.env.ORG_JED_ID ?? '1'),
+  }
+
+  // Čitaj shop iz query param ili hostnamea
+  const shopSlug = req.nextUrl.searchParams.get('shop') || (() => {
+    const host = (req.headers.get('host') || '').split(':')[0]
+    if (MAIN_HOSTS.some(h => host === h) || host.endsWith('.vercel.app')) return 'main'
+    return host.split('.')[0]
+  })()
+
+  const { data: shop } = await supabaseAdmin
+    .from('shopovi')
+    .select('id, nibis_api_url, nibis_api_key, org_jed_id, company_year')
+    .eq('slug', shopSlug)
+    .eq('status', 'aktivan')
+    .single()
+
+  if (!shop) return { shopId: null, nibisConfig: defaultConfig, orgJedId: defaultConfig.orgJedId ?? 1 }
+
+  const nibisConfig: NibisConfig = shop.nibis_api_url && shop.nibis_api_key
+    ? {
+        baseUrl: shop.nibis_api_url,
+        apiKey: shop.nibis_api_key,
+        companyYear: shop.company_year?.toString() ?? new Date().getFullYear().toString(),
+        orgJedId: shop.org_jed_id ?? 1,
+      }
+    : defaultConfig
+
+  return {
+    shopId: shop.id,
+    nibisConfig,
+    orgJedId: shop.org_jed_id ?? defaultConfig.orgJedId ?? 1,
+  }
+}
 
 export async function POST(req: NextRequest) {
   try {
-    // 1. Provjeri autentikaciju — uzmi JWT iz Authorization headera
+    // 1. Auth
     const authHeader = req.headers.get('authorization') ?? ''
     const token = authHeader.replace('Bearer ', '')
 
-    // Kreiraj klijent sa korisnikovim tokenom da dobijemo njegov profil
     const supabaseUser = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -24,7 +65,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Neovlašten pristup' }, { status: 401 })
     }
 
-    // 2. Uzmi profil korisnika — partner_id je NIBIS ID partnera
+    // 2. Shop config
+    const { shopId, nibisConfig, orgJedId } = await getShopConfig(req)
+
+    // 3. Korisnik
     const { data: korisnik } = await supabaseAdmin
       .from('korisnici')
       .select('id, partner_id, odobren, role, partneri:partner_id(id, naziv, rabat)')
@@ -39,11 +83,10 @@ export async function POST(req: NextRequest) {
     const externalId = `WEB-${Date.now()}-${user.id.slice(0, 8)}`
 
     const payload: NarudzbaCreate = {
-      orgJedId: siteConfig.orgJedId,
+      orgJedId,
       datum: new Date().toISOString(),
       rbrAuto: true,
       rbr: null,
-      // partnerId dolazi iz Supabase profila — NIBIS ID partnera
       partnerId: korisnik.partner_id ?? null,
       knjigaFakturaId: null,
       externalId,
@@ -65,17 +108,12 @@ export async function POST(req: NextRequest) {
       stavke: body.stavke,
     }
 
-    // 3. Pošalji u NIBIS
-    const nibisResult = await createNarudzba(payload)
+    // 4. Pošalji u NIBIS - koristi shop-specific config
+    const nibisResult = await createNarudzba(payload, nibisConfig)
 
-    // 4. Spremi u Supabase
-    // jedinicnaCijena je vpcijena = BEZ PDV-a (osnovica)
-    const ukupnoBez = body.stavke.reduce((s: number, st: any) => {
-      return s + st.kolicina * st.jedinicnaCijena
-    }, 0)
-    const ukupnoPorez = body.stavke.reduce((s: number, st: any) => {
-      return s + st.kolicina * st.jedinicnaCijena * ((st.poreskaStopa ?? 0) / 100)
-    }, 0)
+    // 5. Spremi u Supabase
+    const ukupnoBez = body.stavke.reduce((s: number, st: any) => s + st.kolicina * st.jedinicnaCijena, 0)
+    const ukupnoPorez = body.stavke.reduce((s: number, st: any) => s + st.kolicina * st.jedinicnaCijena * ((st.poreskaStopa ?? 0) / 100), 0)
     const ukupnoSa = Math.round((ukupnoBez + ukupnoPorez) * 100) / 100
 
     const { data: narudzba } = await supabaseAdmin
@@ -86,13 +124,14 @@ export async function POST(req: NextRequest) {
         nibis_id: nibisResult.id,
         nibis_oznaka: nibisResult.oznakaDokumenta,
         nibis_external_id: externalId,
-        org_jed_id: payload.orgJedId,
+        org_jed_id: orgJedId,
         ukupno_bez_poreza: Math.round(ukupnoBez * 100) / 100,
         ukupno_porez: Math.round(ukupnoPorez * 100) / 100,
         ukupno_sa_porezom: ukupnoSa,
         nacin_placanja: payload.nacinPlacanja,
         napomena: payload.napomena,
         status: 'poslana',
+        ...(shopId && { shop_id: shopId }),
       })
       .select('id')
       .single()
@@ -111,9 +150,9 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // 5. Email notifikacije (ne blokiramo response)
+    // 6. Email
     const userEmail = user.email ?? ''
-    const imeKupca = korisnik ? `${(korisnik as any).ime ?? ''} ${(korisnik as any).prezime ?? ''}`.trim() || userEmail : userEmail
+    const imeKupca = `${(korisnik as any).ime ?? ''} ${(korisnik as any).prezime ?? ''}`.trim() || userEmail
     const partnerNaziv = (korisnik?.partneri as any)?.naziv ?? ''
 
     Promise.all([
