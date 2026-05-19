@@ -17,7 +17,9 @@ async function getShopConfig(req: NextRequest): Promise<{ shopId: string | null;
   }
 
   // Čitaj shop iz query param ili hostnamea
-  const shopSlug = req.nextUrl.searchParams.get('shop') || (() => {
+  const shopParam = req.nextUrl.searchParams.get('shop')
+  console.log('[NARUDZBA] shop param:', shopParam, 'url:', req.nextUrl.toString())
+  const shopSlug = shopParam || (() => {
     const host = (req.headers.get('host') || '').split(':')[0]
     if (MAIN_HOSTS.some(h => host === h) || host.endsWith('.vercel.app')) return 'main'
     return host.split('.')[0]
