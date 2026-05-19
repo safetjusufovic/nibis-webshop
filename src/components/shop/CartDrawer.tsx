@@ -11,6 +11,7 @@ import type { NarudzbaStavka } from '@/types/nibis'
 interface CartDrawerProps {
   open: boolean
   onClose: () => void
+  shopSlug?: string
 }
 
 type OrderStatus = 'idle' | 'loading' | 'success' | 'error'
