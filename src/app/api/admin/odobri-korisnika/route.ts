@@ -7,7 +7,16 @@ export async function POST(req: NextRequest) {
   try {
     const { zahtjevId, userId, ime, prezime, email, partnerId } = await req.json()
 
-    // Kreiraj korisnik profil
+    // Dohvati shop_id iz zahtjeva
+    const { data: zahtjev } = await supabaseAdmin
+      .from('registracija_zahtjevi')
+      .select('shop_id')
+      .eq('id', zahtjevId)
+      .single()
+
+    const shopId = zahtjev?.shop_id ?? null
+
+    // Kreiraj korisnik profil sa shop_id
     await supabaseAdmin.from('korisnici').upsert({
       id: userId,
       ime,
@@ -15,6 +24,7 @@ export async function POST(req: NextRequest) {
       odobren: true,
       role: 'kupac',
       partner_id: partnerId ?? null,
+      shop_id: shopId,
     })
 
     // Označi zahtjev
