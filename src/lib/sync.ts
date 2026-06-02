@@ -185,8 +185,6 @@ export async function runIncrementalSync(minutes = 5, shopId?: string) {
       stanjeCount = rows.length
     }
 
-    const partneriCount = 0
-
     return { success: true, grupeCount: 0, artikliCount, stanjeCount, partneriCount, durationMs: Date.now() - start }
   } catch (err) {
     return { success: false, grupeCount: 0, artikliCount: 0, stanjeCount: 0, partneriCount: 0, durationMs: Date.now() - start, error: String(err) }
