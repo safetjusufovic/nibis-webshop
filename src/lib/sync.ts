@@ -195,3 +195,60 @@ export async function runIncrementalSync(minutes = 5, shopId?: string) {
 export async function runSyncPartial(only: string, page: number, shopId?: string) {
   return runSync(shopId)
 }
+
+// ─── CHUNK SYNC — jedna stranica po pozivu (za Free plan 10s limit) ──────────
+const CHUNK_SIZE = 100
+
+export async function syncChunk(shopId: string, what: string, page: number) {
+  const config = await getShopConfig(shopId)
+  const orgJedId = config.orgJedId || 1
+
+  if (what === 'grupe') {
+    const data = await getGrupe({ page, perPage: CHUNK_SIZE }, config)
+    const rows = data.items.map(g => ({
+      id: g.id, sifra: g.sifra, naziv: g.naziv, opis: g.opis,
+      prefix: g.prefix, nivo: g.nivo, parent_id: g.parentId,
+      nibis_created: g.dateCreated, nibis_updated: g.dateModified,
+      synced_at: new Date().toISOString(), shop_id: shopId,
+    }))
+    if (rows.length) await supabaseAdmin.from('grupe').upsert(rows, { onConflict: 'id,shop_id' })
+    const hasMore = page * CHUNK_SIZE < data.total
+    return { what, page, synced: rows.length, total: data.total, hasMore, next: hasMore ? { what: 'grupe', page: page + 1 } : { what: 'artikli', page: 1 } }
+  }
+
+  if (what === 'artikli') {
+    const data = await getArtikli({ page, perPage: CHUNK_SIZE }, config)
+    const rows = data.items.map(a => ({
+      id: a.id, sifra: a.sifra, barkod: a.barkod, naziv: a.naziv,
+      naziv2: a.naziv2, opis: a.opis, aktivan: a.aktivan,
+      van_upotrebe: a.vanUpotrebe, proc_poreza: a.procPoreza,
+      planska_maloprodajna_cijena: a.planskaMaloprodajnaCijena,
+      planska_veleprodajna_cijena: a.planskaVeleprodajnaCijena,
+      grupa_id: a.grupaId, dobavljac_naziv: a.dobavljac?.naziv ?? null,
+      proizvodjac_naziv: a.proizvodjac?.naziv ?? null,
+      nibis_created: a.dateCreated, nibis_updated: a.dateModified,
+      synced_at: new Date().toISOString(), shop_id: shopId,
+    }))
+    if (rows.length) await supabaseAdmin.from('artikli').upsert(rows, { onConflict: 'id,shop_id', ignoreDuplicates: false })
+    const hasMore = page * CHUNK_SIZE < data.total
+    return { what, page, synced: rows.length, total: data.total, hasMore, next: hasMore ? { what: 'artikli', page: page + 1 } : { what: 'stanje', page: 1 } }
+  }
+
+  if (what === 'stanje') {
+    const data = await getStanje(page, orgJedId, undefined, config)
+    const rows = data.items.map(s => ({
+      id: s.id, artikal_id: s.artikalId, org_jed_id: s.orgJedId,
+      raspoloziva_kolicina: s.raspolozivaKolicina, nabavna_cijena: s.nabavnaCijena,
+      vpcijena: s.vpcijena, mpcijena: s.mpcijena,
+      nibis_created: s.dateCreated, nibis_updated: s.dateModified,
+      synced_at: new Date().toISOString(), shop_id: shopId,
+    }))
+    if (rows.length) await supabaseAdmin.from('stanje_skladista').upsert(rows, { onConflict: 'id,shop_id' })
+    const hasMore = data.items.length === CHUNK_SIZE
+    return { what, page, synced: rows.length, total: data.total, hasMore, next: hasMore ? { what: 'stanje', page: page + 1 } : null }
+  }
+
+  // Ažuriraj timestamp na kraju
+  await supabaseAdmin.from('shopovi').update({ updated_at: new Date().toISOString() }).eq('id', shopId)
+  return { what, page, synced: 0, total: 0, hasMore: false, next: null }
+}

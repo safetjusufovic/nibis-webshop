@@ -21,20 +21,37 @@ export default function AdminSyncPage({ shopSlug = 'main' }: { shopSlug?: string
 
   useEffect(() => { loadLogs() }, [])
 
+  const [progress, setProgress] = useState('')
+
   async function pokreniSync() {
     setSyncing(true)
     setResult(null)
+    setProgress('Pokrećem...')
     try {
-      const res = await fetch('/api/admin/sync', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ shop: shopSlug }),
-      })
-      const data = await res.json()
-      setResult(data)
+      let step: any = { what: 'grupe', page: 1 }
+      let totals = { grupe: 0, artikli: 0, stanje: 0 }
+
+      while (step) {
+        const res = await fetch('/api/admin/sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ shop: shopSlug, what: step.what, page: step.page }),
+        })
+        const data = await res.json()
+        if (!data.ok) { setResult(data); break }
+
+        if (step.what in totals) (totals as any)[step.what] += data.synced
+        setProgress(`${step.what}: ${(totals as any)[step.what] ?? 0} sinhronizovano...`)
+
+        step = data.next
+      }
+
+      setResult({ ok: true, ...totals })
+      setProgress('')
       loadLogs()
     } catch (e) {
       setResult({ ok: false, error: String(e) })
+      setProgress('')
     }
     setSyncing(false)
   }
@@ -45,6 +62,7 @@ export default function AdminSyncPage({ shopSlug = 'main' }: { shopSlug?: string
         <h1 className="text-xl font-semibold text-gray-900">Sinhronizacija</h1>
         <button onClick={pokreniSync} disabled={syncing} className="btn-primary flex items-center gap-2">
           <RefreshCw size={14} className={syncing ? 'animate-spin' : ''} />
+          {progress && <span className="text-xs ml-2">{progress}</span>}
           {syncing ? 'Sinhronizacija...' : 'Pokreni sync odmah'}
         </button>
       </div>
