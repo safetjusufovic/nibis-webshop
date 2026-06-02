@@ -17,9 +17,7 @@ async function getShopConfig(req: NextRequest): Promise<{ shopId: string | null;
   }
 
   // Čitaj shop iz query param ili hostnamea
-  const shopParam = req.nextUrl.searchParams.get('shop')
-  console.log('[NARUDZBA] shop param:', shopParam, 'url:', req.nextUrl.toString())
-  const shopSlug = shopParam || (() => {
+  const shopSlug = req.nextUrl.searchParams.get('shop') || (() => {
     const host = (req.headers.get('host') || '').split(':')[0]
     if (MAIN_HOSTS.some(h => host === h) || host.endsWith('.vercel.app')) return 'main'
     return host.split('.')[0]
@@ -111,7 +109,6 @@ export async function POST(req: NextRequest) {
     }
 
     // 4. Pošalji u NIBIS - koristi shop-specific config
-    console.log('[NARUDZBA] orgJedId:', orgJedId, 'partnerId:', payload.partnerId, 'apiKey:', nibisConfig.apiKey?.slice(0,15), 'company:', nibisConfig.companyYear)
     const nibisResult = await createNarudzba(payload, nibisConfig)
 
     // 5. Spremi u Supabase
