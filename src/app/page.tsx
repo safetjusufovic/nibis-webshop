@@ -315,7 +315,7 @@ function SkeletonRow() {
 }
 
 // ─── Features sekcija ────────────────────────────────────────────────────────
-function FeaturesSekcija() {
+function FeaturesSekcija({ shopSlug = '' }: { shopSlug?: string }) {
   const [naslov, setNaslov] = useState('Zašto mi?')
   const [items, setItems] = useState([
     { ikona: '🚀', naslov: 'Brza isporuka', opis: 'Naredni radni dan' },
@@ -324,7 +324,7 @@ function FeaturesSekcija() {
   ])
 
   useEffect(() => {
-    fetch('/api/postavke?kljuci=sekcija_features_naslov,sekcija_features_items')
+    fetch('/api/postavke?kljuci=sekcija_features_naslov,sekcija_features_items' + (shopSlug ? '&shop=' + shopSlug : ''))
       .then(r => r.json()).then(d => {
         if (d.sekcija_features_naslov) setNaslov(d.sekcija_features_naslov)
         if (d.sekcija_features_items) {
@@ -352,11 +352,11 @@ function FeaturesSekcija() {
 }
 
 // ─── Promo Banner sekcija ──────────────────────────────────────────────────────
-function PromoBanner() {
+function PromoBanner({ shopSlug = '' }: { shopSlug?: string }) {
   const [cfg, setCfg] = useState({ tekst: '', podnaslov: '', dugme: '', boja: 'var(--brand)' })
 
   useEffect(() => {
-    fetch('/api/postavke?kljuci=sekcija_banner_tekst,sekcija_banner_podnaslov,sekcija_banner_dugme,sekcija_banner_boja')
+    fetch('/api/postavke?kljuci=sekcija_banner_tekst,sekcija_banner_podnaslov,sekcija_banner_dugme,sekcija_banner_boja' + (shopSlug ? '&shop=' + shopSlug : ''))
       .then(r => r.json()).then(d => {
         setCfg({ tekst: d.sekcija_banner_tekst || '', podnaslov: d.sekcija_banner_podnaslov || '', dugme: d.sekcija_banner_dugme || '', boja: d.sekcija_banner_boja || 'var(--brand)' })
       }).catch(() => {})
@@ -380,12 +380,12 @@ function PromoBanner() {
 }
 
 // ─── Newsletter sekcija ────────────────────────────────────────────────────────
-function NewsletterSekcija() {
+function NewsletterSekcija({ shopSlug = '' }: { shopSlug?: string }) {
   const [cfg, setCfg] = useState({ naslov: '', podnaslov: '' })
   const [email, setEmail] = useState('')
 
   useEffect(() => {
-    fetch('/api/postavke?kljuci=sekcija_newsletter_naslov,sekcija_newsletter_podnaslov')
+    fetch('/api/postavke?kljuci=sekcija_newsletter_naslov,sekcija_newsletter_podnaslov' + (shopSlug ? '&shop=' + shopSlug : ''))
       .then(r => r.json()).then(d => {
         setCfg({ naslov: d.sekcija_newsletter_naslov || '', podnaslov: d.sekcija_newsletter_podnaslov || '' })
       }).catch(() => {})
@@ -514,12 +514,12 @@ function renderBlockHTML(block: any, device: string = 'desktop'): string {
 }
 
 // ─── Page Builder Output (čita craft_builder_json) ────────────────────────────
-function PageBuilderOutput({ pozicija }: { pozicija: 'gore' | 'dole' }) {
+function PageBuilderOutput({ pozicija, shopSlug = '' }: { pozicija: 'gore' | 'dole'; shopSlug?: string }) {
   const [blocks, setBlocks] = useState<any[]>([])
   const [pozicijaConfig, setPozicijaConfig] = useState('dole')
 
   useEffect(() => {
-    fetch('/api/postavke?kljuci=craft_builder_json,craft_builder_pozicija')
+    fetch('/api/postavke?kljuci=craft_builder_json,craft_builder_pozicija' + (shopSlug ? '&shop=' + shopSlug : ''))
       .then(r => r.json()).then(d => {
         if (d.craft_builder_json) {
           try { setBlocks(JSON.parse(d.craft_builder_json)) } catch {}
