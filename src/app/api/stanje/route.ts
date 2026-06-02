@@ -1,36 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
-import { siteConfig } from '@/lib/config'
 
 export async function GET(req: NextRequest) {
   const sp = req.nextUrl.searchParams
-  const orgJedId = parseInt(sp.get('orgJedId') ?? String(siteConfig.orgJedId))
   const idsParam = sp.get('ids')
   const artikalIds = idsParam ? idsParam.split(',').map(Number).filter(Boolean) : null
-  const shopSlug = sp.get('shop') || ''
+  const shopSlug = sp.get('shop') || 'main'
 
   try {
+    // Resolve shop + njegov org_jed_id
+    const { data: shopData } = await supabaseAdmin
+      .from('shopovi')
+      .select('id, org_jed_id')
+      .eq('slug', shopSlug)
+      .eq('status', 'aktivan')
+      .single()
+
+    if (!shopData?.id) {
+      return NextResponse.json({ items: [], total: 0 })
+    }
+
     let query = supabaseAdmin
       .from('stanje_skladista')
       .select('id, artikal_id, org_jed_id, raspoloziva_kolicina, nabavna_cijena, vpcijena, mpcijena')
-      .eq('org_jed_id', orgJedId)
+      .eq('shop_id', shopData.id)
 
     if (artikalIds?.length) query = query.in('artikal_id', artikalIds)
-
-    if (shopSlug) {
-      const { data: shopData } = await supabaseAdmin
-        .from('shopovi')
-        .select('id')
-        .eq('slug', shopSlug)
-        .eq('status', 'aktivan')
-        .single()
-
-      if (shopData?.id) {
-        query = query.eq('shop_id', shopData.id)
-      } else {
-        return NextResponse.json({ items: [], total: 0 })
-      }
-    }
 
     const { data, error } = await query
     if (error) throw error

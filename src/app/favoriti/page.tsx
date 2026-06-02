@@ -20,22 +20,36 @@ export default function FavoritiPage() {
   useEffect(() => {
     if (!user) return
     async function load() {
-      const { data } = await supabase
+      // Dohvati favorite (samo artikal_id)
+      const { data: favData } = await supabase
         .from('favoriti')
-        .select('artikal_id, artikli(*)')
+        .select('artikal_id')
         .eq('korisnik_id', user!.id)
         .order('created_at', { ascending: false })
 
-      const items = (data ?? []).map((f: any) => f.artikli).filter(Boolean)
+      const favIds = (favData ?? []).map((f: any) => f.artikal_id)
+      if (favIds.length === 0) { setArtikli([]); setLoading(false); return }
+
+      // Dohvati korisnikov shop_id
+      const { data: korisnik } = await supabase
+        .from('korisnici').select('shop_id').eq('id', user!.id).single()
+
+      // Dohvati artikle za te ID-eve unutar shopa
+      let artQ = supabase.from('artikli').select('*').in('id', favIds)
+      if (korisnik?.shop_id) artQ = artQ.eq('shop_id', korisnik.shop_id)
+      const { data: artData } = await artQ
+
+      const items = artData ?? []
       setArtikli(items)
 
       if (items.length > 0) {
         const ids = items.map((a: any) => a.id).join(',')
-        const { data: sd } = await supabase
+        let stQ = supabase
           .from('stanje_skladista')
           .select('*')
           .in('artikal_id', items.map((a: any) => a.id))
-          .eq('org_jed_id', siteConfig.orgJedId)
+        if (korisnik?.shop_id) stQ = stQ.eq('shop_id', korisnik.shop_id)
+        const { data: sd } = await stQ
         const map: Record<number, StanjeSkladista> = {}
         sd?.forEach((s: any) => { map[s.artikal_id] = { ...s, artikalId: s.artikal_id, orgJedId: s.org_jed_id, raspolozivaKolicina: s.raspoloziva_kolicina, nabavnaCijena: s.nabavna_cijena, skladisnoMjesto: null, dateCreated: '', dateModified: '' } })
         setStanje(map)
