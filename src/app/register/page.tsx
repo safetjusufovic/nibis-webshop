@@ -47,12 +47,15 @@ export default function RegisterPage() {
 
     if (data.user) {
       // 2. Kreiraj zahtjev za registraciju (odobren: false — čeka admin)
-      // Dohvati shop_id za ovaj shop
-      let shopId = null
-      if (shopSlug) {
-        const shopRes = await fetch('/api/super-admin/shop-id?slug=' + shopSlug, { headers: { 'x-super-admin-secret': 'nibis-super-2025' } })
-        const shopData = await shopRes.json()
-        shopId = shopData.id || null
+      // Dohvati shop_id - uvijek, default 'main'
+      const lookupSlug = shopSlug || 'main'
+      const shopRes = await fetch('/api/super-admin/shop-id?slug=' + lookupSlug, { headers: { 'x-super-admin-secret': 'nibis-super-2025' } })
+      const shopData = await shopRes.json()
+      const shopId = shopData.id || null
+      if (!shopId) {
+        setError('Greška: shop nije pronađen')
+        setStatus('error')
+        return
       }
 
       const { error: profileError } = await supabase.from('registracija_zahtjevi').insert({
@@ -63,7 +66,7 @@ export default function RegisterPage() {
         naziv_firme: form.naziv_firme,
         pdv_broj: form.pdv_broj,
         telefon: form.telefon,
-        ...(shopId && { shop_id: shopId }),
+        shop_id: shopId,
       })
 
       if (profileError) {

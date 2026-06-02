@@ -15,6 +15,9 @@ export async function POST(req: NextRequest) {
       .single()
 
     const shopId = zahtjev?.shop_id ?? null
+    if (!shopId) {
+      return NextResponse.json({ error: 'Zahtjev nema shop_id - ne mogu odobriti' }, { status: 400 })
+    }
 
     // Kreiraj korisnik profil sa shop_id
     await supabaseAdmin.from('korisnici').upsert({
