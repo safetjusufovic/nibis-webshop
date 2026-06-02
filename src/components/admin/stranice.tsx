@@ -315,8 +315,8 @@ export default function AdminStranicePage({ shopSlug = 'main' }: { shopSlug?: st
     const other = list[dir === 'up' ? idx - 1 : idx + 1]
     const aRed = list[idx].redoslijed ?? idx
     const bRed = other.redoslijed ?? (dir === 'up' ? idx - 1 : idx + 1)
-    await supabase.from('stranice').update({ redoslijed: bRed }).eq('id', id)
-    await supabase.from('stranice').update({ redoslijed: aRed }).eq('id', other.id!)
+    await fetch('/api/stranice?shop=' + shopSlug, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, redoslijed: bRed }) })
+    await fetch('/api/stranice?shop=' + shopSlug, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: other.id, redoslijed: aRed }) })
     load()
   }
 

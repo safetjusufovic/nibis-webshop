@@ -6,6 +6,11 @@ import { supabase } from '@/lib/supabase'
 import { Upload, Package, Search, X, Link as LinkIcon, CheckCircle, AlertCircle, Grid, List } from 'lucide-react'
 
 export default function AdminSlikePage({ shopSlug = 'main' }: { shopSlug?: string }) {
+  async function getShopId(): Promise<string | null> {
+    const r = await fetch('/api/super-admin/shop-id?slug=' + shopSlug, { headers: { 'x-super-admin-secret': 'nibis-super-2025' } })
+    const d = await r.json()
+    return d.id || null
+  }
 
   const [artikli, setArtikli] = useState<any[]>([])
   const [search, setSearch] = useState('')
@@ -116,12 +121,14 @@ export default function AdminSlikePage({ shopSlug = 'main' }: { shopSlug?: strin
   }
 
   async function saveUrl(artikalId: number, url: string) {
-    await supabase.from('artikli').update({ slika_url: url }).eq('id', artikalId)
+    const sid = await getShopId()
+    await supabase.from('artikli').update({ slika_url: url }).eq('id', artikalId).eq('shop_id', sid)
     setArtikli(prev => prev.map(a => a.id === artikalId ? { ...a, slika_url: url } : a))
   }
 
   async function removeSlika(artikalId: number) {
-    await supabase.from('artikli').update({ slika_url: null }).eq('id', artikalId)
+    const sid2 = await getShopId()
+    await supabase.from('artikli').update({ slika_url: null }).eq('id', artikalId).eq('shop_id', sid2)
     setArtikli(prev => prev.map(a => a.id === artikalId ? { ...a, slika_url: null } : a))
     showToast('Slika uklonjena')
   }

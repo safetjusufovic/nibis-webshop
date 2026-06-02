@@ -24,6 +24,11 @@ interface AkcijaModal {
 const PER_PAGE = 30
 
 export default function AdminKatalogPage({ shopSlug = 'main' }: { shopSlug?: string }) {
+  async function getShopId(): Promise<string | null> {
+    const r = await fetch('/api/super-admin/shop-id?slug=' + shopSlug, { headers: { 'x-super-admin-secret': 'nibis-super-2025' } })
+    const d = await r.json()
+    return d.id || null
+  }
   const [artikli, setArtikli] = useState<Artikal[]>([])
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(1)
@@ -52,7 +57,8 @@ export default function AdminKatalogPage({ shopSlug = 'main' }: { shopSlug?: str
   useEffect(() => { load() }, [load])
 
   async function toggleAktivan(id: number, trenutno: boolean) {
-    await supabase.from('artikli').update({ webshop_aktivan: !trenutno }).eq('id', id)
+    const sid = await getShopId()
+    await supabase.from('artikli').update({ webshop_aktivan: !trenutno }).eq('id', id).eq('shop_id', sid)
     setArtikli(prev => prev.map(a => a.id === id ? { ...a, webshop_aktivan: !trenutno } : a))
   }
 
@@ -67,10 +73,11 @@ export default function AdminKatalogPage({ shopSlug = 'main' }: { shopSlug?: str
     setSaving(true)
     const popust = parseFloat(akcijaPopust) || 0
     const do_datum = akcijaDo ? new Date(akcijaDo + 'T23:59:59').toISOString() : null
+    const sid = await getShopId()
     await supabase.from('artikli').update({
       akcija_popust: popust,
       akcija_do: do_datum,
-    }).eq('id', akcijaModal.artikal.id)
+    }).eq('id', akcijaModal.artikal.id).eq('shop_id', sid)
     setArtikli(prev => prev.map(a =>
       a.id === akcijaModal.artikal.id
         ? { ...a, akcija_popust: popust, akcija_do: do_datum }
@@ -82,7 +89,8 @@ export default function AdminKatalogPage({ shopSlug = 'main' }: { shopSlug?: str
 
   async function ukloniAkciju() {
     if (!akcijaModal) return
-    await supabase.from('artikli').update({ akcija_popust: 0, akcija_do: null }).eq('id', akcijaModal.artikal.id)
+    const sid = await getShopId()
+    await supabase.from('artikli').update({ akcija_popust: 0, akcija_do: null }).eq('id', akcijaModal.artikal.id).eq('shop_id', sid)
     setArtikli(prev => prev.map(a =>
       a.id === akcijaModal.artikal.id ? { ...a, akcija_popust: 0, akcija_do: null } : a
     ))

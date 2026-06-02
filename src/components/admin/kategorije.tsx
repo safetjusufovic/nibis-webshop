@@ -20,6 +20,11 @@ const PRESET_BOJE = [
 ]
 
 export default function AdminKategorijePage({ shopSlug = 'main' }: { shopSlug?: string }) {
+  async function getShopId(): Promise<string | null> {
+    const r = await fetch('/api/super-admin/shop-id?slug=' + shopSlug, { headers: { 'x-super-admin-secret': 'nibis-super-2025' } })
+    const d = await r.json()
+    return d.id || null
+  }
 
   const [grupe, setGrupe] = useState<Grupa[]>([])
   const [loading, setLoading] = useState(true)
@@ -59,7 +64,8 @@ export default function AdminKategorijePage({ shopSlug = 'main' }: { shopSlug?: 
     const izmjena = izmjene[id]
     if (!izmjena) return
     setSaving(id)
-    await supabase.from('grupe').update(izmjena).eq('id', id)
+    const sid = await getShopId()
+    await supabase.from('grupe').update(izmjena).eq('id', id).eq('shop_id', sid)
     setSaving(null)
     setSaved(id)
     setTimeout(() => setSaved(null), 2000)

@@ -1,4 +1,5 @@
 'use client'
+import { adminApiUrl } from '@/lib/adminFetch'
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
@@ -39,17 +40,15 @@ export default function AdminKategorijePage({ shopSlug = 'main' }: { shopSlug?: 
     fetch('/api/grupe?shop=' + shopSlug).then(r => r.json()).then(d => d.items ?? [])
       .then(({ data }) => { setGrupe((data ?? []) as Grupa[]); setLoading(false) })
 
-    supabase.from('postavke').select('kljuc, vrijednost')
-      .in('kljuc', ['sidebar_sirina', 'sidebar_visina_kategorije', 'sidebar_boja_pozadine', 'sidebar_slika_url'])
-      .then(({ data }) => {
-        data?.forEach(p => {
-          if (p.kljuc === 'sidebar_sirina') setSirina(parseInt(p.vrijednost) || 240)
-          if (p.kljuc === 'sidebar_visina_kategorije') setVisina(parseInt(p.vrijednost) || 52)
-          if (p.kljuc === 'sidebar_boja_pozadine') setBojaPozadine(p.vrijednost || '#F8FAFA')
-          if (p.kljuc === 'sidebar_slika_url') setSlikaUrl(p.vrijednost || '')
-        })
+    fetch('/api/postavke?kljuci=sidebar_sirina,sidebar_visina_kategorije,sidebar_boja_pozadine,sidebar_slika_url&shop=' + shopSlug)
+      .then(r => r.json())
+      .then(d => {
+        if (d.sidebar_sirina) setSirina(parseInt(d.sidebar_sirina) || 240)
+        if (d.sidebar_visina_kategorije) setVisina(parseInt(d.sidebar_visina_kategorije) || 52)
+        if (d.sidebar_boja_pozadine) setBojaPozadine(d.sidebar_boja_pozadine || '#F8FAFA')
+        if (d.sidebar_slika_url) setSlikaUrl(d.sidebar_slika_url || '')
       })
-  }, [])
+  }, [shopSlug])
 
   function update(id: number, field: 'boja' | 'ikona_url', value: string) {
     setIzmjene(prev => ({ ...prev, [id]: { ...prev[id], [field]: value } }))
@@ -60,7 +59,10 @@ export default function AdminKategorijePage({ shopSlug = 'main' }: { shopSlug?: 
     const izmjena = izmjene[id]
     if (!izmjena) return
     setSaving(id)
-    await supabase.from('grupe').update(izmjena).eq('id', id)
+    // Update grupu samo za ovaj shop
+    const shopRes = await fetch('/api/super-admin/shop-id?slug=' + shopSlug, { headers: { 'x-super-admin-secret': 'nibis-super-2025' } })
+    const { id: sid } = await shopRes.json()
+    await supabase.from('grupe').update(izmjena).eq('id', id).eq('shop_id', sid)
     setSaving(null)
     setSaved(id)
     setTimeout(() => setSaved(null), 2000)
@@ -68,12 +70,15 @@ export default function AdminKategorijePage({ shopSlug = 'main' }: { shopSlug?: 
   }
 
   async function sacuvajConfig() {
-    await supabase.from('postavke').upsert([
-      { kljuc: 'sidebar_sirina', vrijednost: String(sirina) },
-      { kljuc: 'sidebar_visina_kategorije', vrijednost: String(visina) },
-      { kljuc: 'sidebar_boja_pozadine', vrijednost: bojaPozadine },
-      { kljuc: 'sidebar_slika_url', vrijednost: slikaUrl },
-    ], { onConflict: 'kljuc' })
+    await fetch('/api/postavke?shop=' + shopSlug, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify([
+        { kljuc: 'sidebar_sirina', vrijednost: String(sirina) },
+        { kljuc: 'sidebar_visina_kategorije', vrijednost: String(visina) },
+        { kljuc: 'sidebar_boja_pozadine', vrijednost: bojaPozadine },
+        { kljuc: 'sidebar_slika_url', vrijednost: slikaUrl },
+      ])
+    })
     setConfigChanged(false)
     setConfigSaved(true)
     setTimeout(() => setConfigSaved(false), 2000)
