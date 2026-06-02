@@ -105,7 +105,7 @@ export async function createNarudzba(narudzba: NarudzbaCreate, config = defaultC
 export async function testConnection(config: NibisConfig): Promise<{ ok: boolean; error?: string }> {
   try {
     const res = await fetch(
-      buildUrl(config.baseUrl, '/grupe', { page: 1, perPage: 1 }),
+      buildUrl(config.baseUrl, '/artikli-grupe', { page: 1, perPage: 1 }),
       { headers: headers(config.apiKey, config.companyYear ?? COMPANY_YEAR), signal: AbortSignal.timeout(5000) }
     )
     return { ok: res.ok, ...(!res.ok && { error: `HTTP ${res.status}` }) }

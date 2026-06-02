@@ -34,7 +34,7 @@ async function syncGrupe(config: NibisConfig, shopId?: string): Promise<number> 
       synced_at: new Date().toISOString(),
       ...(shopId && { shop_id: shopId }),
     }))
-    const { error } = await supabaseAdmin.from('grupe').upsert(rows, { onConflict: 'id' })
+    const { error } = await supabaseAdmin.from('grupe').upsert(rows, { onConflict: 'id,shop_id' })
     if (error) throw new Error('Grupe upsert: ' + error.message)
     synced += rows.length; page++
   } while (synced < total)
@@ -59,7 +59,7 @@ async function syncArtikli(config: NibisConfig, shopId?: string): Promise<number
       synced_at: new Date().toISOString(),
       ...(shopId && { shop_id: shopId }),
     }))
-    const { error } = await supabaseAdmin.from('artikli').upsert(rows, { onConflict: 'id', ignoreDuplicates: false })
+    const { error } = await supabaseAdmin.from('artikli').upsert(rows, { onConflict: 'id,shop_id', ignoreDuplicates: false })
     if (error) throw new Error('Artikli upsert: ' + error.message)
     synced += rows.length; page++
   } while (synced < total)
@@ -78,11 +78,11 @@ async function syncStanje(orgJedId: number, config: NibisConfig, shopId?: string
     ...(shopId && { shop_id: shopId }),
   }))
   if (rows.length) {
-    const { error } = await supabaseAdmin.from('stanje_skladista').upsert(rows, { onConflict: 'id' })
+    const { error } = await supabaseAdmin.from('stanje_skladista').upsert(rows, { onConflict: 'id,shop_id' })
     if (error) throw new Error('Stanje upsert: ' + error.message)
   }
   // Rekurzivno ako ima više stranica
-  if (data.items.length === 500 && page < 20) {
+  if (data.items.length === 100 && page < 100) {
     return rows.length + await syncStanje(orgJedId, config, shopId, page + 1)
   }
   return rows.length
@@ -128,7 +128,7 @@ export async function runSync(shopId?: string) {
       syncArtikli(config, shopId),
     ])
     const stanjeCount = await syncStanje(orgJedId, config, shopId)
-    const partneriCount = await syncPartneri(config)
+    const partneriCount = 0 // partneri se citaju live iz NIBIS API-ja po shopu
 
     // Ažuriraj last_sync_at za shop
     if (shopId) {
@@ -167,7 +167,7 @@ export async function runIncrementalSync(minutes = 5, shopId?: string) {
         synced_at: new Date().toISOString(),
         ...(shopId && { shop_id: shopId }),
       }))
-      await supabaseAdmin.from('artikli').upsert(rows, { onConflict: 'id', ignoreDuplicates: false })
+      await supabaseAdmin.from('artikli').upsert(rows, { onConflict: 'id,shop_id', ignoreDuplicates: false })
       artikliCount = rows.length
     }
 
@@ -181,25 +181,11 @@ export async function runIncrementalSync(minutes = 5, shopId?: string) {
         synced_at: new Date().toISOString(),
         ...(shopId && { shop_id: shopId }),
       }))
-      await supabaseAdmin.from('stanje_skladista').upsert(rows, { onConflict: 'id' })
+      await supabaseAdmin.from('stanje_skladista').upsert(rows, { onConflict: 'id,shop_id' })
       stanjeCount = rows.length
     }
 
-    const partneriData = await getPartneri({ page: 1, perPage: 200, since }, config)
-    if (partneriData.items.length > 0) {
-      const rows = partneriData.items.map(p => ({
-        id: p.id, sifra: p.sifra, aktivan: p.aktivan, naziv: p.naziv,
-        adresa: p.adresa, postanski_broj: p.postanskiBroj, grad: p.grad,
-        pdv_broj: p.pdvBroj, id_broj: p.idBroj, tel: p.tel,
-        email: p.email, pdv_obveznik: p.pdvObveznik, rok_placanja: p.rokPlacanja,
-        opis: p.opis, web_site: p.webSite, rabat: p.rabat,
-        partner_grupa_id: p.grupa?.id ?? null, partner_grupa_naziv: p.grupa?.naziv ?? null,
-        nibis_created: p.dateCreated, nibis_updated: p.dateModified,
-        synced_at: new Date().toISOString(),
-      }))
-      await supabaseAdmin.from('partneri').upsert(rows, { onConflict: 'id' })
-      partneriCount = rows.length
-    }
+    const partneriCount = 0
 
     return { success: true, grupeCount: 0, artikliCount, stanjeCount, partneriCount, durationMs: Date.now() - start }
   } catch (err) {

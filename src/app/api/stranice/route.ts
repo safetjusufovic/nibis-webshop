@@ -28,12 +28,9 @@ export async function GET(req: NextRequest) {
   if (tip) q = q.eq('tip', tip)
   if (!sve) q = q.eq('objavljen', true)
 
-  // Klijentski shop filtrira po shop_id, glavni NE filtrira
-  if (shopId) {
-    q = q.eq('shop_id', shopId)
-  } else {
-    q = q.is('shop_id', null)
-  }
+  // Uvijek filtriraj po shop_id - svaki shop ima vlastite stranice
+  if (!shopId) return NextResponse.json(sve ? [] : null)
+  q = q.eq('shop_id', shopId)
 
   const { data, error } = await q as any
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })

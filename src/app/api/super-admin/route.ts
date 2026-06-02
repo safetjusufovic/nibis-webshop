@@ -173,7 +173,7 @@ export async function POST(req: NextRequest) {
   if (!isAuth(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const body = await req.json()
-  const { naziv, slug, domena, plan, admin_email, nibis_api_url, nibis_api_key } = body
+  const { naziv, slug, domena, plan, admin_email, nibis_api_url, nibis_api_key, org_jed_id, company_year } = body
 
   if (!naziv || !admin_email) {
     return NextResponse.json({ error: 'Naziv i email su obavezni' }, { status: 400 })
@@ -189,6 +189,8 @@ export async function POST(req: NextRequest) {
       admin_email,
       nibis_api_url: nibis_api_url || null,
       nibis_api_key: nibis_api_key || null,
+      org_jed_id: org_jed_id || 1,
+      company_year: company_year || new Date().getFullYear(),
       status: 'aktivan',
     })
     .select()
