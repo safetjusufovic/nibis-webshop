@@ -43,8 +43,8 @@ export default function AdminIzvjestajiPage({ shopSlug = 'main' }: { shopSlug?: 
   const [shopId, setShopId] = useState<string | null>(null)
 
   useEffect(() => {
-    if (!shopSlug) return
-    fetch('/api/super-admin/shop-id?slug=' + shopSlug, { headers: { 'x-super-admin-secret': 'nibis-super-2025' } })
+    const lookupSlug = shopSlug || 'main'
+    fetch('/api/super-admin/shop-id?slug=' + lookupSlug, { headers: { 'x-super-admin-secret': 'nibis-super-2025' } })
       .then(r => r.json()).then(d => setShopId(d.id || null))
   }, [shopSlug])
 
@@ -57,7 +57,7 @@ export default function AdminIzvjestajiPage({ shopSlug = 'main' }: { shopSlug?: 
   const [prometPoMjesecima, setPrometPoMjesecima] = useState<PrometPoMjesecu[]>([])
 
   useEffect(() => {
-    if (shopSlug && !shopId) return // čekaj shopId
+    if (!shopId) return // čekaj shopId
     load()
   }, [period, shopId])
 
@@ -73,8 +73,7 @@ export default function AdminIzvjestajiPage({ shopSlug = 'main' }: { shopSlug?: 
       .select('ukupno_sa_porezom, korisnik_id, partner_id, created_at, status')
       .gte('created_at', odStr)
       .neq('status', 'otkazana')
-    if (shopId) qNar = qNar.eq('shop_id', shopId)
-    else qNar = qNar.is('shop_id', null)
+    qNar = qNar.eq('shop_id', shopId)
     const { data: narudzbe } = await qNar
 
     const ukupnoPromet = narudzbe?.reduce((s, n) => s + (n.ukupno_sa_porezom ?? 0), 0) ?? 0
@@ -87,8 +86,9 @@ export default function AdminIzvjestajiPage({ shopSlug = 'main' }: { shopSlug?: 
     // Top artikli
     const { data: stavke } = await supabase
       .from('narudzba_stavke')
-      .select('naziv, sifra, kolicina, jedinicna_cijena, narudzba:narudzbe!narudzba_id(created_at, status)')
+      .select('naziv, sifra, kolicina, jedinicna_cijena, narudzba:narudzbe!narudzba_id(created_at, status, shop_id)')
       .gte('narudzbe.created_at', odStr)
+      .eq('narudzbe.shop_id', shopId)
 
     const artikalMap: Record<string, TopArtikal> = {}
     stavke?.forEach((s: any) => {
@@ -111,6 +111,7 @@ export default function AdminIzvjestajiPage({ shopSlug = 'main' }: { shopSlug?: 
       .select('ukupno_sa_porezom, status, partner:partneri!partner_id(naziv)')
       .gte('created_at', odStr)
       .neq('status', 'otkazana')
+      .eq('shop_id', shopId)
 
     const partnerMap: Record<string, TopPartner> = {}
     narudzbePartneri?.forEach((n: any) => {
