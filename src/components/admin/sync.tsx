@@ -25,9 +25,11 @@ export default function AdminSyncPage({ shopSlug = 'main' }: { shopSlug?: string
     setSyncing(true)
     setResult(null)
     try {
-      const secret = prompt('Upiši CRON_SECRET za pokretanje synca:')
-      if (!secret) { setSyncing(false); return }
-      const res = await fetch(`/api/sync?secret=${secret}`)
+      const res = await fetch('/api/admin/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ shop: shopSlug }),
+      })
       const data = await res.json()
       setResult(data)
       loadLogs()
