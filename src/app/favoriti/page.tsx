@@ -22,7 +22,7 @@ export default function FavoritiPage() {
     async function load() {
       const { data } = await supabase
         .from('favoriti')
-        .select('artikal_id, artikli(*, grupe:grupa_id(id, sifra, naziv))')
+        .select('artikal_id, artikli(*)')
         .eq('korisnik_id', user!.id)
         .order('created_at', { ascending: false })
 

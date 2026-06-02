@@ -26,7 +26,7 @@ export default function ProizvodPage() {
 
   useEffect(() => {
     if (!id) return
-    fetch('/api/artikli/' + id)
+    fetch('/api/artikli/' + id + '?shop=main')
       .then(r => r.ok ? r.json() : null)
       .then(a => {
         if (!a || a.error) { setLoading(false); return }

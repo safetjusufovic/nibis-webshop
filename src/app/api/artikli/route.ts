@@ -25,7 +25,7 @@ export async function GET(req: NextRequest) {
 
   let query = supabaseAdmin
     .from('artikli')
-    .select('id, sifra, barkod, naziv, naziv2, proc_poreza, planska_maloprodajna_cijena, planska_veleprodajna_cijena, slika_url, grupa_id, akcija_popust, akcija_do, aktivan, webshop_aktivan, grupe:grupa_id(id,naziv)', { count: 'exact' })
+    .select('id, sifra, barkod, naziv, naziv2, proc_poreza, planska_maloprodajna_cijena, planska_veleprodajna_cijena, slika_url, grupa_id, akcija_popust, akcija_do, aktivan, webshop_aktivan', { count: 'exact' })
     .eq('aktivan', true)
     .eq('webshop_aktivan', true)
     .eq('shop_id', shopData.id)
@@ -48,6 +48,17 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
+  // Dohvati grupe za ovaj shop (manualni join jer FK ne postoji)
+  const grupaIds = [...new Set((data || []).map((a: any) => a.grupa_id).filter(Boolean))]
+  const grupaMap: Record<number, any> = {}
+  if (grupaIds.length) {
+    const { data: grupe } = await supabaseAdmin
+      .from('grupe').select('id, naziv')
+      .eq('shop_id', shopData.id)
+      .in('id', grupaIds)
+    grupe?.forEach((g: any) => { grupaMap[g.id] = g })
+  }
+
   const items = (data || []).map((a: any) => ({
     id: a.id,
     sifra: a.sifra,
@@ -62,7 +73,7 @@ export async function GET(req: NextRequest) {
     akcija_popust: a.akcija_popust,
     akcija_do: a.akcija_do,
     aktivan: a.aktivan,
-    grupa: a.grupe,
+    grupa: grupaMap[a.grupa_id] ?? null,
   }))
 
   return NextResponse.json({ items, total: count ?? 0 })

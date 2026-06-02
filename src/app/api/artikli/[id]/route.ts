@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { supabaseAdmin } from '@/lib/supabase'
 
 export async function GET(
   req: NextRequest,
@@ -8,24 +8,38 @@ export async function GET(
   const id = parseInt(params.id)
   if (isNaN(id)) return NextResponse.json({ error: 'Invalid ID' }, { status: 400 })
 
-  const { data, error } = await supabase
+  // Resolve shop
+  const shopSlug = req.nextUrl.searchParams.get('shop') || 'main'
+  const { data: shopData } = await supabaseAdmin
+    .from('shopovi').select('id').eq('slug', shopSlug).single()
+  if (!shopData?.id) return NextResponse.json({ error: 'Shop not found' }, { status: 404 })
+
+  const { data, error } = await supabaseAdmin
     .from('artikli')
     .select(`
       id, sifra, barkod, naziv, naziv2, opis,
       proc_poreza, tar_broj, jedinica_mjere,
       planska_maloprodajna_cijena, planska_veleprodajna_cijena,
       slika_url, grupa_id,
-      akcija_popust, akcija_do,
-      grupe:grupa_id ( id, sifra, naziv )
+      akcija_popust, akcija_do
     `)
     .eq('id', id)
+    .eq('shop_id', shopData.id)
     .single()
 
   if (error || !data) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 })
   }
 
-  // Mapa u isti format kao /api/artikli lista
+  // Dohvati grupu manualno
+  let grupa = null
+  if (data.grupa_id) {
+    const { data: g } = await supabaseAdmin
+      .from('grupe').select('id, sifra, naziv')
+      .eq('id', data.grupa_id).eq('shop_id', shopData.id).single()
+    grupa = g
+  }
+
   const artikal = {
     id: data.id,
     sifra: data.sifra,
@@ -40,7 +54,7 @@ export async function GET(
     planskaVeleprodajnaCijena: data.planska_veleprodajna_cijena,
     slika_url: data.slika_url,
     grupaId: data.grupa_id,
-    grupa: (data as any).grupe ?? null,
+    grupa,
     akcija_popust: data.akcija_popust,
     akcija_do: data.akcija_do,
     aktivan: true,
