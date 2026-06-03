@@ -39,8 +39,24 @@ export default function SuperAdminPage() {
   const [syncing, setSyncing] = useState<string | null>(null)
   const [syncResults, setSyncResults] = useState<Record<string, { ok: boolean; msg: string }>>({})
   const [editApiId, setEditApiId] = useState<string | null>(null)
-  const [editApiData, setEditApiData] = useState({ nibis_api_url: '', nibis_api_key: '', domena: '', org_jed_id: '1', company_year: new Date().getFullYear().toString() })
+  const [editApiData, setEditApiData] = useState({ nibis_api_url: '', nibis_api_key: '', domena: '', org_jed_id: '1', company_year: new Date().getFullYear().toString(), tip_cijene: 'vpcijena' })
   const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null)
+  const [authed, setAuthed] = useState(false)
+  const [pwInput, setPwInput] = useState('')
+  const [pwError, setPwError] = useState(false)
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && sessionStorage.getItem('sa_authed') === 'yes') setAuthed(true)
+  }, [])
+
+  function tryLogin() {
+    if (pwInput === SECRET) {
+      setAuthed(true); setPwError(false)
+      if (typeof window !== 'undefined') sessionStorage.setItem('sa_authed', 'yes')
+    } else {
+      setPwError(true)
+    }
+  }
 
   function showToast(msg: string, ok = true) {
     setToast({ msg, ok })
@@ -85,11 +101,20 @@ export default function SuperAdminPage() {
   }
 
   async function saveApiConfig(id: string) {
+    const { tip_cijene, ...apiData } = editApiData
     await fetch('/api/super-admin', {
       method: 'PATCH', headers: H,
-      body: JSON.stringify({ id, ...editApiData, org_jed_id: parseInt(editApiData.org_jed_id) || 1, company_year: parseInt(editApiData.company_year) || new Date().getFullYear() })
+      body: JSON.stringify({ id, ...apiData, org_jed_id: parseInt(editApiData.org_jed_id) || 1, company_year: parseInt(editApiData.company_year) || new Date().getFullYear() })
     })
-    setShopovi(prev => prev.map(s => s.id === id ? { ...s, ...editApiData } : s))
+    // Spremi tip_cijene u postavke shopa
+    const shop = shopovi.find(s => s.id === id)
+    if (shop) {
+      await fetch('/api/postavke?shop=' + shop.slug, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify([{ kljuc: 'tip_cijene', vrijednost: tip_cijene }]),
+      }).catch(() => {})
+    }
+    setShopovi(prev => prev.map(s => s.id === id ? { ...s, ...apiData } : s))
     setEditApiId(null)
     showToast('Sačuvano')
   }
@@ -146,6 +171,25 @@ export default function SuperAdminPage() {
       />
     </div>
   )
+
+  // Login gate
+  if (!authed) {
+    return (
+      <div style={{ minHeight: '100vh', background: '#0F172A', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+        <div style={{ background: 'white', borderRadius: '16px', padding: '40px', width: '100%', maxWidth: '380px', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
+          <h1 style={{ fontSize: '20px', fontWeight: 700, color: '#111827', margin: '0 0 6px', textAlign: 'center' }}>Super Admin</h1>
+          <p style={{ fontSize: '13px', color: '#6B7280', textAlign: 'center', margin: '0 0 24px' }}>Unesite pristupnu lozinku</p>
+          <input type="password" value={pwInput} autoFocus
+            onChange={e => { setPwInput(e.target.value); setPwError(false) }}
+            onKeyDown={e => e.key === 'Enter' && tryLogin()}
+            placeholder="Lozinka"
+            style={{ width: '100%', padding: '12px 14px', fontSize: '14px', border: pwError ? '1px solid #DC2626' : '1px solid #D1D5DB', borderRadius: '10px', outline: 'none', boxSizing: 'border-box', marginBottom: '16px' }} />
+          {pwError && <p style={{ fontSize: '12px', color: '#DC2626', margin: '-8px 0 16px' }}>Pogrešna lozinka</p>}
+          <button onClick={tryLogin} style={{ width: '100%', padding: '12px', background: '#0F6E56', color: 'white', border: 'none', borderRadius: '10px', cursor: 'pointer', fontSize: '14px', fontWeight: 600 }}>Prijava</button>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div style={{ minHeight: '100vh', background: '#F8FAFC', fontFamily: "'Inter', system-ui, sans-serif" }}>
@@ -269,7 +313,20 @@ export default function SuperAdminPage() {
                       style={{ padding: '6px 10px', border: '1px solid #E5E7EB', borderRadius: '7px', color: '#6B7280', textDecoration: 'none', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}>
                       <Globe size={12} /> Otvori
                     </a>
-                    <button onClick={() => { setEditApiId(editApiId === s.id ? null : s.id); setEditApiData({ nibis_api_url: s.nibis_api_url || '', nibis_api_key: s.nibis_api_key || '', domena: s.domena || '', org_jed_id: (s as any).org_jed_id?.toString() || '1', company_year: (s as any).company_year?.toString() || new Date().getFullYear().toString() }) }}
+                    <button onClick={async () => {
+                      const opening = editApiId !== s.id
+                      setEditApiId(opening ? s.id : null)
+                      if (opening) {
+                        // Učitaj tip_cijene za ovaj shop
+                        let tc = 'vpcijena'
+                        try {
+                          const r = await fetch('/api/postavke?kljuci=tip_cijene&shop=' + s.slug)
+                          const d = await r.json()
+                          if (d.tip_cijene === 'mpcijena') tc = 'mpcijena'
+                        } catch {}
+                        setEditApiData({ nibis_api_url: s.nibis_api_url || '', nibis_api_key: s.nibis_api_key || '', domena: s.domena || '', org_jed_id: (s as any).org_jed_id?.toString() || '1', company_year: (s as any).company_year?.toString() || new Date().getFullYear().toString(), tip_cijene: tc })
+                      }
+                    }}
                       style={{ padding: '6px 10px', border: '1px solid #E5E7EB', borderRadius: '7px', background: editApiId === s.id ? '#EEF2FF' : 'white', cursor: 'pointer', color: editApiId === s.id ? '#6366f1' : '#6B7280', fontFamily: 'inherit', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}>
                       <Settings size={12} /> Postavke
                     </button>
@@ -347,6 +404,14 @@ export default function SuperAdminPage() {
                           style={{ width: '100%', padding: '8px 10px', fontSize: '12px', border: '1px solid #E5E7EB', borderRadius: '7px', outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box' as const, background: 'white' }}
                           onFocus={e => e.target.style.borderColor = '#6366f1'}
                           onBlur={e => e.target.style.borderColor = '#E5E7EB'} />
+                      </div>
+                      <div>
+                        <label style={{ fontSize: '11px', fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: '4px', textTransform: 'uppercase' as const, letterSpacing: '0.05em' }}>Tip cijene</label>
+                        <select value={editApiData.tip_cijene} onChange={e => setEditApiData(p => ({ ...p, tip_cijene: e.target.value }))}
+                          style={{ width: '100%', padding: '8px 10px', fontSize: '12px', border: '1px solid #E5E7EB', borderRadius: '7px', outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box' as const, background: 'white', cursor: 'pointer' }}>
+                          <option value="vpcijena">B2B — veleprodaja (bez PDV)</option>
+                          <option value="mpcijena">B2C — maloprodaja (sa PDV)</option>
+                        </select>
                       </div>
                     </div>
                     <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
