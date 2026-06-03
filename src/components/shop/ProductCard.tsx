@@ -68,7 +68,10 @@ export default function ProductCard({ artikal, stanje, slika, shopSlug = '', tip
     if (!canAdd) return
     const toAdd = Math.min(qty, maxQty - inCart)
     if (toAdd <= 0) return
-    for (let i = 0; i < toAdd; i++) add(artikal, cijenaOriginal, stanje ?? null)
+    // Ako je akcija aktivna, dodaj akcijsku cijenu (akcija ima prioritet nad rabatom)
+    // Inače dodaj originalnu cijenu (rabat se primjenjuje u korpi)
+    const cijenaZaKorpu = akcijaAktivna ? cijena : cijenaOriginal
+    for (let i = 0; i < toAdd; i++) add(artikal, cijenaZaKorpu, stanje ?? null)
     setQty(1)
   }
 

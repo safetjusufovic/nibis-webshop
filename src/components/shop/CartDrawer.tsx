@@ -32,15 +32,23 @@ export default function CartDrawer({ open, onClose , shopSlug = '' }: CartDrawer
   const [napomena, setNapomena] = useState('')
   const [nacinPlacanja, setNacinPlacanja] = useState<'Virman' | 'Gotovina' | 'Kartica'>('Virman')
 
-  // Primijeni rabat partnera na cijenu
-  function cijenaZaKupca(originalCijena: number): number {
+  // Provjeri je li artikl na aktivnoj akciji
+  function naAkciji(artikal: any): boolean {
+    const popust = artikal?.akcija_popust ?? 0
+    const doDatum = artikal?.akcija_do
+    return popust > 0 && (!doDatum || new Date(doDatum) > new Date())
+  }
+
+  // Primijeni rabat partnera - ALI ne na artikle koji su na akciji (akcija ima prioritet)
+  function cijenaZaKupca(originalCijena: number, artikal?: any): number {
+    if (artikal && naAkciji(artikal)) return originalCijena  // akcijska cijena, bez rabata
     if (!rabat || rabat <= 0) return originalCijena
     return originalCijena * (1 - rabat / 100)
   }
 
   const totals = calculateTotals(
     items.map(i => ({
-      cijena: cijenaZaKupca(i.cijena),
+      cijena: cijenaZaKupca(i.cijena, i.artikal),
       qty: i.qty,
       procPoreza: i.artikal.procPoreza ?? 0,
     })),
@@ -58,9 +66,9 @@ export default function CartDrawer({ open, onClose , shopSlug = '' }: CartDrawer
       artikalId: item.artikal.id,
       naziv: item.artikal.naziv,
       kolicina: item.qty,
-      jedinicnaCijena: cijenaZaKupca(item.cijena), // cijena sa rabatom
+      jedinicnaCijena: cijenaZaKupca(item.cijena, item.artikal), // cijena sa rabatom (osim akcije)
       poreskaStopa: item.artikal.procPoreza ?? 0,
-      rabat1Procenat: rabat > 0 ? rabat : null,     // proslijedi rabat NIBIS-u
+      rabat1Procenat: (rabat > 0 && !naAkciji(item.artikal)) ? rabat : null,     // rabat NIBIS-u (osim akcije)
       rabat2Procenat: null,
       rabat3Procenat: null,
       opis: null,
@@ -146,8 +154,8 @@ export default function CartDrawer({ open, onClose , shopSlug = '' }: CartDrawer
               ) : (
                 items.map(item => {
                   const cijenaOriginal = item.cijena
-                  const cijenaKupac = cijenaZaKupca(item.cijena)
-                  const imaRabat = rabat > 0
+                  const cijenaKupac = cijenaZaKupca(item.cijena, item.artikal)
+                  const imaRabat = rabat > 0 && !naAkciji(item.artikal)
                   return (
                     <div key={item.artikal.id} className="flex gap-3 px-4 py-3 border-b border-gray-50">
                       <div className="flex-1 min-w-0">
@@ -190,7 +198,7 @@ export default function CartDrawer({ open, onClose , shopSlug = '' }: CartDrawer
                       <span>Ušteda (rabat {rabat}%)</span>
                       <span>-{formatCijena(
                         items.reduce((s, i) => s + i.cijena * i.qty, 0) -
-                        items.reduce((s, i) => s + cijenaZaKupca(i.cijena) * i.qty, 0)
+                        items.reduce((s, i) => s + cijenaZaKupca(i.cijena, i.artikal) * i.qty, 0)
                       )}</span>
                     </div>
                   )}
