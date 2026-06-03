@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import OnboardingWizard from '@/components/super-admin/OnboardingWizard'
 import { Plus, Trash2, Eye, EyeOff, Globe, ExternalLink, RefreshCw, Settings, CheckCircle, XCircle, Clock } from 'lucide-react'
 
 interface Shop {
@@ -32,6 +33,7 @@ export default function SuperAdminPage() {
   const [shopovi, setShopovi] = useState<Shop[]>([])
   const [loading, setLoading] = useState(true)
   const [creating, setCreating] = useState(false)
+  const [wizardOpen, setWizardOpen] = useState(false)
   const [form, setForm] = useState<NewShop>(EMPTY)
   const [saving, setSaving] = useState(false)
   const [syncing, setSyncing] = useState<string | null>(null)
@@ -173,7 +175,7 @@ export default function SuperAdminPage() {
             <a href="/" target="_blank" style={{ padding: '7px 12px', border: '1px solid #E5E7EB', borderRadius: '8px', color: '#6B7280', textDecoration: 'none', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '5px' }}>
               <ExternalLink size={12} /> Glavni shop
             </a>
-            <button onClick={() => setCreating(true)} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 16px', background: '#6366f1', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: 600, fontFamily: 'inherit' }}>
+            <button onClick={() => setWizardOpen(true)} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 16px', background: '#6366f1', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: 600, fontFamily: 'inherit' }}>
               <Plus size={14} /> Novi shop
             </button>
           </div>
@@ -183,6 +185,13 @@ export default function SuperAdminPage() {
       <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '28px 32px' }}>
 
         {/* Forma za novi shop */}
+        {wizardOpen && (
+          <OnboardingWizard
+            onClose={() => setWizardOpen(false)}
+            onCreated={() => { setWizardOpen(false); load(); showToast('Shop kreiran! Pokreni sinhronizaciju.') }}
+          />
+        )}
+
         {creating && (
           <div style={{ background: 'white', border: '1px solid #E5E7EB', borderRadius: '14px', padding: '24px', marginBottom: '24px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
             <div style={{ fontSize: '15px', fontWeight: 700, color: '#111827', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -217,7 +226,7 @@ export default function SuperAdminPage() {
             <div style={{ fontSize: '32px', marginBottom: '12px' }}>🏪</div>
             <div style={{ fontSize: '15px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>Nema kreiranh shopova</div>
             <div style={{ fontSize: '13px', marginBottom: '20px' }}>Kreiraj prvi klijentski shop</div>
-            <button onClick={() => setCreating(true)} style={{ padding: '9px 20px', background: '#6366f1', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', fontFamily: 'inherit', fontWeight: 600 }}>
+            <button onClick={() => setWizardOpen(true)} style={{ padding: '9px 20px', background: '#6366f1', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', fontFamily: 'inherit', fontWeight: 600 }}>
               + Novi shop
             </button>
           </div>
