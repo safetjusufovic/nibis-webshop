@@ -9,6 +9,7 @@ interface ShopContextType {
   isMain: boolean
   loaded: boolean
   apiUrl: (path: string) => string  // dodaje ?shop= automatski
+  href: (path: string) => string    // gradi navigacijski link (custom domena vs /slug)
 }
 
 const ShopContext = createContext<ShopContextType>({
@@ -17,6 +18,7 @@ const ShopContext = createContext<ShopContextType>({
   isMain: true,
   loaded: false,
   apiUrl: (p) => p,
+  href: (p) => p,
 })
 
 const slugCache: Record<string, string> = {}
@@ -61,6 +63,17 @@ export function ShopProvider({ children, slug }: { children: React.ReactNode; sl
     return path + sep + 'shop=' + slug
   }
 
+  // Navigacijski link: na custom domeni čist (/login), na path-u prefiksan (/novishop/login)
+  const href = (path: string) => {
+    if (typeof window !== 'undefined') {
+      const host = window.location.hostname
+      const isCustom = !['nibis-webshop.vercel.app', 'localhost', '127.0.0.1'].includes(host) && !host.endsWith('.vercel.app')
+      if (isCustom) return path  // custom domena - čist link
+    }
+    if (!detectedSlug) return path  // main shop
+    return '/' + detectedSlug + (path === '/' ? '' : path)  // path-bazirano
+  }
+
   return (
     <ShopContext.Provider value={{
       shopSlug: detectedSlug,
@@ -68,6 +81,7 @@ export function ShopProvider({ children, slug }: { children: React.ReactNode; sl
       isMain: !detectedSlug,
       loaded,
       apiUrl,
+      href,
     }}>
       {children}
     </ShopContext.Provider>
