@@ -1,12 +1,17 @@
 import type { ErpAdapter, ErpConfig } from './types'
 import { NibisAdapter } from './nibis-adapter'
 import { PantheonAdapter } from './pantheon-adapter'
+import { RestAdapter } from './rest-adapter'
+import type { RestErpConfig } from './rest-config-types'
 
 export * from './types'
 
 // Factory — vraća odgovarajući adapter prema tipu ERP-a
 export function getErpAdapter(config: ErpConfig): ErpAdapter {
   switch (config.tip) {
+    case 'custom_rest':
+      // restConfig se prosljeđuje kroz config objekt
+      return new RestAdapter((config as any).restConfig as RestErpConfig)
     case 'pantheon':
       return new PantheonAdapter(config)
     case 'nibis':
@@ -21,7 +26,7 @@ import { supabaseAdmin } from '@/lib/supabase'
 export async function getShopErpConfig(shopId: string): Promise<ErpConfig> {
   const { data: shop } = await supabaseAdmin
     .from('shopovi')
-    .select('nibis_api_url, nibis_api_key, org_jed_id, company_year, erp_tip, erp_username, erp_password, erp_database')
+    .select('nibis_api_url, nibis_api_key, org_jed_id, company_year, erp_tip, erp_username, erp_password, erp_database, erp_rest_config')
     .eq('id', shopId)
     .single()
 
@@ -35,7 +40,7 @@ export async function getShopErpConfig(shopId: string): Promise<ErpConfig> {
 
   if (!shop?.nibis_api_url || !shop?.nibis_api_key) return defaultConfig
 
-  return {
+  const cfg: any = {
     tip: (shop as any).erp_tip || 'nibis',
     baseUrl: shop.nibis_api_url,
     apiKey: shop.nibis_api_key,
@@ -45,4 +50,13 @@ export async function getShopErpConfig(shopId: string): Promise<ErpConfig> {
     password: (shop as any).erp_password || undefined,
     database: (shop as any).erp_database || undefined,
   }
+  // Custom REST config (JSON iz GUI-ja)
+  if (cfg.tip === 'custom_rest' && (shop as any).erp_rest_config) {
+    try {
+      cfg.restConfig = typeof (shop as any).erp_rest_config === 'string'
+        ? JSON.parse((shop as any).erp_rest_config)
+        : (shop as any).erp_rest_config
+    } catch {}
+  }
+  return cfg
 }

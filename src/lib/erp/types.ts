@@ -3,7 +3,7 @@
 // Ostatak aplikacije zna SAMO za ovaj interfejs, ne za konkretan ERP.
 
 export interface ErpConfig {
-  tip: 'nibis' | 'pantheon'
+  tip: 'nibis' | 'pantheon' | 'custom_rest'
   baseUrl: string
   apiKey: string
   companyYear?: string
