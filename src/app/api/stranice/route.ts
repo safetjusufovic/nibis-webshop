@@ -40,9 +40,10 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   const body = await req.json()
   const shopId = await resolveShopId(req)
+  if (!shopId) return NextResponse.json({ error: 'Shop nije pronađen' }, { status: 400 })
   const { data, error } = await supabase.from('stranice').insert({
     ...body,
-    ...(shopId && { shop_id: shopId }),
+    shop_id: shopId,
     updated_at: new Date().toISOString(),
   }).select().single()
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })

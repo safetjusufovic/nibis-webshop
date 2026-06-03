@@ -1,8 +1,8 @@
 'use client'
-import { usePathname } from 'next/navigation'
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import Header from '@/components/layout/Header'
 import AuthGuard from '@/components/auth/AuthGuard'
 import ProductCard from '@/components/shop/ProductCard'
@@ -10,12 +10,10 @@ import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
 import { Heart } from 'lucide-react'
 import type { Artikal, StanjeSkladista } from '@/types/nibis'
-import { siteConfig } from '@/lib/config'
 
 export default function FavoritiPage() {
   const pathname = usePathname()
   const shopSlug = (() => { const s = pathname.split('/').filter(Boolean); const i = s.indexOf('favoriti'); return i > 0 ? s[i-1] : '' })()
-
   const { user } = useAuth()
   const [artikli, setArtikli] = useState<Artikal[]>([])
   const [stanje, setStanje] = useState<Record<number, StanjeSkladista>>({})
@@ -24,22 +22,35 @@ export default function FavoritiPage() {
   useEffect(() => {
     if (!user) return
     async function load() {
-      const { data } = await supabase
+      // Dohvati favorite (samo artikal_id)
+      const { data: favData } = await supabase
         .from('favoriti')
-        .select('artikal_id, artikli(*, grupe:grupa_id(id, sifra, naziv))')
+        .select('artikal_id')
         .eq('korisnik_id', user!.id)
         .order('created_at', { ascending: false })
 
-      const items = (data ?? []).map((f: any) => f.artikli).filter(Boolean)
+      const favIds = (favData ?? []).map((f: any) => f.artikal_id)
+      if (favIds.length === 0) { setArtikli([]); setLoading(false); return }
+
+      // Dohvati korisnikov shop_id
+      const { data: korisnik } = await supabase
+        .from('korisnici').select('shop_id').eq('id', user!.id).single()
+
+      // Dohvati artikle za te ID-eve unutar shopa
+      let artQ = supabase.from('artikli').select('*').in('id', favIds)
+      if (korisnik?.shop_id) artQ = artQ.eq('shop_id', korisnik.shop_id)
+      const { data: artData } = await artQ
+
+      const items = artData ?? []
       setArtikli(items)
 
       if (items.length > 0) {
-        const ids = items.map((a: any) => a.id).join(',')
-        const { data: sd } = await supabase
+        let stQ = supabase
           .from('stanje_skladista')
           .select('*')
           .in('artikal_id', items.map((a: any) => a.id))
-          .eq('org_jed_id', siteConfig.orgJedId)
+        if (korisnik?.shop_id) stQ = stQ.eq('shop_id', korisnik.shop_id)
+        const { data: sd } = await stQ
         const map: Record<number, StanjeSkladista> = {}
         sd?.forEach((s: any) => { map[s.artikal_id] = { ...s, artikalId: s.artikal_id, orgJedId: s.org_jed_id, raspolozivaKolicina: s.raspoloziva_kolicina, nabavnaCijena: s.nabavna_cijena, skladisnoMjesto: null, dateCreated: '', dateModified: '' } })
         setStanje(map)
@@ -52,7 +63,7 @@ export default function FavoritiPage() {
   return (
     <AuthGuard>
       <div style={{ minHeight: '100vh', background: 'var(--surface)' }}>
-        <Header />
+        <Header shopSlug={shopSlug} />
         <main style={{ maxWidth: '1280px', margin: '0 auto', padding: '32px 24px 64px' }}>
           <div style={{ marginBottom: '24px' }}>
             <h1 style={{ fontSize: '22px', fontWeight: 700, color: 'var(--text)', margin: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -75,7 +86,7 @@ export default function FavoritiPage() {
               <Heart size={40} style={{ margin: '0 auto 16px', opacity: 0.2, display: 'block' }} />
               <p style={{ fontSize: '16px', fontWeight: 500, color: 'var(--text)', marginBottom: '8px' }}>Nemate još favorita</p>
               <p style={{ fontSize: '14px', marginBottom: '20px' }}>Kliknite srce na artiklima koje želite spasiti</p>
-              <Link href="/" className="btn-primary" style={{ textDecoration: 'none', display: 'inline-flex' }}>
+              <Link href={shopSlug ? `/${shopSlug}/` : '/'} className="btn-primary" style={{ textDecoration: 'none', display: 'inline-flex' }}>
                 Pregledaj katalog
               </Link>
             </div>
@@ -90,8 +101,8 @@ export default function FavoritiPage() {
                     vanUpotrebe: a.van_upotrebe,
                     procPoreza: a.proc_poreza,
                     planskaMaloprodajnaCijena: a.planska_maloprodajna_cijena,
+                    planskaVeleprodajnaCijena: a.planska_veleprodajna_cijena,
                     grupaId: a.grupa_id,
-                    grupa: a.grupe,
                   }}
                   stanje={stanje[a.id] ?? null}
                   slika={a.slika_url}
