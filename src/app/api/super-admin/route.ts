@@ -173,7 +173,7 @@ export async function POST(req: NextRequest) {
   if (!isAuth(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const body = await req.json()
-  const { naziv, slug, domena, plan, admin_email, nibis_api_url, nibis_api_key, org_jed_id, company_year } = body
+  const { naziv, slug, domena, plan, admin_email, nibis_api_url, nibis_api_key, org_jed_id, company_year, erp_tip, erp_username, erp_password, erp_database } = body
 
   if (!naziv || !admin_email) {
     return NextResponse.json({ error: 'Naziv i email su obavezni' }, { status: 400 })
@@ -191,6 +191,10 @@ export async function POST(req: NextRequest) {
       nibis_api_key: nibis_api_key || null,
       org_jed_id: org_jed_id || 1,
       company_year: company_year || new Date().getFullYear(),
+      erp_tip: erp_tip || 'nibis',
+      erp_username: erp_username || null,
+      erp_password: erp_password || null,
+      erp_database: erp_database || null,
       status: 'aktivan',
     })
     .select()
@@ -216,7 +220,7 @@ export async function POST(req: NextRequest) {
 export async function PATCH(req: NextRequest) {
   if (!isAuth(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { id, status, nibis_api_url, nibis_api_key, domena, org_jed_id, company_year } = await req.json()
+  const { id, status, nibis_api_url, nibis_api_key, domena, org_jed_id, company_year, erp_tip, erp_username, erp_password, erp_database } = await req.json()
   const updates: any = { updated_at: new Date().toISOString() }
   if (status !== undefined) updates.status = status
   if (nibis_api_url !== undefined) updates.nibis_api_url = nibis_api_url
@@ -224,6 +228,10 @@ export async function PATCH(req: NextRequest) {
   if (domena !== undefined) updates.domena = domena || null
   if (org_jed_id !== undefined) updates.org_jed_id = org_jed_id || 1
   if (company_year !== undefined) updates.company_year = company_year || new Date().getFullYear()
+  if (erp_tip !== undefined) updates.erp_tip = erp_tip || 'nibis'
+  if (erp_username !== undefined) updates.erp_username = erp_username || null
+  if (erp_password !== undefined) updates.erp_password = erp_password || null
+  if (erp_database !== undefined) updates.erp_database = erp_database || null
 
   const { error } = await supabaseAdmin.from('shopovi').update(updates).eq('id', id)
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })

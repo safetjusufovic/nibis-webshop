@@ -39,7 +39,7 @@ export default function SuperAdminPage() {
   const [syncing, setSyncing] = useState<string | null>(null)
   const [syncResults, setSyncResults] = useState<Record<string, { ok: boolean; msg: string }>>({})
   const [editApiId, setEditApiId] = useState<string | null>(null)
-  const [editApiData, setEditApiData] = useState({ nibis_api_url: '', nibis_api_key: '', domena: '', org_jed_id: '1', company_year: new Date().getFullYear().toString(), tip_cijene: 'vpcijena' })
+  const [editApiData, setEditApiData] = useState({ nibis_api_url: '', nibis_api_key: '', domena: '', org_jed_id: '1', company_year: new Date().getFullYear().toString(), tip_cijene: 'vpcijena', erp_tip: 'nibis', erp_username: '', erp_password: '', erp_database: '' })
   const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null)
   const [authed, setAuthed] = useState(false)
   const [pwInput, setPwInput] = useState('')
@@ -101,7 +101,7 @@ export default function SuperAdminPage() {
   }
 
   async function saveApiConfig(id: string) {
-    const { tip_cijene, ...apiData } = editApiData
+    const { tip_cijene, ...apiData } = editApiData  // apiData sadrži i erp_tip, erp_username, erp_password, erp_database
     await fetch('/api/super-admin', {
       method: 'PATCH', headers: H,
       body: JSON.stringify({ id, ...apiData, org_jed_id: parseInt(editApiData.org_jed_id) || 1, company_year: parseInt(editApiData.company_year) || new Date().getFullYear() })
@@ -324,7 +324,7 @@ export default function SuperAdminPage() {
                           const d = await r.json()
                           if (d.tip_cijene === 'mpcijena') tc = 'mpcijena'
                         } catch {}
-                        setEditApiData({ nibis_api_url: s.nibis_api_url || '', nibis_api_key: s.nibis_api_key || '', domena: s.domena || '', org_jed_id: (s as any).org_jed_id?.toString() || '1', company_year: (s as any).company_year?.toString() || new Date().getFullYear().toString(), tip_cijene: tc })
+                        setEditApiData({ nibis_api_url: s.nibis_api_url || '', nibis_api_key: s.nibis_api_key || '', domena: s.domena || '', org_jed_id: (s as any).org_jed_id?.toString() || '1', company_year: (s as any).company_year?.toString() || new Date().getFullYear().toString(), tip_cijene: tc, erp_tip: (s as any).erp_tip || 'nibis', erp_username: (s as any).erp_username || '', erp_password: (s as any).erp_password || '', erp_database: (s as any).erp_database || '' })
                       }
                     }}
                       style={{ padding: '6px 10px', border: '1px solid #E5E7EB', borderRadius: '7px', background: editApiId === s.id ? '#EEF2FF' : 'white', cursor: 'pointer', color: editApiId === s.id ? '#6366f1' : '#6B7280', fontFamily: 'inherit', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}>
@@ -364,9 +364,39 @@ export default function SuperAdminPage() {
                 {/* Edit API panel */}
                 {editApiId === s.id && (
                   <div style={{ padding: '16px 20px', borderTop: '1px solid #E5E7EB', background: '#F9FAFB' }}>
+                    {/* ERP tip izbor */}
+                    <div style={{ marginBottom: '12px' }}>
+                      <label style={{ fontSize: '11px', fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: '4px', textTransform: 'uppercase' as const, letterSpacing: '0.05em' }}>ERP sistem</label>
+                      <select value={editApiData.erp_tip} onChange={e => setEditApiData(p => ({ ...p, erp_tip: e.target.value }))}
+                        style={{ width: '100%', maxWidth: '300px', padding: '8px 10px', fontSize: '12px', border: '1px solid #E5E7EB', borderRadius: '7px', outline: 'none', fontFamily: 'inherit', background: 'white', cursor: 'pointer' }}>
+                        <option value="nibis">NIBIS (NextVision)</option>
+                        <option value="pantheon">Pantheon (Datalab)</option>
+                      </select>
+                    </div>
+                    {/* Pantheon-specifična polja */}
+                    {editApiData.erp_tip === 'pantheon' && (
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px', marginBottom: '12px', padding: '12px', background: '#FEF3C7', borderRadius: '8px' }}>
+                        <div style={{ gridColumn: '1 / -1', fontSize: '11px', color: '#92400E', fontWeight: 600 }}>Pantheon pristup (popunjava se prema instalaciji klijenta)</div>
+                        <div>
+                          <label style={{ fontSize: '11px', fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: '4px' }}>Korisničko ime</label>
+                          <input value={editApiData.erp_username} onChange={e => setEditApiData(p => ({ ...p, erp_username: e.target.value }))} placeholder="username"
+                            style={{ width: '100%', padding: '8px 10px', fontSize: '12px', border: '1px solid #E5E7EB', borderRadius: '7px', outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box' as const, background: 'white' }} />
+                        </div>
+                        <div>
+                          <label style={{ fontSize: '11px', fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: '4px' }}>Lozinka</label>
+                          <input type="password" value={editApiData.erp_password} onChange={e => setEditApiData(p => ({ ...p, erp_password: e.target.value }))} placeholder="password"
+                            style={{ width: '100%', padding: '8px 10px', fontSize: '12px', border: '1px solid #E5E7EB', borderRadius: '7px', outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box' as const, background: 'white' }} />
+                        </div>
+                        <div>
+                          <label style={{ fontSize: '11px', fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: '4px' }}>Baza</label>
+                          <input value={editApiData.erp_database} onChange={e => setEditApiData(p => ({ ...p, erp_database: e.target.value }))} placeholder="database"
+                            style={{ width: '100%', padding: '8px 10px', fontSize: '12px', border: '1px solid #E5E7EB', borderRadius: '7px', outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box' as const, background: 'white' }} />
+                        </div>
+                      </div>
+                    )}
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '12px', marginBottom: '12px' }}>
                       <div>
-                        <label style={{ fontSize: '11px', fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: '4px', textTransform: 'uppercase' as const, letterSpacing: '0.05em' }}>NIBIS API URL</label>
+                        <label style={{ fontSize: '11px', fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: '4px', textTransform: 'uppercase' as const, letterSpacing: '0.05em' }}>ERP API URL</label>
                         <input value={editApiData.nibis_api_url} onChange={e => setEditApiData(p => ({ ...p, nibis_api_url: e.target.value }))}
                           placeholder="https://erp.firma.ba/integration/robno-materijalno"
                           style={{ width: '100%', padding: '8px 10px', fontSize: '12px', border: '1px solid #E5E7EB', borderRadius: '7px', outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box' as const, background: 'white' }}
@@ -374,7 +404,7 @@ export default function SuperAdminPage() {
                           onBlur={e => e.target.style.borderColor = '#E5E7EB'} />
                       </div>
                       <div>
-                        <label style={{ fontSize: '11px', fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: '4px', textTransform: 'uppercase' as const, letterSpacing: '0.05em' }}>NIBIS API Key</label>
+                        <label style={{ fontSize: '11px', fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: '4px', textTransform: 'uppercase' as const, letterSpacing: '0.05em' }}>ERP API Key</label>
                         <input value={editApiData.nibis_api_key} onChange={e => setEditApiData(p => ({ ...p, nibis_api_key: e.target.value }))}
                           placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
                           style={{ width: '100%', padding: '8px 10px', fontSize: '12px', border: '1px solid #E5E7EB', borderRadius: '7px', outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box' as const, background: 'white' }}
