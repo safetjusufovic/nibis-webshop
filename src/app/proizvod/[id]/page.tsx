@@ -31,7 +31,7 @@ export default function ProizvodPage() {
       .then(a => {
         if (!a || a.error) { setLoading(false); return }
         setArtikal(a)
-        return fetch('/api/stanje?ids=' + id).then(r => r.ok ? r.json() : null)
+        return fetch('/api/stanje?ids=' + id + '&shop=main').then(r => r.ok ? r.json() : null)
       })
       .then(s => {
         if (s?.items) {

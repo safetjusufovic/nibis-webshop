@@ -23,6 +23,7 @@ export async function getShopConfig(shopId: string): Promise<NibisConfig> {
 
 // ─── Sync grupe ───────────────────────────────────────────────────────────────
 async function syncGrupe(config: NibisConfig, shopId?: string): Promise<number> {
+  if (!shopId) { console.warn('[SYNC] syncGrupe preskocen - nema shopId'); return 0 }
   let page = 1, total = 0, synced = 0
   do {
     const data = await getGrupe({ page, perPage: BATCH_SIZE }, config)
@@ -43,6 +44,7 @@ async function syncGrupe(config: NibisConfig, shopId?: string): Promise<number> 
 
 // ─── Sync artikli ─────────────────────────────────────────────────────────────
 async function syncArtikli(config: NibisConfig, shopId?: string): Promise<number> {
+  if (!shopId) { console.warn('[SYNC] syncArtikli preskocen - nema shopId'); return 0 }
   let page = 1, total = 0, synced = 0
   do {
     const data = await getArtikli({ page, perPage: BATCH_SIZE }, config)
@@ -68,6 +70,7 @@ async function syncArtikli(config: NibisConfig, shopId?: string): Promise<number
 
 // ─── Sync stanje ──────────────────────────────────────────────────────────────
 async function syncStanje(orgJedId: number, config: NibisConfig, shopId?: string, page = 1): Promise<number> {
+  if (!shopId) { console.warn('[SYNC] syncStanje preskocen - nema shopId'); return 0 }
   const data = await getStanje(page, orgJedId, undefined, config)
   const rows = data.items.map(s => ({
     id: s.id, artikal_id: s.artikalId, org_jed_id: s.orgJedId,
