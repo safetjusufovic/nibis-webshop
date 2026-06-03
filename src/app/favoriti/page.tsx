@@ -12,6 +12,7 @@ import type { Artikal, StanjeSkladista } from '@/types/nibis'
 import { siteConfig } from '@/lib/config'
 
 export default function FavoritiPage() {
+  const shopSlug = ''  // main shop
   const { user } = useAuth()
   const [artikli, setArtikli] = useState<Artikal[]>([])
   const [stanje, setStanje] = useState<Record<number, StanjeSkladista>>({})
@@ -93,6 +94,7 @@ export default function FavoritiPage() {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '16px' }}>
               {artikli.map((a: any) => (
                 <ProductCard
+                  shopSlug={shopSlug}
                   key={a.id}
                   artikal={{
                     ...a,

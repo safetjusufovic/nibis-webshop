@@ -917,7 +917,7 @@ export function ShopPage({ shopSlug = '' }: { shopSlug?: string }) {
                         </div>
                       )
                       : displayed.map(a => (
-                        <ProductCard key={a.id} artikal={a} stanje={stanje[a.id]} slika={(a as any).slika_url} />
+                        <ProductCard key={a.id} artikal={a} stanje={stanje[a.id]} slika={(a as any).slika_url} shopSlug={shopSlug} />
                       ))
                     }
                   </div>

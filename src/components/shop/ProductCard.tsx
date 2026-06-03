@@ -11,7 +11,19 @@ import { useAuth } from '@/hooks/useAuth'
 import { formatCijena, siteConfig } from '@/lib/config'
 import type { Artikal, StanjeSkladista } from '@/types/nibis'
 
+function buildHref(shopSlug: string, path: string): string {
+  if (typeof window !== 'undefined') {
+    const host = window.location.hostname
+    const isCustom = !['nibis-webshop.vercel.app', 'localhost', '127.0.0.1'].includes(host) && !host.endsWith('.vercel.app')
+    if (isCustom) return path
+  }
+  if (!shopSlug) return path
+  return '/' + shopSlug + (path === '/' ? '' : path)
+}
+
+
 interface Props {
+  shopSlug?: string
   artikal: Artikal
   stanje: StanjeSkladista | null | undefined
   slika?: string
@@ -26,7 +38,7 @@ function StockBadge({ stanje }: { stanje: StanjeSkladista | null | undefined }) 
   return <span className="badge-in-stock">Na stanju</span>
 }
 
-export default function ProductCard({ artikal, stanje, slika }: Props) {
+export default function ProductCard({ artikal, stanje, slika, shopSlug = '' }: Props) {
   const { cart, add } = useCart()
   const { favoriti, toggle: toggleFavorit } = useFavoriti()
   const { rabat } = useAuth()
@@ -61,7 +73,7 @@ export default function ProductCard({ artikal, stanje, slika }: Props) {
 
   return (
     <Link
-      href={`/proizvod/${artikal.id}`}
+      href={buildHref(shopSlug, `/proizvod/${artikal.id}`)}
       style={{ textDecoration: 'none' }}
     >
       <article style={{

@@ -83,6 +83,7 @@ export default function FavoritiPage() {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '16px' }}>
               {artikli.map((a: any) => (
                 <ProductCard
+                  shopSlug={shopSlug}
                   key={a.id}
                   artikal={{
                     ...a,

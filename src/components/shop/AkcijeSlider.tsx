@@ -6,6 +6,17 @@ import { Package, ChevronLeft, ChevronRight, Tag, Pause, Play } from 'lucide-rea
 import { useAuth } from '@/hooks/useAuth'
 import { formatCijena } from '@/lib/config'
 
+function buildHref(shopSlug: string, path: string): string {
+  if (typeof window !== 'undefined') {
+    const host = window.location.hostname
+    const isCustom = !['nibis-webshop.vercel.app', 'localhost', '127.0.0.1'].includes(host) && !host.endsWith('.vercel.app')
+    if (isCustom) return path
+  }
+  if (!shopSlug) return path
+  return '/' + shopSlug + (path === '/' ? '' : path)
+}
+
+
 interface ArtikalAkcija {
   id: number
   sifra: string
@@ -198,7 +209,7 @@ export default function AkcijeSlider({ shopSlug = '' }: { shopSlug?: string }) {
                 const cijenaKupca = (rabat > 0 && cijena > 0) ? cijena * (1 - rabat / 100) : cijena
 
                 return (
-                  <Link key={idx} href={'/proizvod/' + a.id} style={{ textDecoration: 'none', flexShrink: 0 }}>
+                  <Link key={idx} href={buildHref(shopSlug, '/proizvod/' + a.id)} style={{ textDecoration: 'none', flexShrink: 0 }}>
                     <div style={{
                       width: '180px',
                       background: 'rgba(255,255,255,0.96)',
