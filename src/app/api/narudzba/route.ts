@@ -68,6 +68,14 @@ export async function POST(req: NextRequest) {
     // 2. Shop config
     const { shopId, nibisConfig, orgJedId } = await getShopConfig(req)
 
+    // Tip cijene shopa (vpcijena=B2B bez PDV, mpcijena=B2C sa PDV)
+    let tipCijene: 'vpcijena' | 'mpcijena' = 'vpcijena'
+    if (shopId) {
+      const { data: tcPostavka } = await supabaseAdmin
+        .from('postavke').select('vrijednost').eq('kljuc', 'tip_cijene').eq('shop_id', shopId).single()
+      if (tcPostavka?.vrijednost === 'mpcijena' || tcPostavka?.vrijednost === 'mp') tipCijene = 'mpcijena'
+    }
+
     // 3. Korisnik
     const { data: korisnik } = await supabaseAdmin
       .from('korisnici')
@@ -112,8 +120,21 @@ export async function POST(req: NextRequest) {
     const nibisResult = await createNarudzba(payload, nibisConfig)
 
     // 5. Spremi u Supabase
-    const ukupnoBez = body.stavke.reduce((s: number, st: any) => s + st.kolicina * st.jedinicnaCijena, 0)
-    const ukupnoPorez = body.stavke.reduce((s: number, st: any) => s + st.kolicina * st.jedinicnaCijena * ((st.poreskaStopa ?? 0) / 100), 0)
+    let ukupnoBez = 0, ukupnoPorez = 0
+    body.stavke.forEach((st: any) => {
+      const total = st.kolicina * st.jedinicnaCijena
+      const stopa = (st.poreskaStopa ?? 0) / 100
+      if (tipCijene === 'mpcijena') {
+        // MP cijena je SA PDV-om - izvlačimo PDV
+        const bez = total / (1 + stopa)
+        ukupnoBez += bez
+        ukupnoPorez += total - bez
+      } else {
+        // VP cijena je BEZ PDV-a - dodajemo PDV
+        ukupnoBez += total
+        ukupnoPorez += total * stopa
+      }
+    })
     const ukupnoSa = Math.round((ukupnoBez + ukupnoPorez) * 100) / 100
 
     const { data: narudzba } = await supabaseAdmin

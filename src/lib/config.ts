@@ -49,8 +49,8 @@ export function formatCijena(iznos: number | null | undefined, currency = siteCo
 // Helper za PDV kalkulaciju
 // vpcijena = cijena BEZ PDV-a (osnovica), PDV se dodaje na nju
 // mpcijena = cijena SA PDV-om, PDV se izvlači iz nje
-export function calculateTotals(stavke: Array<{ cijena: number; qty: number; procPoreza: number }>) {
-  const tipCijene = process.env.NEXT_PUBLIC_TIP_CIJENE ?? 'vpcijena'
+export function calculateTotals(stavke: Array<{ cijena: number; qty: number; procPoreza: number }>, tipCijeneParam?: 'vpcijena' | 'mpcijena') {
+  const tipCijene = tipCijeneParam ?? process.env.NEXT_PUBLIC_TIP_CIJENE ?? 'vpcijena'
   let ukupnoBezPoreza = 0
   let ukupnoPorez = 0
 

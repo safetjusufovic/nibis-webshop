@@ -197,14 +197,14 @@ function CategorySidebar({ grupe, activeId, onSelect, sirina = 240, sidebarConfi
 }
 
 // ─── Product Table Row ─────────────────────────────────────────────────────────
-function ProductRow({ artikal, stanje, dugmeTekst = 'Dodaj', onLoginRequired, shopSlug = '' }: { artikal: Artikal; stanje: StanjeSkladista | null | undefined; dugmeTekst?: string; onLoginRequired?: () => void; shopSlug?: string }) {
+function ProductRow({ artikal, stanje, dugmeTekst = 'Dodaj', onLoginRequired, shopSlug = '', tipCijene = 'vpcijena' }: { artikal: Artikal; stanje: StanjeSkladista | null | undefined; dugmeTekst?: string; onLoginRequired?: () => void; shopSlug?: string; tipCijene?: 'vpcijena' | 'mpcijena' }) {
   const { cart, add } = useCart()
   const { rabat, user } = useAuth()
   const { favoriti, toggle: toggleFavorit } = useFavoriti()
   const [qty, setQty] = useState(1)
   const inCart = cart[artikal.id]?.qty ?? 0
 
-  const cijenaBase = stanje ? stanje[siteConfig.tipCijene] : artikal.planskaMaloprodajnaCijena ?? 0
+  const cijenaBase = stanje ? stanje[tipCijene] : (tipCijene === 'mpcijena' ? artikal.planskaMaloprodajnaCijena : artikal.planskaVeleprodajnaCijena) ?? artikal.planskaMaloprodajnaCijena ?? 0
   const akcijaPopust = (artikal as any).akcija_popust ?? 0
   const akcijaAktivna = akcijaPopust > 0 && (!(artikal as any).akcija_do || new Date((artikal as any).akcija_do) > new Date())
   const popust = akcijaAktivna ? akcijaPopust : rabat
@@ -577,6 +577,7 @@ function ScrollToTop() {
 
 // ─── Main Page ─────────────────────────────────────────────────────────────────
 export function ShopPage({ shopSlug = '' }: { shopSlug?: string }) {
+  const [tipCijene, setTipCijene] = useState<'vpcijena' | 'mpcijena'>('vpcijena')
   const [grupe, setGrupe] = useState<ArtikalGrupa[]>([])
   const [artikli, setArtikli] = useState<Artikal[]>([])
   const [stanje, setStanje] = useState<Record<number, StanjeSkladista>>({})
@@ -595,6 +596,14 @@ export function ShopPage({ shopSlug = '' }: { shopSlug?: string }) {
     { id: 'katalog', aktivan: true },
   ])
   const [sortBy, setSortBy] = useState('naziv')
+
+  // Učitaj tip cijene za shop (b2b=vpcijena default, b2c=mpcijena)
+  useEffect(() => {
+    fetch('/api/postavke?kljuci=tip_cijene' + (shopSlug ? '&shop=' + shopSlug : ''))
+      .then(r => r.json())
+      .then(d => { if (d.tip_cijene === 'mpcijena' || d.tip_cijene === 'mp') setTipCijene('mpcijena') })
+      .catch(() => {})
+  }, [shopSlug])
   const [sidebarSirina, setSidebarSirina] = useState(240)
   const [sidebarConfig, setSidebarConfig] = useState<{
     bojaPozadine: string
@@ -885,7 +894,7 @@ export function ShopPage({ shopSlug = '' }: { shopSlug?: string }) {
                             </td></tr>
                           )
                           : displayed.map(a => (
-                            <ProductRow shopSlug={shopSlug} key={a.id} artikal={a} stanje={stanje[a.id]} dugmeTekst={dugmeTekst} onLoginRequired={() => setShowLoginPrompt(true)} />
+                            <ProductRow shopSlug={shopSlug} tipCijene={tipCijene} key={a.id} artikal={a} stanje={stanje[a.id]} dugmeTekst={dugmeTekst} onLoginRequired={() => setShowLoginPrompt(true)} />
                           ))
                         }
                       </tbody>
@@ -917,7 +926,7 @@ export function ShopPage({ shopSlug = '' }: { shopSlug?: string }) {
                         </div>
                       )
                       : displayed.map(a => (
-                        <ProductCard key={a.id} artikal={a} stanje={stanje[a.id]} slika={(a as any).slika_url} shopSlug={shopSlug} />
+                        <ProductCard key={a.id} artikal={a} stanje={stanje[a.id]} slika={(a as any).slika_url} shopSlug={shopSlug} tipCijene={tipCijene} />
                       ))
                     }
                   </div>

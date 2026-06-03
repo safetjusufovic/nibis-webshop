@@ -17,6 +17,13 @@ interface CartDrawerProps {
 type OrderStatus = 'idle' | 'loading' | 'success' | 'error'
 
 export default function CartDrawer({ open, onClose , shopSlug = '' }: CartDrawerProps) {
+  const [tipCijene, setTipCijene] = useState<'vpcijena' | 'mpcijena'>('vpcijena')
+  useEffect(() => {
+    fetch('/api/postavke?kljuci=tip_cijene' + (shopSlug ? '&shop=' + shopSlug : ''))
+      .then(r => r.json())
+      .then(d => { if (d.tip_cijene === 'mpcijena' || d.tip_cijene === 'mp') setTipCijene('mpcijena') })
+      .catch(() => {})
+  }, [shopSlug])
   const { items, totalQty, setQty, remove, clear } = useCart()
   const { profil, rabat } = useAuth()
   const [status, setStatus] = useState<OrderStatus>('idle')
@@ -36,7 +43,8 @@ export default function CartDrawer({ open, onClose , shopSlug = '' }: CartDrawer
       cijena: cijenaZaKupca(i.cijena),
       qty: i.qty,
       procPoreza: i.artikal.procPoreza ?? 0,
-    }))
+    })),
+    tipCijene
   )
 
   async function handleSubmit() {

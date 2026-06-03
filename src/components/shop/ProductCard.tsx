@@ -27,6 +27,7 @@ interface Props {
   artikal: Artikal
   stanje: StanjeSkladista | null | undefined
   slika?: string
+  tipCijene?: 'vpcijena' | 'mpcijena'
 }
 
 function StockBadge({ stanje }: { stanje: StanjeSkladista | null | undefined }) {
@@ -38,7 +39,7 @@ function StockBadge({ stanje }: { stanje: StanjeSkladista | null | undefined }) 
   return <span className="badge-in-stock">Na stanju</span>
 }
 
-export default function ProductCard({ artikal, stanje, slika, shopSlug = '' }: Props) {
+export default function ProductCard({ artikal, stanje, slika, shopSlug = '', tipCijene = 'vpcijena' }: Props) {
   const { cart, add } = useCart()
   const { favoriti, toggle: toggleFavorit } = useFavoriti()
   const { rabat } = useAuth()
@@ -46,8 +47,8 @@ export default function ProductCard({ artikal, stanje, slika, shopSlug = '' }: P
   const [qty, setQty] = useState(1)
 
   const cijenaBase = stanje
-    ? stanje[siteConfig.tipCijene]
-    : artikal.planskaMaloprodajnaCijena ?? 0
+    ? stanje[tipCijene]
+    : (tipCijene === 'mpcijena' ? artikal.planskaMaloprodajnaCijena : artikal.planskaVeleprodajnaCijena) ?? artikal.planskaMaloprodajnaCijena ?? 0
 
   // Akcija popust (iz admina) ima prioritet nad partner rabatom
   const akcijaPopust = (artikal as any).akcija_popust ?? 0
