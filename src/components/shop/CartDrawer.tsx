@@ -18,10 +18,14 @@ type OrderStatus = 'idle' | 'loading' | 'success' | 'error'
 
 export default function CartDrawer({ open, onClose , shopSlug = '' }: CartDrawerProps) {
   const [tipCijene, setTipCijene] = useState<'vpcijena' | 'mpcijena'>('vpcijena')
+  const [onlinePlacanje, setOnlinePlacanje] = useState(false)
   useEffect(() => {
-    fetch('/api/postavke?kljuci=tip_cijene' + (shopSlug ? '&shop=' + shopSlug : ''))
+    fetch('/api/postavke?kljuci=tip_cijene,online_placanje' + (shopSlug ? '&shop=' + shopSlug : ''))
       .then(r => r.json())
-      .then(d => { if (d.tip_cijene === 'mpcijena' || d.tip_cijene === 'mp') setTipCijene('mpcijena') })
+      .then(d => {
+        if (d.tip_cijene === 'mpcijena' || d.tip_cijene === 'mp') setTipCijene('mpcijena')
+        if (d.online_placanje === 'true') setOnlinePlacanje(true)
+      })
       .catch(() => {})
   }, [shopSlug])
   const { items, totalQty, setQty, remove, clear } = useCart()
@@ -30,7 +34,7 @@ export default function CartDrawer({ open, onClose , shopSlug = '' }: CartDrawer
   const [orderRef, setOrderRef] = useState('')
   const [errorMsg, setErrorMsg] = useState('')
   const [napomena, setNapomena] = useState('')
-  const [nacinPlacanja, setNacinPlacanja] = useState<'Virman' | 'Gotovina' | 'Kartica'>('Virman')
+  const [nacinPlacanja, setNacinPlacanja] = useState<'Virman' | 'Gotovina' | 'Kartica' | 'Online kartica'>('Virman')
 
   // Provjeri je li artikl na aktivnoj akciji
   function naAkciji(artikal: any): boolean {
@@ -78,6 +82,50 @@ export default function CartDrawer({ open, onClose , shopSlug = '' }: CartDrawer
       // Uzmi JWT token za server-side autentikaciju
       const { data: { session } } = await supabase.auth.getSession()
       const token = session?.access_token ?? ''
+
+      // ── ONLINE PLAĆANJE (Monri) ── prvo plaćanje, pa narudžba u NIBIS (kroz callback)
+      if (nacinPlacanja === 'Online kartica' && onlinePlacanje) {
+        // Pripremi narudžba payload koji će callback poslati u NIBIS nakon uspješnog plaćanja
+        const narudzbaPayload = {
+          orgJedId: 1, // callback dohvaća pravi iz shopa
+          datum: new Date().toISOString(),
+          rbrAuto: true, rbr: null,
+          partnerId: (profil as any)?.partner_id ?? null,
+          externalId: 'WEB-' + Date.now(),
+          nacinPlacanja: 'Online kartica',
+          nacinOdredjivanjaCijene: 'StandardnaProdaja',
+          nacinObracunaPoreza: 'SaPorezom',
+          napomena: napomena || null,
+          stavke,
+          _korisnikId: session?.user?.id,
+        }
+        const initRes = await fetch('/api/placanje/init', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            shop: shopSlug || 'main',
+            amount: totals.ukupnoSaPorezom,
+            orderInfo: 'Narudžba (' + items.length + ' stavki)',
+            fullName: partnerNaziv || session?.user?.email || 'Kupac',
+            email: session?.user?.email || '',
+            narudzbaPayload,
+          }),
+        })
+        const initData = await initRes.json()
+        if (initData.error) throw new Error(initData.error)
+
+        // Submit form na Monri (redirect)
+        const form = document.createElement('form')
+        form.method = 'POST'
+        form.action = initData.actionUrl
+        Object.entries(initData.fields).forEach(([k, v]) => {
+          const input = document.createElement('input')
+          input.type = 'hidden'; input.name = k; input.value = String(v)
+          form.appendChild(input)
+        })
+        document.body.appendChild(form)
+        form.submit()
+        return // redirect na Monri
+      }
 
       const shopParam = shopSlug ? '?shop=' + shopSlug : ''
       const res = await fetch('/api/narudzba' + shopParam, {
@@ -244,6 +292,7 @@ export default function CartDrawer({ open, onClose , shopSlug = '' }: CartDrawer
                 <div>
                   <label className="text-xs text-gray-500 mb-1 block">Način plaćanja</label>
                   <select value={nacinPlacanja} onChange={e => setNacinPlacanja(e.target.value as any)} className="input text-sm">
+                    {onlinePlacanje && <option value="Online kartica">💳 Online kartica (plati odmah)</option>}
                     <option value="Virman">Virman</option>
                     <option value="Gotovina">Gotovina</option>
                     <option value="Kartica">Kartica</option>

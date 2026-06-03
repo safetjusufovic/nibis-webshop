@@ -29,6 +29,10 @@ const SECTIONS = [
     title: 'Katalog i narudžbe',
     keys: [
       { key: 'tip_cijene', label: 'Tip shopa (cijene)', type: 'select', options: [{ value: 'vpcijena', label: 'B2B — veleprodajne cijene (bez PDV-a)' }, { value: 'mpcijena', label: 'B2C — maloprodajne cijene (sa PDV-om)' }], placeholder: '' },
+      { key: 'online_placanje', label: 'Online plaćanje (Monri) — samo B2C', type: 'select', options: [{ value: 'false', label: 'Isključeno' }, { value: 'true', label: 'Uključeno' }], placeholder: '' },
+      { key: 'monri_merchant_key', label: 'Monri Merchant Key', type: 'text', placeholder: 'Tajni ključ iz Monri računa' },
+      { key: 'monri_authenticity_token', label: 'Monri Authenticity Token', type: 'text', placeholder: 'Token iz Monri računa' },
+      { key: 'monri_test', label: 'Monri test okruženje', type: 'select', options: [{ value: 'true', label: 'Test (ipgtest.monri.com)' }, { value: 'false', label: 'Produkcija (ipg.monri.com)' }], placeholder: '' },
       { key: 'announcement_bar', label: 'Poruka na vrhu stranice', type: 'text', placeholder: 'Npr. Besplatna dostava iznad 500 KM' },
       { key: 'min_narudzba', label: 'Minimalni iznos narudžbe (KM)', type: 'number', placeholder: '0' },
       { key: 'nacini_placanja', label: 'Načini plaćanja (odvojeni zarezom)', type: 'text', placeholder: 'Virman,Gotovina,Kartica' },
@@ -84,7 +88,7 @@ export default function AdminPostavkePage({ shopSlug = 'main' }: { shopSlug?: st
   const [saved, setSaved] = useState(false)
 
   useEffect(() => {
-    fetch('/api/postavke?kljuci=tip_cijene,shop_naziv,shop_email,shop_telefon,shop_adresa,shop_grad,shop_web,shop_pib,shop_pdv_broj,announcement_bar,baner_boja_pozadine,baner_boja_teksta,nacini_placanja,korpa_napomena,korpa_pdv_prikaz,min_narudzba,registracija_otvorena,registracija_poruka,email_potvrda_narudzba,email_admin_narudzba,email_admin_registracija,per_page,default_view,default_sort,artikal_prikaz_dvije_cijene,artikal_velep_label,artikal_malop_label,artikal_prikaz_pdv,artikal_prikaz_sifra,artikal_prikaz_kategorija,artikal_prikaz_barcode,artikal_dugme_tekst,artikal_badge_stanje,sidebar_sirina,sidebar_pozicija' + (shopSlug ? '&shop=' + shopSlug : '')).then(r => r.json()).then(data => {
+    fetch('/api/postavke?kljuci=tip_cijene,online_placanje,monri_merchant_key,monri_authenticity_token,monri_test,shop_naziv,shop_email,shop_telefon,shop_adresa,shop_grad,shop_web,shop_pib,shop_pdv_broj,announcement_bar,baner_boja_pozadine,baner_boja_teksta,nacini_placanja,korpa_napomena,korpa_pdv_prikaz,min_narudzba,registracija_otvorena,registracija_poruka,email_potvrda_narudzba,email_admin_narudzba,email_admin_registracija,per_page,default_view,default_sort,artikal_prikaz_dvije_cijene,artikal_velep_label,artikal_malop_label,artikal_prikaz_pdv,artikal_prikaz_sifra,artikal_prikaz_kategorija,artikal_prikaz_barcode,artikal_dugme_tekst,artikal_badge_stanje,sidebar_sirina,sidebar_pozicija' + (shopSlug ? '&shop=' + shopSlug : '')).then(r => r.json()).then(data => {
       const map: Record<string, string> = {}
       Object.entries(data || {}).forEach(([k, v]) => { if (v) map[k] = v as string })
       setPostavke(map)
