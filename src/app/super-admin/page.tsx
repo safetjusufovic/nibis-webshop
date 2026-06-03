@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import OnboardingWizard from '@/components/super-admin/OnboardingWizard'
+import RestAdapterEditor from '@/components/super-admin/RestAdapterEditor'
 import { Plus, Trash2, Eye, EyeOff, Globe, ExternalLink, RefreshCw, Settings, CheckCircle, XCircle, Clock } from 'lucide-react'
 
 interface Shop {
@@ -34,6 +35,8 @@ export default function SuperAdminPage() {
   const [loading, setLoading] = useState(true)
   const [creating, setCreating] = useState(false)
   const [wizardOpen, setWizardOpen] = useState(false)
+  const [restEditorShop, setRestEditorShop] = useState<any>(null)
+  const [restInitConfig, setRestInitConfig] = useState<any>(null)
   const [form, setForm] = useState<NewShop>(EMPTY)
   const [saving, setSaving] = useState(false)
   const [syncing, setSyncing] = useState<string | null>(null)
@@ -229,6 +232,16 @@ export default function SuperAdminPage() {
       <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '28px 32px' }}>
 
         {/* Forma za novi shop */}
+        {restEditorShop && (
+          <RestAdapterEditor
+            shopId={restEditorShop.id}
+            shopSlug={restEditorShop.slug}
+            initialConfig={restInitConfig}
+            onClose={() => setRestEditorShop(null)}
+            onSaved={() => { setRestEditorShop(null); load(); showToast('REST adapter sačuvan') }}
+          />
+        )}
+
         {wizardOpen && (
           <OnboardingWizard
             onClose={() => setWizardOpen(false)}
@@ -371,7 +384,24 @@ export default function SuperAdminPage() {
                         style={{ width: '100%', maxWidth: '300px', padding: '8px 10px', fontSize: '12px', border: '1px solid #E5E7EB', borderRadius: '7px', outline: 'none', fontFamily: 'inherit', background: 'white', cursor: 'pointer' }}>
                         <option value="nibis">NIBIS (NextVision)</option>
                         <option value="pantheon">Pantheon (Datalab)</option>
+                        <option value="custom_rest">Custom REST / OData (GUI)</option>
                       </select>
+                      {editApiData.erp_tip === 'custom_rest' && (
+                        <button onClick={async () => {
+                          // Učitaj postojeći config pa otvori editor
+                          let initCfg = null
+                          try {
+                            const r = await fetch('/api/super-admin/rest-config?shopId=' + s.id, { headers: H })
+                            const d = await r.json()
+                            initCfg = d.config
+                          } catch {}
+                          setRestInitConfig(initCfg)
+                          setRestEditorShop(s)
+                        }}
+                          style={{ marginTop: '8px', padding: '8px 14px', background: '#6366f1', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: 600 }}>
+                          ⚙ Konfiguriši REST adapter (GUI)
+                        </button>
+                      )}
                     </div>
                     {/* Pantheon-specifična polja */}
                     {editApiData.erp_tip === 'pantheon' && (
