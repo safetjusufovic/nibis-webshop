@@ -1,31 +1,82 @@
+import nodemailer from 'nodemailer'
+
+// Globalni SMTP (nextvision.ba) — fallback za shopove bez svojih postavki
+const SMTP_USER = process.env.SMTP_USER
+const SMTP_PASS = process.env.SMTP_PASS
+const SMTP_HOST = process.env.SMTP_HOST || 'smtp.gmail.com'
+const SMTP_PORT = parseInt(process.env.SMTP_PORT || '465')
 const RESEND_API_KEY = process.env.RESEND_API_KEY
-const FROM_EMAIL = process.env.EMAIL_FROM || 'onboarding@resend.dev'
+const FROM_EMAIL = process.env.EMAIL_FROM || SMTP_USER || 'onboarding@resend.dev'
 const ADMIN_EMAIL = process.env.EMAIL_ADMIN || ''
 
-async function sendEmail({ to, subject, html, from }: { to: string; subject: string; html: string; from?: string }): Promise<boolean> {
-  if (!RESEND_API_KEY) {
-    console.warn('[EMAIL] RESEND_API_KEY nije postavljen')
-    return false
-  }
-  if (!to) { console.warn('[EMAIL] Nema primaoca'); return false }
-  try {
-    const res = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: { 'Authorization': `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ from: from || FROM_EMAIL, to, subject, html }),
+// Per-shop SMTP postavke
+export interface ShopSmtp {
+  host?: string; port?: number; user?: string; pass?: string; from?: string
+}
+
+let globalTx: nodemailer.Transporter | null = null
+function getGlobalTransporter() {
+  if (!globalTx && SMTP_USER && SMTP_PASS) {
+    globalTx = nodemailer.createTransport({
+      host: SMTP_HOST, port: SMTP_PORT, secure: SMTP_PORT === 465,
+      auth: { user: SMTP_USER, pass: SMTP_PASS },
     })
-    if (!res.ok) console.error('[EMAIL] Resend odbio:', res.status, await res.text().catch(() => ''))
-    return res.ok
-  } catch (e) {
-    console.error('[EMAIL]', e)
-    return false
   }
+  return globalTx
+}
+
+async function sendEmail({ to, subject, html, from, smtp }: { to: string; subject: string; html: string; from?: string; smtp?: ShopSmtp }): Promise<boolean> {
+  if (!to) { console.warn('[EMAIL] Nema primaoca'); return false }
+
+  // 1. Shop-specifični SMTP (svaki shop svoje postavke)
+  if (smtp?.user && smtp?.pass) {
+    try {
+      const shopTx = nodemailer.createTransport({
+        host: smtp.host || 'smtp.gmail.com',
+        port: smtp.port || 465,
+        secure: (smtp.port || 465) === 465,
+        auth: { user: smtp.user, pass: smtp.pass },
+      })
+      await shopTx.sendMail({ from: smtp.from || smtp.user, to, subject, html })
+      return true
+    } catch (e) {
+      console.error('[EMAIL] Shop SMTP greška:', e)
+    }
+  }
+
+  // 2. Globalni SMTP (nextvision.ba fallback)
+  const tx = getGlobalTransporter()
+  if (tx) {
+    try {
+      await tx.sendMail({ from: from || FROM_EMAIL, to, subject, html })
+      return true
+    } catch (e) {
+      console.error('[EMAIL] Globalni SMTP greška:', e)
+    }
+  }
+
+  // 3. Resend fallback
+  if (RESEND_API_KEY) {
+    try {
+      const res = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ from: from || FROM_EMAIL, to, subject, html }),
+      })
+      return res.ok
+    } catch (e) {
+      console.error('[EMAIL]', e); return false
+    }
+  }
+
+  console.warn('[EMAIL] Nijedan email provider nije konfigurisan')
+  return false
 }
 
 export async function sendOrderConfirmation(opts: {
   toEmail: string; imeKupca: string; oznakaDokumenta: string
   ukupno: number; stavke: { naziv: string; kolicina: number; jedinicnaCijena: number }[]
-  nacinPlacanja: string; napomena?: string | null
+  nacinPlacanja: string; napomena?: string | null; smtp?: ShopSmtp
 }) {
   const stavkeHtml = opts.stavke.map(s =>
     `<tr><td style="padding:8px 0;color:#374151">${s.naziv}</td>
@@ -34,6 +85,7 @@ export async function sendOrderConfirmation(opts: {
   ).join('')
 
   return sendEmail({
+    smtp: opts.smtp,
     to: opts.toEmail,
     subject: `Narudžba ${opts.oznakaDokumenta} — potvrda`,
     html: `<div style="font-family:sans-serif;max-width:520px;margin:0 auto">
@@ -66,11 +118,12 @@ export async function sendOrderConfirmation(opts: {
 }
 
 export async function sendAdminOrderNotification(opts: {
-  oznakaDokumenta: string; partnerNaziv: string; korisnikIme: string; ukupno: number; stavkeCount: number; adminEmail?: string
+  oznakaDokumenta: string; partnerNaziv: string; korisnikIme: string; ukupno: number; stavkeCount: number; adminEmail?: string; smtp?: ShopSmtp
 }) {
   const primalac = opts.adminEmail || ADMIN_EMAIL
   if (!primalac) return false
   return sendEmail({
+    smtp: opts.smtp,
     to: primalac,
     subject: `Nova narudžba: ${opts.oznakaDokumenta}`,
     html: `<div style="font-family:sans-serif;max-width:400px">
@@ -84,8 +137,9 @@ export async function sendAdminOrderNotification(opts: {
   })
 }
 
-export async function sendAccountApproved(opts: { toEmail: string; imeKupca: string; shopName: string }) {
+export async function sendAccountApproved(opts: { toEmail: string; imeKupca: string; shopName: string; smtp?: ShopSmtp }) {
   return sendEmail({
+    smtp: opts.smtp,
     to: opts.toEmail,
     subject: `Vaš račun je odobren — ${opts.shopName}`,
     html: `<div style="font-family:sans-serif;max-width:400px">

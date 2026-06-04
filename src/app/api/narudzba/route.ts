@@ -76,6 +76,26 @@ export async function POST(req: NextRequest) {
       if (tcPostavka?.vrijednost === 'mpcijena' || tcPostavka?.vrijednost === 'mp') tipCijene = 'mpcijena'
     }
 
+    // SMTP postavke shopa (svaki shop svoje) + admin email
+    let shopSmtp: any = undefined
+    let shopAdminEmail: string | undefined = undefined
+    if (shopId) {
+      const { data: emailPostavke } = await supabaseAdmin
+        .from('postavke').select('kljuc, vrijednost').eq('shop_id', shopId)
+        .in('kljuc', ['smtp_host', 'smtp_port', 'smtp_user', 'smtp_pass', 'smtp_from', 'email_admin'])
+      const ep: Record<string, string> = {}
+      emailPostavke?.forEach((p: any) => { ep[p.kljuc] = p.vrijednost })
+      if (ep.smtp_user && ep.smtp_pass) {
+        shopSmtp = {
+          host: ep.smtp_host || 'smtp.gmail.com',
+          port: parseInt(ep.smtp_port || '465'),
+          user: ep.smtp_user, pass: ep.smtp_pass,
+          from: ep.smtp_from || ep.smtp_user,
+        }
+      }
+      shopAdminEmail = ep.email_admin || undefined
+    }
+
     // 3. Korisnik
     const { data: korisnik } = await supabaseAdmin
       .from('korisnici')
@@ -186,6 +206,7 @@ export async function POST(req: NextRequest) {
 
     Promise.all([
       sendOrderConfirmation({
+        smtp: shopSmtp,
         toEmail: userEmail,
         imeKupca,
         oznakaDokumenta: nibisResult?.oznakaDokumenta ?? ('NAR-' + externalId.slice(-8)),
@@ -195,6 +216,8 @@ export async function POST(req: NextRequest) {
         napomena: payload.napomena,
       }),
       sendAdminOrderNotification({
+        smtp: shopSmtp,
+        adminEmail: shopAdminEmail,
         oznakaDokumenta: nibisResult?.oznakaDokumenta ?? ('NAR-' + externalId.slice(-8)),
         partnerNaziv,
         korisnikIme: imeKupca,
