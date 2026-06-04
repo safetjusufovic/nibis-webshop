@@ -116,34 +116,41 @@ export async function POST(req: NextRequest) {
       stavke: body.stavke,
     }
 
-    // 4. Pošalji u NIBIS - koristi shop-specific config
-    const nibisResult = await createNarudzba(payload, nibisConfig)
-
-    // 5. Spremi u Supabase
+    // 4. Izračunaj totale (prije slanja - trebaju i ako NIBIS padne)
     let ukupnoBez = 0, ukupnoPorez = 0
     body.stavke.forEach((st: any) => {
       const total = st.kolicina * st.jedinicnaCijena
       const stopa = (st.poreskaStopa ?? 0) / 100
       if (tipCijene === 'mpcijena') {
-        // MP cijena je SA PDV-om - izvlačimo PDV
         const bez = total / (1 + stopa)
         ukupnoBez += bez
         ukupnoPorez += total - bez
       } else {
-        // VP cijena je BEZ PDV-a - dodajemo PDV
         ukupnoBez += total
         ukupnoPorez += total * stopa
       }
     })
     const ukupnoSa = Math.round((ukupnoBez + ukupnoPorez) * 100) / 100
 
+    // 5. Pošalji u NIBIS — ali ako padne, narudžba se SVEJEDNO sprema (kupac ne gubi)
+    let nibisResult: any = null
+    let nibisGreska: string | null = null
+    try {
+      nibisResult = await createNarudzba(payload, nibisConfig)
+    } catch (err: any) {
+      nibisGreska = err?.message || String(err)
+      console.error('[NARUDZBA] NIBIS pad:', nibisGreska)
+    }
+
+    // 6. Spremi u Supabase bez obzira na NIBIS
+    // Ako NIBIS uspio → status 'poslana'; ako pao → 'ceka_nibis' (ručna obrada)
     const { data: narudzba } = await supabaseAdmin
       .from('narudzbe')
       .insert({
         korisnik_id: user.id,
         partner_id: korisnik.partner_id,
-        nibis_id: nibisResult.id,
-        nibis_oznaka: nibisResult.oznakaDokumenta,
+        nibis_id: nibisResult?.id ?? null,
+        nibis_oznaka: nibisResult?.oznakaDokumenta ?? null,
         nibis_external_id: externalId,
         org_jed_id: orgJedId,
         ukupno_bez_poreza: Math.round(ukupnoBez * 100) / 100,
@@ -151,7 +158,8 @@ export async function POST(req: NextRequest) {
         ukupno_sa_porezom: ukupnoSa,
         nacin_placanja: payload.nacinPlacanja,
         napomena: payload.napomena,
-        status: 'poslana',
+        status: nibisResult ? 'poslana' : 'ceka_nibis',
+        greska: nibisGreska,
         ...(shopId && { shop_id: shopId }),
       })
       .select('id')
@@ -180,22 +188,32 @@ export async function POST(req: NextRequest) {
       sendOrderConfirmation({
         toEmail: userEmail,
         imeKupca,
-        oznakaDokumenta: nibisResult.oznakaDokumenta,
-        ukupno: nibisResult.ukupnoSaPorezom,
+        oznakaDokumenta: nibisResult?.oznakaDokumenta ?? ('NAR-' + externalId.slice(-8)),
+        ukupno: nibisResult?.ukupnoSaPorezom ?? ukupnoSa,
         stavke: body.stavke.map((s: any) => ({ naziv: s.naziv, kolicina: s.kolicina, jedinicnaCijena: s.jedinicnaCijena })),
         nacinPlacanja: payload.nacinPlacanja,
         napomena: payload.napomena,
       }),
       sendAdminOrderNotification({
-        oznakaDokumenta: nibisResult.oznakaDokumenta,
+        oznakaDokumenta: nibisResult?.oznakaDokumenta ?? ('NAR-' + externalId.slice(-8)),
         partnerNaziv,
         korisnikIme: imeKupca,
-        ukupno: nibisResult.ukupnoSaPorezom,
+        ukupno: nibisResult?.ukupnoSaPorezom ?? ukupnoSa,
         stavkeCount: body.stavke.length,
       }),
     ]).catch(e => console.error('[EMAIL]', e))
 
-    return NextResponse.json(nibisResult)
+    // Vrati uspjeh kupcu — narudžba je sigurno sačuvana (i ako NIBIS trenutno ne radi)
+    if (nibisResult) {
+      return NextResponse.json(nibisResult)
+    } else {
+      return NextResponse.json({
+        id: narudzba?.id ?? null,
+        oznakaDokumenta: 'NAR-' + externalId.slice(-8),
+        ukupnoSaPorezom: ukupnoSa,
+        _napomena: 'Narudžba je zaprimljena. Obrada u sistemu je u toku.',
+      })
+    }
   } catch (e) {
     return NextResponse.json({ error: String(e) }, { status: 502 })
   }

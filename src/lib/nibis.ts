@@ -64,6 +64,7 @@ async function nibisGet<T>(config: NibisConfig, path: string, params: ListParams
   const res = await fetch(url, {
     headers: headers(config.apiKey, config.companyYear ?? COMPANY_YEAR),
     cache: 'no-store',
+    signal: AbortSignal.timeout(8000),  // ne visi ako NIBIS ne odgovara
   })
   if (!res.ok) throw new Error(`NIBIS ${path} ${res.status}: ${await res.text()}`)
   return res.json()
@@ -97,6 +98,7 @@ export async function createNarudzba(narudzba: NarudzbaCreate, config = defaultC
     method: 'POST',
     headers: headers(config.apiKey, config.companyYear ?? COMPANY_YEAR),
     body: JSON.stringify(narudzba),
+    signal: AbortSignal.timeout(9000),  // narudžba ne smije visiti
   })
   if (!res.ok) throw new Error(`NIBIS narudzba ${res.status}: ${await res.text()}`)
   return res.json()
