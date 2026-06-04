@@ -157,6 +157,21 @@ export default function ProizvodPage() {
                   </span>
                 )}
               </div>
+              {/* Dodatni naziv (naziv2) ako postoji i razlikuje se od glavnog */}
+              {artikal.naziv2 && artikal.naziv2 !== artikal.naziv && (
+                <p style={{ fontSize: '15px', color: 'var(--text-muted)', margin: '10px 0 0', lineHeight: 1.5 }}>
+                  {artikal.naziv2}
+                </p>
+              )}
+              {/* Opis artikla iz ERP-a */}
+              {artikal.opis && (
+                <div style={{ marginTop: '16px', padding: '14px 16px', background: 'var(--surface)', borderRadius: '10px', border: '1px solid var(--border)' }}>
+                  <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Opis</div>
+                  <p style={{ fontSize: '14px', color: 'var(--text)', margin: 0, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
+                    {artikal.opis}
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Cijena */}
