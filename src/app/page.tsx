@@ -315,7 +315,7 @@ function SkeletonRow() {
 }
 
 // ─── Features sekcija ────────────────────────────────────────────────────────
-function FeaturesSekcija({ shopSlug = '' }: { shopSlug?: string }) {
+function FeaturesSekcija({ shopSlug = '', postavke = null }: { shopSlug?: string; postavke?: Record<string, string> | null }) {
   const [naslov, setNaslov] = useState('Zašto mi?')
   const [items, setItems] = useState([
     { ikona: '🚀', naslov: 'Brza isporuka', opis: 'Naredni radni dan' },
@@ -323,15 +323,16 @@ function FeaturesSekcija({ shopSlug = '' }: { shopSlug?: string }) {
     { ikona: '🔒', naslov: 'Sigurnost', opis: 'Zaštićene transakcije' },
   ])
 
+  // Koristi postavke iz prop-a (glavni fetch). Fetcha SAMO ako prop nije proslijeđen.
   useEffect(() => {
+    function apply(d: Record<string, string>) {
+      if (d.sekcija_features_naslov) setNaslov(d.sekcija_features_naslov)
+      if (d.sekcija_features_items) { try { setItems(JSON.parse(d.sekcija_features_items)) } catch {} }
+    }
+    if (postavke) { apply(postavke); return }
     fetch('/api/postavke?kljuci=sekcija_features_naslov,sekcija_features_items' + (shopSlug ? '&shop=' + shopSlug : ''))
-      .then(r => r.json()).then(d => {
-        if (d.sekcija_features_naslov) setNaslov(d.sekcija_features_naslov)
-        if (d.sekcija_features_items) {
-          try { setItems(JSON.parse(d.sekcija_features_items)) } catch {}
-        }
-      }).catch(() => {})
-  }, [])
+      .then(r => r.json()).then(apply).catch(() => {})
+  }, [postavke])
 
   return (
     <div style={{ background: 'white', borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)', padding: '48px 24px' }}>
@@ -352,15 +353,17 @@ function FeaturesSekcija({ shopSlug = '' }: { shopSlug?: string }) {
 }
 
 // ─── Promo Banner sekcija ──────────────────────────────────────────────────────
-function PromoBanner({ shopSlug = '' }: { shopSlug?: string }) {
+function PromoBanner({ shopSlug = '', postavke = null }: { shopSlug?: string; postavke?: Record<string, string> | null }) {
   const [cfg, setCfg] = useState({ tekst: '', podnaslov: '', dugme: '', boja: 'var(--brand)' })
 
   useEffect(() => {
+    function apply(d: Record<string, string>) {
+      setCfg({ tekst: d.sekcija_banner_tekst || '', podnaslov: d.sekcija_banner_podnaslov || '', dugme: d.sekcija_banner_dugme || '', boja: d.sekcija_banner_boja || 'var(--brand)' })
+    }
+    if (postavke) { apply(postavke); return }
     fetch('/api/postavke?kljuci=sekcija_banner_tekst,sekcija_banner_podnaslov,sekcija_banner_dugme,sekcija_banner_boja' + (shopSlug ? '&shop=' + shopSlug : ''))
-      .then(r => r.json()).then(d => {
-        setCfg({ tekst: d.sekcija_banner_tekst || '', podnaslov: d.sekcija_banner_podnaslov || '', dugme: d.sekcija_banner_dugme || '', boja: d.sekcija_banner_boja || 'var(--brand)' })
-      }).catch(() => {})
-  }, [])
+      .then(r => r.json()).then(apply).catch(() => {})
+  }, [postavke])
 
   if (!cfg.tekst) return null
 
@@ -380,16 +383,18 @@ function PromoBanner({ shopSlug = '' }: { shopSlug?: string }) {
 }
 
 // ─── Newsletter sekcija ────────────────────────────────────────────────────────
-function NewsletterSekcija({ shopSlug = '' }: { shopSlug?: string }) {
+function NewsletterSekcija({ shopSlug = '', postavke = null }: { shopSlug?: string; postavke?: Record<string, string> | null }) {
   const [cfg, setCfg] = useState({ naslov: '', podnaslov: '' })
   const [email, setEmail] = useState('')
 
   useEffect(() => {
+    function apply(d: Record<string, string>) {
+      setCfg({ naslov: d.sekcija_newsletter_naslov || '', podnaslov: d.sekcija_newsletter_podnaslov || '' })
+    }
+    if (postavke) { apply(postavke); return }
     fetch('/api/postavke?kljuci=sekcija_newsletter_naslov,sekcija_newsletter_podnaslov' + (shopSlug ? '&shop=' + shopSlug : ''))
-      .then(r => r.json()).then(d => {
-        setCfg({ naslov: d.sekcija_newsletter_naslov || '', podnaslov: d.sekcija_newsletter_podnaslov || '' })
-      }).catch(() => {})
-  }, [])
+      .then(r => r.json()).then(apply).catch(() => {})
+  }, [postavke])
 
   if (!cfg.naslov) return null
 
@@ -597,13 +602,6 @@ export function ShopPage({ shopSlug = '' }: { shopSlug?: string }) {
   ])
   const [sortBy, setSortBy] = useState('naziv')
 
-  // Učitaj tip cijene za shop (b2b=vpcijena default, b2c=mpcijena)
-  useEffect(() => {
-    fetch('/api/postavke?kljuci=tip_cijene' + (shopSlug ? '&shop=' + shopSlug : ''))
-      .then(r => r.json())
-      .then(d => { if (d.tip_cijene === 'mpcijena' || d.tip_cijene === 'mp') setTipCijene('mpcijena') })
-      .catch(() => {})
-  }, [shopSlug])
   const [sidebarSirina, setSidebarSirina] = useState(240)
   const [sidebarConfig, setSidebarConfig] = useState<{
     bojaPozadine: string
@@ -623,14 +621,20 @@ export function ShopPage({ shopSlug = '' }: { shopSlug?: string }) {
   const [searchFocused, setSearchFocused] = useState(false)
   const suggestTimer = useRef<NodeJS.Timeout | null>(null)
 
+  // Sve postavke iz glavnog fetcha — proslijeđuju se sekcijama da NE fetchaju ponovo
+  const [sekcijePostavke, setSekcijePostavke] = useState<Record<string, string> | null>(null)
+
   // Učitaj dinamičke postavke iz baze
   // BATCH LOAD — sve postavke + grupe u jednom Promise.all
   useEffect(() => {
     Promise.all([
-      fetch('/api/postavke?kljuci=default_view,per_page,artikal_dugme_tekst,shop_template,sidebar_sirina,sidebar_boja_pozadine,sidebar_visina_kategorije,sekcija_features_naslov,sekcija_features_items,sekcija_banner_tekst,sekcija_banner_podnaslov,sekcija_banner_dugme,sekcija_banner_boja,sekcija_newsletter_naslov,sekcija_newsletter_podnaslov,page_sekcije' + (shopSlug ? '&shop=' + shopSlug : '')).then(r => r.json()),
+      fetch('/api/postavke?kljuci=tip_cijene,default_view,per_page,artikal_dugme_tekst,shop_template,sidebar_sirina,sidebar_boja_pozadine,sidebar_visina_kategorije,sekcija_features_naslov,sekcija_features_items,sekcija_banner_tekst,sekcija_banner_podnaslov,sekcija_banner_dugme,sekcija_banner_boja,sekcija_newsletter_naslov,sekcija_newsletter_podnaslov,page_sekcije' + (shopSlug ? '&shop=' + shopSlug : '')).then(r => r.json()),
       fetch('/api/grupe' + (shopSlug ? '?shop=' + shopSlug : '')).then(r => r.json()),
     ]).then(([d, grupeData]) => {
+      // Spremi sve postavke za sekcije (da ne fetchaju ponovo)
+      setSekcijePostavke(d)
       // Postavke
+      if (d.tip_cijene === 'mpcijena' || d.tip_cijene === 'mp') setTipCijene('mpcijena')
       if (d.default_view === 'table' || d.default_view === 'grid') setViewMode(d.default_view)
       if (d.per_page) setPerPage(parseInt(d.per_page) || siteConfig.perPage)
       if (d.artikal_dugme_tekst) setDugmeTekst(d.artikal_dugme_tekst)
@@ -717,15 +721,6 @@ export function ShopPage({ shopSlug = '' }: { shopSlug?: string }) {
   useEffect(() => { loadArtikli() }, [loadArtikli])
 
   useEffect(() => {
-    fetch('/api/postavke?kljuci=page_sekcije')
-      .then(r => r.json()).then(d => {
-        if (d.page_sekcije) {
-          try { setPageSekcije(JSON.parse(d.page_sekcije)) } catch {}
-        }
-      }).catch(() => {})
-  }, [])
-
-  useEffect(() => {
     const t = setTimeout(() => { setSearch(searchInput); setPage(1) }, 350)
     return () => clearTimeout(t)
   }, [searchInput])
@@ -771,9 +766,9 @@ export function ShopPage({ shopSlug = '' }: { shopSlug?: string }) {
 
         {/* Ostale sekcije */}
         {pageSekcije.filter(s => s.aktivan && !['hero','akcije','katalog'].includes(s.id)).map(s => {
-          if (s.id === 'features') return <FeaturesSekcija key={s.id} />
-          if (s.id === 'banner') return <PromoBanner key={s.id} />
-          if (s.id === 'newsletter') return <NewsletterSekcija key={s.id} />
+          if (s.id === 'features') return <FeaturesSekcija key={s.id} shopSlug={shopSlug} postavke={sekcijePostavke} />
+          if (s.id === 'banner') return <PromoBanner key={s.id} shopSlug={shopSlug} postavke={sekcijePostavke} />
+          if (s.id === 'newsletter') return <NewsletterSekcija key={s.id} shopSlug={shopSlug} postavke={sekcijePostavke} />
           return null
         })}
 
