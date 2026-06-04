@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef, type DragEvent } from 'react'
 import Image from 'next/image'
 import { supabase } from '@/lib/supabase'
 import { Upload, Package, Search, X, Link as LinkIcon, CheckCircle, AlertCircle, Grid, List } from 'lucide-react'
@@ -27,6 +27,8 @@ export default function AdminSlikePage({ shopSlug = 'main' }: { shopSlug?: strin
   const [googleLoading, setGoogleLoading] = useState(false)
   const [googleQuery, setGoogleQuery] = useState('')
   const [galerija, setGalerija] = useState<{ id: string; url: string }[]>([])
+  const [dragOver, setDragOver] = useState(false)
+  const [pasteUrl, setPasteUrl] = useState('')
   const PER = 24
 
   function showToast(msg: string, ok = true) {
@@ -104,6 +106,33 @@ export default function AdminSlikePage({ shopSlug = 'main' }: { shopSlug?: strin
     // Ručna slika ima prioritet nad ERP slikom
     await supabase.from('artikli').update({ slika_url: url, slika_rucna: true }).eq('id', artikalId).eq('shop_id', sid)
     setArtikli(prev => prev.map(a => a.id === artikalId ? { ...a, slika_url: url, slika_rucna: true } : a))
+  }
+
+  // Upload fajla direktno u galeriju (drag-drop ili file picker)
+  async function uploadUGaleriju(artikalId: number, file: File) {
+    if (file.size > 8 * 1024 * 1024) { showToast('Slika prevelika (max 8MB)', false); return }
+    if (!file.type.startsWith('image/')) { showToast('Fajl nije slika', false); return }
+    try {
+      const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg'
+      const path = 'artikli/' + artikalId + '_' + Date.now() + '.' + ext
+      const { error } = await supabase.storage.from('slike').upload(path, file, { upsert: true, contentType: file.type })
+      if (error) { showToast('Greška pri uploadu', false); return }
+      const { data: urlData } = supabase.storage.from('slike').getPublicUrl(path)
+      await dodajUGaleriju(artikalId, urlData.publicUrl)
+    } catch { showToast('Greška pri uploadu', false) }
+  }
+
+  // Drag-drop handler — podržava i fajl s računara i URL iz drugog taba
+  async function handleDrop(e: DragEvent, artikalId: number) {
+    e.preventDefault(); setDragOver(false)
+    // Fajl s računara?
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      for (const file of Array.from(e.dataTransfer.files)) await uploadUGaleriju(artikalId, file)
+      return
+    }
+    // URL iz drugog taba (npr. Google slike)?
+    const url = e.dataTransfer.getData('text/uri-list') || e.dataTransfer.getData('text/plain')
+    if (url && /^https?:\/\//.test(url)) await dodajUGaleriju(artikalId, url)
   }
 
   // Učitaj galeriju artikla
@@ -415,8 +444,59 @@ export default function AdminSlikePage({ shopSlug = 'main' }: { shopSlug?: strin
                 </button>
               </div>
               <p style={{ fontSize: '11px', color: '#9CA3AF', margin: '6px 0 0' }}>
-                Klikni na sliku da je odabereš za artikal
+                Klikni na rezultat da ga dodaš u galeriju
               </p>
+
+              {/* Drag-drop zona */}
+              <div
+                onDragOver={e => { e.preventDefault(); setDragOver(true) }}
+                onDragLeave={() => setDragOver(false)}
+                onDrop={e => handleDrop(e, searchModal.artikalId)}
+                style={{
+                  marginTop: '12px', padding: '16px', borderRadius: '10px',
+                  border: dragOver ? '2px dashed var(--brand)' : '2px dashed #D1D5DB',
+                  background: dragOver ? 'var(--brand-pale)' : '#F9FAFB',
+                  textAlign: 'center', transition: 'all 0.15s',
+                }}
+              >
+                <Upload size={20} style={{ color: dragOver ? 'var(--brand)' : '#9CA3AF', margin: '0 auto 6px', display: 'block' }} />
+                <p style={{ fontSize: '12px', color: '#6B7280', margin: 0 }}>
+                  Prevuci sliku ovdje — s računara ili iz drugog taba (Google slike)
+                </p>
+                <label style={{ display: 'inline-block', marginTop: '8px', padding: '6px 14px', background: 'white', border: '1px solid #D1D5DB', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: 600, color: '#374151' }}>
+                  ili odaberi fajl
+                  <input type="file" accept="image/*" multiple style={{ display: 'none' }}
+                    onChange={async e => {
+                      if (e.target.files) for (const f of Array.from(e.target.files)) await uploadUGaleriju(searchModal.artikalId, f)
+                      e.target.value = ''
+                    }} />
+                </label>
+              </div>
+
+              {/* Paste URL s pretpregledom */}
+              <div style={{ marginTop: '10px', display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+                <div style={{ flex: 1 }}>
+                  <input type="text" value={pasteUrl} placeholder="ili zalijepi URL slike (https://...)"
+                    onChange={e => setPasteUrl(e.target.value)}
+                    style={{ width: '100%', padding: '8px 12px', fontSize: '12px', border: '1px solid #E5E7EB', borderRadius: '8px', outline: 'none', boxSizing: 'border-box' }} />
+                </div>
+                {pasteUrl && /^https?:\/\//.test(pasteUrl) && (
+                  <img src={pasteUrl} alt="" style={{ width: '40px', height: '40px', objectFit: 'contain', border: '1px solid #E5E7EB', borderRadius: '6px', background: 'white' }}
+                    onError={e => { (e.currentTarget as HTMLElement).style.opacity = '0.2' }} />
+                )}
+                <button onClick={async () => { if (pasteUrl) { await dodajUGaleriju(searchModal.artikalId, pasteUrl); setPasteUrl('') } }}
+                  disabled={!pasteUrl}
+                  style={{ padding: '8px 14px', background: pasteUrl ? 'var(--brand)' : '#D1D5DB', color: 'white', border: 'none', borderRadius: '8px', cursor: pasteUrl ? 'pointer' : 'default', fontSize: '12px', fontWeight: 600, flexShrink: 0 }}>
+                  Dodaj
+                </button>
+              </div>
+
+              {/* Otvori Google slike u novom tabu */}
+              <a href={'https://www.google.com/search?tbm=isch&q=' + encodeURIComponent(googleQuery || searchModal.naziv)}
+                target="_blank" rel="noopener noreferrer"
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', marginTop: '10px', fontSize: '12px', color: 'var(--brand)', textDecoration: 'none', fontWeight: 600 }}>
+                🔎 Otvori Google slike u novom tabu (pa prevuci sliku nazad)
+              </a>
             </div>
 
             {/* Results */}
