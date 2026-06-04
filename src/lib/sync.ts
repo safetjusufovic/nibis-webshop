@@ -1,5 +1,6 @@
 import { supabaseAdmin } from '@/lib/supabase'
 import { getArtikli, getGrupe, getStanje, getPartneri, defaultConfig, NibisConfig } from '@/lib/nibis'
+import { getErpAdapter, getShopErpConfig } from '@/lib/erp'
 
 const BATCH_SIZE = 50
 
@@ -203,11 +204,14 @@ export async function runSyncPartial(only: string, page: number, shopId?: string
 const CHUNK_SIZE = 100
 
 export async function syncChunk(shopId: string, what: string, page: number) {
-  const config = await getShopConfig(shopId)
-  const orgJedId = config.orgJedId || 1
+  // Adapter — NIBIS shop dobija NibisAdapter (isti rezultat kao prije),
+  // custom_rest shop dobija RestAdapter prema GUI konfiguraciji
+  const erpConfig = await getShopErpConfig(shopId)
+  const adapter = getErpAdapter(erpConfig)
+  const orgJedId = erpConfig.orgJedId || 1
 
   if (what === 'grupe') {
-    const data = await getGrupe({ page, perPage: CHUNK_SIZE }, config)
+    const data = await adapter.getGrupe({ page, perPage: CHUNK_SIZE })
     const rows = data.items.map(g => ({
       id: g.id, sifra: g.sifra, naziv: g.naziv, opis: g.opis,
       prefix: g.prefix, nivo: g.nivo, parent_id: g.parentId,
@@ -220,7 +224,7 @@ export async function syncChunk(shopId: string, what: string, page: number) {
   }
 
   if (what === 'artikli') {
-    const data = await getArtikli({ page, perPage: CHUNK_SIZE }, config)
+    const data = await adapter.getArtikli({ page, perPage: CHUNK_SIZE })
     const rows = data.items.map(a => ({
       id: a.id, sifra: a.sifra, barkod: a.barkod, naziv: a.naziv,
       naziv2: a.naziv2, opis: a.opis, aktivan: a.aktivan,
@@ -238,7 +242,7 @@ export async function syncChunk(shopId: string, what: string, page: number) {
   }
 
   if (what === 'stanje') {
-    const data = await getStanje(page, orgJedId, undefined, config)
+    const data = await adapter.getStanje(page, orgJedId, undefined)
     const rows = data.items.map(s => ({
       id: s.id, artikal_id: s.artikalId, org_jed_id: s.orgJedId,
       raspoloziva_kolicina: s.raspolozivaKolicina, nabavna_cijena: s.nabavnaCijena,
