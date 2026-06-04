@@ -130,9 +130,10 @@ export default function AdminSlikePage({ shopSlug = 'main' }: { shopSlug?: strin
       for (const file of Array.from(e.dataTransfer.files)) await uploadUGaleriju(artikalId, file)
       return
     }
-    // URL iz drugog taba (npr. Google slike)?
+    // URL iz drugog taba (npr. Google slike) — skini pa uploaduj u Storage
     const url = e.dataTransfer.getData('text/uri-list') || e.dataTransfer.getData('text/plain')
-    if (url && /^https?:\/\//.test(url)) await dodajUGaleriju(artikalId, url)
+    if (url && /^https?:\/\//.test(url)) await dodajVanjskiUrl(artikalId, url)
+    else if (url) showToast('Nije prepoznat URL slike', false)
   }
 
   // Učitaj galeriju artikla
@@ -149,6 +150,27 @@ export default function AdminSlikePage({ shopSlug = 'main' }: { shopSlug?: strin
   }
 
   // Dodaj sliku u galeriju artikla (više slika po artiklu)
+  // Vanjski URL: skini ga preko servera pa uploaduj u Storage (zaobilazi hotlink + Google zamotane URL-ove)
+  async function dodajVanjskiUrl(artikalId: number, url: string) {
+    try {
+      const res = await fetch('/api/slika-download', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url }),
+      })
+      const data = await res.json()
+      if (data.error) { showToast(data.error, false); return }
+      // Napravi File iz base64 i uploaduj
+      const bin = atob(data.data)
+      const bytes = new Uint8Array(bin.length)
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i)
+      const file = new File([bytes], 'slika.' + data.ext, { type: data.contentType })
+      await uploadUGaleriju(artikalId, file)
+    } catch {
+      showToast('Greška pri preuzimanju slike', false)
+    }
+  }
+
+  // Dodaj URL direktno u galeriju (samo za pouzdane URL-ove, npr. naše Storage slike)
   async function dodajUGaleriju(artikalId: number, url: string) {
     const res = await fetch('/api/artikal-slike', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -484,7 +506,7 @@ export default function AdminSlikePage({ shopSlug = 'main' }: { shopSlug?: strin
                   <img src={pasteUrl} alt="" style={{ width: '40px', height: '40px', objectFit: 'contain', border: '1px solid #E5E7EB', borderRadius: '6px', background: 'white' }}
                     onError={e => { (e.currentTarget as HTMLElement).style.opacity = '0.2' }} />
                 )}
-                <button onClick={async () => { if (pasteUrl) { await dodajUGaleriju(searchModal.artikalId, pasteUrl); setPasteUrl('') } }}
+                <button onClick={async () => { if (pasteUrl) { await dodajVanjskiUrl(searchModal.artikalId, pasteUrl); setPasteUrl('') } }}
                   disabled={!pasteUrl}
                   style={{ padding: '8px 14px', background: pasteUrl ? 'var(--brand)' : '#D1D5DB', color: 'white', border: 'none', borderRadius: '8px', cursor: pasteUrl ? 'pointer' : 'default', fontSize: '12px', fontWeight: 600, flexShrink: 0 }}>
                   Dodaj
@@ -571,8 +593,8 @@ export default function AdminSlikePage({ shopSlug = 'main' }: { shopSlug?: strin
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px' }}>
                   {googleResults.filter(r => !r.startsWith('__manual__')).map((url, i) => (
                     <button key={i} onClick={async () => {
-                      // Dodaj u galeriju (modal ostaje otvoren — možeš dodati više)
-                      await dodajUGaleriju(searchModal.artikalId, url)
+                      // Skini sliku pa uploaduj u Storage (modal ostaje otvoren)
+                      await dodajVanjskiUrl(searchModal.artikalId, url)
                     }}
                       style={{ padding: 0, border: '2px solid #E5E7EB', borderRadius: '10px', cursor: 'pointer', overflow: 'hidden', background: '#F9FAFB', aspectRatio: '1', transition: 'all 0.15s', position: 'relative' }}
                       onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--brand)'; (e.currentTarget as HTMLElement).style.transform = 'scale(1.02)' }}
