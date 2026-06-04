@@ -5,7 +5,7 @@ import { useParams } from 'next/navigation'
 import Header from '@/components/layout/Header'
 import Link from 'next/link'
 import { shopLink } from '@/lib/useShopLink'
-import { ShoppingCart, Heart, ChevronLeft, Package, Tag, Barcode, Layers, Check, X } from 'lucide-react'
+import { ShoppingCart, Heart, ChevronLeft, Package, Tag, Barcode, Layers, Check, X, Share2, Copy, Facebook } from 'lucide-react'
 import { useCart } from '@/hooks/useCart'
 import { useAuth } from '@/hooks/useAuth'
 import { useFavoriti } from '@/hooks/useFavoriti'
@@ -25,6 +25,27 @@ export default function ProizvodPage() {
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
   const [galerija, setGalerija] = useState<string[]>([])
   const [aktivnaSlika, setAktivnaSlika] = useState<string | null>(null)
+  const [shareOpen, setShareOpen] = useState(false)
+  const [linkKopiran, setLinkKopiran] = useState(false)
+
+  async function podijeli() {
+    const url = typeof window !== 'undefined' ? window.location.href : ''
+    const naslov = artikal?.naziv || 'Proizvod'
+    // Native share (mobilni) — otvara sistemski meni za dijeljenje
+    if (typeof navigator !== 'undefined' && (navigator as any).share) {
+      try { await (navigator as any).share({ title: naslov, url }); return } catch {}
+    }
+    // Desktop — otvori vlastiti meni
+    setShareOpen(o => !o)
+  }
+
+  async function kopirajLink() {
+    try {
+      await navigator.clipboard.writeText(window.location.href)
+      setLinkKopiran(true)
+      setTimeout(() => setLinkKopiran(false), 2000)
+    } catch {}
+  }
 
   useEffect(() => {
     if (!id) return
@@ -185,6 +206,37 @@ export default function ProizvodPage() {
                   <span style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '12px', color: 'var(--text-muted)' }}>
                     <Tag size={13} /> Barcode: <strong style={{ color: 'var(--text)', fontFamily: 'monospace' }}>{artikal.barcode}</strong>
                   </span>
+                )}
+              </div>
+
+              {/* Dijeli dugme */}
+              <div style={{ position: 'relative', marginTop: '14px' }}>
+                <button onClick={podijeli}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '7px', padding: '8px 14px', background: 'white', border: '1px solid var(--border)', borderRadius: '10px', cursor: 'pointer', fontSize: '13px', fontWeight: 600, color: 'var(--text)' }}>
+                  <Share2 size={15} /> Podijeli
+                </button>
+                {shareOpen && (
+                  <div style={{ position: 'absolute', top: '46px', left: 0, zIndex: 20, background: 'white', border: '1px solid var(--border)', borderRadius: '12px', boxShadow: '0 8px 24px rgba(0,0,0,0.12)', padding: '6px', minWidth: '200px' }}>
+                    <button onClick={() => { kopirajLink(); }}
+                      style={{ display: 'flex', alignItems: 'center', gap: '10px', width: '100%', padding: '10px 12px', background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px', color: 'var(--text)', borderRadius: '8px', textAlign: 'left' }}>
+                      {linkKopiran ? <Check size={15} style={{ color: '#16A34A' }} /> : <Copy size={15} />}
+                      {linkKopiran ? 'Link kopiran!' : 'Kopiraj link'}
+                    </button>
+                    <a href={'https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(typeof window !== 'undefined' ? window.location.href : '')}
+                      target="_blank" rel="noopener noreferrer"
+                      style={{ display: 'flex', alignItems: 'center', gap: '10px', width: '100%', padding: '10px 12px', textDecoration: 'none', fontSize: '13px', color: 'var(--text)', borderRadius: '8px' }}>
+                      <Facebook size={15} style={{ color: '#1877F2' }} /> Facebook
+                    </a>
+                    <a href={'https://wa.me/?text=' + encodeURIComponent((artikal?.naziv || '') + ' ' + (typeof window !== 'undefined' ? window.location.href : ''))}
+                      target="_blank" rel="noopener noreferrer"
+                      style={{ display: 'flex', alignItems: 'center', gap: '10px', width: '100%', padding: '10px 12px', textDecoration: 'none', fontSize: '13px', color: 'var(--text)', borderRadius: '8px' }}>
+                      <span style={{ fontSize: '15px' }}>💬</span> WhatsApp
+                    </a>
+                    <a href={'viber://forward?text=' + encodeURIComponent((artikal?.naziv || '') + ' ' + (typeof window !== 'undefined' ? window.location.href : ''))}
+                      style={{ display: 'flex', alignItems: 'center', gap: '10px', width: '100%', padding: '10px 12px', textDecoration: 'none', fontSize: '13px', color: 'var(--text)', borderRadius: '8px' }}>
+                      <span style={{ fontSize: '15px' }}>📞</span> Viber
+                    </a>
+                  </div>
                 )}
               </div>
               {/* Dodatni naziv (naziv2) ako postoji i razlikuje se od glavnog */}

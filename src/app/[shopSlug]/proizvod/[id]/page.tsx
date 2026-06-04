@@ -5,7 +5,7 @@ import { useParams } from 'next/navigation'
 import Header from '@/components/layout/Header'
 import Footer from '@/components/layout/Footer'
 import Link from 'next/link'
-import { ShoppingCart, Heart, ChevronLeft, Package, Tag, Barcode, Check, X } from 'lucide-react'
+import { ShoppingCart, Heart, ChevronLeft, Package, Tag, Barcode, Check, X, Share2, Copy, Facebook } from 'lucide-react'
 import { useCart } from '@/hooks/useCart'
 import { useAuth } from '@/hooks/useAuth'
 import { useFavoriti } from '@/hooks/useFavoriti'
@@ -109,6 +109,33 @@ export default function ProizvodPage() {
             <div style={{ display: 'flex', gap: '16px', marginBottom: '20px', flexWrap: 'wrap' }}>
               {artikal.sifra && <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', color: 'var(--text-muted)' }}><Tag size={12} /> {artikal.sifra}</span>}
               {artikal.barkod && <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', color: 'var(--text-muted)' }}><Barcode size={12} /> {artikal.barkod}</span>}
+            </div>
+
+            {/* Dijeli */}
+            <div style={{ position: 'relative', marginBottom: '20px' }}>
+              <button onClick={podijeli}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '7px', padding: '8px 14px', background: 'white', border: '1px solid var(--border)', borderRadius: '10px', cursor: 'pointer', fontSize: '13px', fontWeight: 600, color: 'var(--text)' }}>
+                <Share2 size={15} /> Podijeli
+              </button>
+              {shareOpen && (
+                <div style={{ position: 'absolute', top: '46px', left: 0, zIndex: 20, background: 'white', border: '1px solid var(--border)', borderRadius: '12px', boxShadow: '0 8px 24px rgba(0,0,0,0.12)', padding: '6px', minWidth: '200px' }}>
+                  <button onClick={kopirajLink}
+                    style={{ display: 'flex', alignItems: 'center', gap: '10px', width: '100%', padding: '10px 12px', background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px', color: 'var(--text)', borderRadius: '8px', textAlign: 'left' }}>
+                    {linkKopiran ? <Check size={15} style={{ color: '#16A34A' }} /> : <Copy size={15} />}
+                    {linkKopiran ? 'Link kopiran!' : 'Kopiraj link'}
+                  </button>
+                  <a href={'https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(typeof window !== 'undefined' ? window.location.href : '')}
+                    target="_blank" rel="noopener noreferrer"
+                    style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px', textDecoration: 'none', fontSize: '13px', color: 'var(--text)', borderRadius: '8px' }}>
+                    <Facebook size={15} style={{ color: '#1877F2' }} /> Facebook
+                  </a>
+                  <a href={'https://wa.me/?text=' + encodeURIComponent((artikal?.naziv || '') + ' ' + (typeof window !== 'undefined' ? window.location.href : ''))}
+                    target="_blank" rel="noopener noreferrer"
+                    style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px', textDecoration: 'none', fontSize: '13px', color: 'var(--text)', borderRadius: '8px' }}>
+                    <span style={{ fontSize: '15px' }}>💬</span> WhatsApp
+                  </a>
+                </div>
+              )}
             </div>
 
             {/* Opis artikla iz ERP-a */}
