@@ -8,7 +8,7 @@ import { ShoppingCart, Package, Plus, Heart } from 'lucide-react'
 import { useCart } from '@/hooks/useCart'
 import { useFavoriti } from '@/hooks/useFavoriti'
 import { useAuth } from '@/hooks/useAuth'
-import { formatCijena, siteConfig } from '@/lib/config'
+import { formatCijena, siteConfig, slikaSrc } from '@/lib/config'
 import type { Artikal, StanjeSkladista } from '@/types/nibis'
 
 function buildHref(shopSlug: string, path: string): string {
@@ -28,6 +28,7 @@ interface Props {
   stanje: StanjeSkladista | null | undefined
   slika?: string
   tipCijene?: 'vpcijena' | 'mpcijena'
+  slikaProxy?: boolean
 }
 
 function StockBadge({ stanje }: { stanje: StanjeSkladista | null | undefined }) {
@@ -39,7 +40,7 @@ function StockBadge({ stanje }: { stanje: StanjeSkladista | null | undefined }) 
   return <span className="badge-in-stock">Na stanju</span>
 }
 
-export default function ProductCard({ artikal, stanje, slika, shopSlug = '', tipCijene = 'vpcijena' }: Props) {
+export default function ProductCard({ artikal, stanje, slika, shopSlug = '', tipCijene = 'vpcijena', slikaProxy = false }: Props) {
   const { cart, add } = useCart()
   const { favoriti, toggle: toggleFavorit } = useFavoriti()
   const { rabat } = useAuth()
@@ -115,9 +116,9 @@ export default function ProductCard({ artikal, stanje, slika, shopSlug = '', tip
           flexShrink: 0,
         }}>
           <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            {slika ? (
+            {slikaSrc(slika, shopSlug, slikaProxy) ? (
               <Image
-                src={slika}
+                src={slikaSrc(slika, shopSlug, slikaProxy)!}
                 alt={artikal.naziv}
                 fill
                 style={{ objectFit: 'contain', padding: '12px', transition: 'transform 0.3s ease' }}

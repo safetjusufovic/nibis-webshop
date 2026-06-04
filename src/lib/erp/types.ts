@@ -27,6 +27,7 @@ export interface ErpArtikal {
   planskaMaloprodajnaCijena?: number
   planskaVeleprodajnaCijena?: number
   grupaId?: number | string | null
+  slikaUrl?: string | null
   dobavljac?: { naziv: string } | null
   proizvodjac?: { naziv: string } | null
   dateCreated?: string

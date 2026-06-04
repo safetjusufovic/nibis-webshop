@@ -21,7 +21,14 @@ export class NibisAdapter implements ErpAdapter {
 
   async getArtikli(params: ErpListParams): Promise<ErpListResult<ErpArtikal>> {
     const r = await nibis.getArtikli(params, this.config)
-    return { items: r.items as any, total: r.total }
+    // Normalizuj sliku — NIBIS može slati pod raznim imenima; ako config kaže koje polje, koristi to
+    const slikaPolje = (this.config as any).slikaPolje
+    const items = (r.items as any[]).map(a => {
+      const slikaUrl = a.slikaUrl ?? a.slika_url ?? a.imageUrl ?? a.ikonaUrl
+        ?? (slikaPolje ? a[slikaPolje] : null) ?? null
+      return { ...a, slikaUrl }
+    })
+    return { items: items as any, total: r.total }
   }
 
   async getGrupe(params: ErpListParams): Promise<ErpListResult<ErpGrupa>> {

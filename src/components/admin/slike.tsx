@@ -105,14 +105,7 @@ export default function AdminSlikePage({ shopSlug = 'main' }: { shopSlug?: strin
         await saveUrl(artikalId, urlData.publicUrl)
         showToast('Slika uploadovana!')
       } else {
-        // Fallback: spremi kao base64 direktno u bazu
-        const reader = new FileReader()
-        reader.onload = async ev => {
-          const dataUrl = ev.target?.result as string
-          await saveUrl(artikalId, dataUrl)
-          showToast('Slika sačuvana!')
-        }
-        reader.readAsDataURL(file)
+        showToast('Greška pri uploadu slike u Storage', false)
       }
     } catch {
       showToast('Greška pri uploadu', false)
@@ -122,15 +115,17 @@ export default function AdminSlikePage({ shopSlug = 'main' }: { shopSlug?: strin
 
   async function saveUrl(artikalId: number, url: string) {
     const sid = await getShopId()
-    await supabase.from('artikli').update({ slika_url: url }).eq('id', artikalId).eq('shop_id', sid)
-    setArtikli(prev => prev.map(a => a.id === artikalId ? { ...a, slika_url: url } : a))
+    // Ručna slika ima prioritet nad ERP slikom
+    await supabase.from('artikli').update({ slika_url: url, slika_rucna: true }).eq('id', artikalId).eq('shop_id', sid)
+    setArtikli(prev => prev.map(a => a.id === artikalId ? { ...a, slika_url: url, slika_rucna: true } : a))
   }
 
   async function removeSlika(artikalId: number) {
     const sid2 = await getShopId()
-    await supabase.from('artikli').update({ slika_url: null }).eq('id', artikalId).eq('shop_id', sid2)
-    setArtikli(prev => prev.map(a => a.id === artikalId ? { ...a, slika_url: null } : a))
-    showToast('Slika uklonjena')
+    // Ukloni ručnu — triger će vratiti ERP sliku ako postoji
+    await supabase.from('artikli').update({ slika_url: null, slika_rucna: false }).eq('id', artikalId).eq('shop_id', sid2)
+    setArtikli(prev => prev.map(a => a.id === artikalId ? { ...a, slika_url: null, slika_rucna: false } : a))
+    showToast('Ručna slika uklonjena (vraćena ERP slika ako postoji)')
   }
 
   async function saveUrlInput(artikalId: number) {

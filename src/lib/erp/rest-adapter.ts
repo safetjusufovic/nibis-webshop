@@ -72,6 +72,7 @@ export class RestAdapter implements ErpAdapter {
         planskaMaloprodajnaCijena: toNum(x.planskaMaloprodajnaCijena),
         planskaVeleprodajnaCijena: toNum(x.planskaVeleprodajnaCijena),
         grupaId: x.grupaId ?? null,
+        slikaUrl: x.slikaUrl ?? null,
       }
     })
     return { items, total }

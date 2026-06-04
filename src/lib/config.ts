@@ -74,3 +74,31 @@ export function calculateTotals(stavke: Array<{ cijena: number; qty: number; pro
     ukupnoSaPorezom: Math.round((ukupnoBezPoreza + ukupnoPorez) * 100) / 100,
   }
 }
+
+// ─── Slike: optimizacija i proxy ──────────────────────────────────────────────
+// Vraća URL spreman za prikaz. ERP slike (vanjske domene) idu kroz proxy
+// (rješava autentifikaciju + Next Image domain restrikciju).
+// Supabase/Cloudinary slike idu direktno (već optimizovane).
+export function slikaSrc(url: string | null | undefined, shopSlug = '', useProxy = false): string | null {
+  if (!url) return null
+
+  // Supabase Storage — dodaj transform za optimizaciju (resize + WebP + quality)
+  if (url.includes('.supabase.co/storage')) {
+    // Pretvori public URL u render URL s transformacijom
+    if (url.includes('/object/public/')) {
+      const transformed = url.replace('/object/public/', '/render/image/public/')
+      return transformed + (transformed.includes('?') ? '&' : '?') + 'width=600&quality=75'
+    }
+    return url
+  }
+
+  // Cloudinary — već se servira optimizovano
+  if (url.includes('res.cloudinary.com')) return url
+
+  // Vanjska ERP slika — kroz proxy (auth + domain)
+  if (useProxy && /^https?:\/\//.test(url)) {
+    return '/api/slika-proxy?url=' + encodeURIComponent(url) + (shopSlug ? '&shop=' + shopSlug : '')
+  }
+
+  return url
+}

@@ -70,7 +70,7 @@ export interface RestErpConfig {
 
 // Standardna polja koja se mogu mapirati (za GUI)
 export const STANDARD_FIELDS = {
-  artikli: ['id', 'sifra', 'barkod', 'naziv', 'naziv2', 'opis', 'aktivan', 'procPoreza', 'planskaMaloprodajnaCijena', 'planskaVeleprodajnaCijena', 'grupaId'],
+  artikli: ['id', 'sifra', 'barkod', 'naziv', 'naziv2', 'opis', 'aktivan', 'procPoreza', 'planskaMaloprodajnaCijena', 'planskaVeleprodajnaCijena', 'grupaId', 'slikaUrl'],
   grupe: ['id', 'sifra', 'naziv', 'parentId'],
   stanje: ['id', 'artikalId', 'raspolozivaKolicina', 'vpcijena', 'mpcijena', 'nabavnaCijena'],
   partneri: ['id', 'sifra', 'naziv', 'pdvBroj', 'grad', 'rabat'],

@@ -233,9 +233,11 @@ export async function syncChunk(shopId: string, what: string, page: number) {
       planska_veleprodajna_cijena: a.planskaVeleprodajnaCijena,
       grupa_id: a.grupaId, dobavljac_naziv: a.dobavljac?.naziv ?? null,
       proizvodjac_naziv: a.proizvodjac?.naziv ?? null,
+      slika_erp_url: a.slikaUrl ?? null,
       nibis_created: a.dateCreated, nibis_updated: a.dateModified,
       synced_at: new Date().toISOString(), shop_id: shopId,
     }))
+    // slika_url postavlja DB triger: ručna slika ima prioritet, inače ERP slika
     if (rows.length) await supabaseAdmin.from('artikli').upsert(rows, { onConflict: 'id,shop_id', ignoreDuplicates: false })
     const hasMore = page * CHUNK_SIZE < data.total
     return { what, page, synced: rows.length, total: data.total, hasMore, next: hasMore ? { what: 'artikli', page: page + 1 } : { what: 'stanje', page: 1 } }
