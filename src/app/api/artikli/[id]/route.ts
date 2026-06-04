@@ -18,7 +18,7 @@ export async function GET(
     .from('artikli')
     .select(`
       id, sifra, barkod, naziv, naziv2, opis,
-      proc_poreza, tar_broj, jedinica_mjere,
+      proc_poreza,
       planska_maloprodajna_cijena, planska_veleprodajna_cijena,
       slika_url, grupa_id,
       akcija_popust, akcija_do
@@ -27,7 +27,11 @@ export async function GET(
     .eq('shop_id', shopData.id)
     .single()
 
-  if (error || !data) {
+  if (error) {
+    console.error('[ARTIKAL]', error)
+    return NextResponse.json({ error: 'DB greška: ' + error.message }, { status: 500 })
+  }
+  if (!data) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 })
   }
 
@@ -48,8 +52,6 @@ export async function GET(
     naziv2: data.naziv2,
     opis: data.opis,
     procPoreza: data.proc_poreza,
-    tarBroj: data.tar_broj,
-    jedinicaMjere: data.jedinica_mjere,
     planskaMaloprodajnaCijena: data.planska_maloprodajna_cijena,
     planskaVeleprodajnaCijena: data.planska_veleprodajna_cijena,
     slika_url: data.slika_url,
