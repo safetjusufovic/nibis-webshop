@@ -116,10 +116,10 @@ export default function AdminSlikePage({ shopSlug = 'main' }: { shopSlug?: strin
       const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg'
       const path = 'artikli/' + artikalId + '_' + Date.now() + '.' + ext
       const { error } = await supabase.storage.from('slike').upload(path, file, { upsert: true, contentType: file.type })
-      if (error) { showToast('Greška pri uploadu', false); return }
+      if (error) { showToast('Storage: ' + error.message, false); return }
       const { data: urlData } = supabase.storage.from('slike').getPublicUrl(path)
       await dodajUGaleriju(artikalId, urlData.publicUrl)
-    } catch { showToast('Greška pri uploadu', false) }
+    } catch (e: any) { showToast('Upload greška: ' + (e?.message || 'nepoznato'), false) }
   }
 
   // Drag-drop handler — podržava i fajl s računara i URL iz drugog taba
