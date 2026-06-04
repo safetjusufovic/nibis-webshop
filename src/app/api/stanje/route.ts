@@ -40,7 +40,9 @@ export async function GET(req: NextRequest) {
       mpcijena: s.mpcijena,
     }))
 
-    return NextResponse.json({ items, total: items.length })
+    return NextResponse.json({ items, total: items.length }, {
+      headers: { 'Cache-Control': 'public, s-maxage=15, stale-while-revalidate=60' }
+    })
   } catch (e: any) {
     console.error('[STANJE]', e)
     return NextResponse.json({ items: [], total: 0, error: e.message }, { status: 500 })

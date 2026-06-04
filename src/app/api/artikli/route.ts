@@ -1,6 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 
+// Keš shop slug -> id (u memoriji, dok je instanca topla)
+const shopIdCache = new Map<string, { id: string | null; ts: number }>()
+const SHOP_CACHE_MS = 60_000
+
+async function resolveShopId(shopSlug: string): Promise<string | null> {
+  const cached = shopIdCache.get(shopSlug)
+  if (cached && Date.now() - cached.ts < SHOP_CACHE_MS) return cached.id
+  const { data } = await supabaseAdmin
+    .from('shopovi').select('id').eq('slug', shopSlug).eq('status', 'aktivan').single()
+  const id = data?.id || null
+  shopIdCache.set(shopSlug, { id, ts: Date.now() })
+  return id
+}
+
 export async function GET(req: NextRequest) {
   const sp = req.nextUrl.searchParams
   const page = parseInt(sp.get('page') ?? '1')
@@ -11,15 +25,9 @@ export async function GET(req: NextRequest) {
   const akcija = sp.get('akcija') === 'true'
   const shopSlug = sp.get('shop') || 'main'
 
-  // Uvijek filtriraj po shop_id - svaki shop ima vlastite artikle
-  const { data: shopData } = await supabaseAdmin
-    .from('shopovi')
-    .select('id')
-    .eq('slug', shopSlug)
-    .eq('status', 'aktivan')
-    .single()
-  
-  if (!shopData?.id) {
+  // Uvijek filtriraj po shop_id - svaki shop ima vlastite artikle (keširan lookup)
+  const shopId = await resolveShopId(shopSlug)
+  if (!shopId) {
     return NextResponse.json({ items: [], total: 0 })
   }
 
@@ -28,7 +36,7 @@ export async function GET(req: NextRequest) {
     .select('id, sifra, barkod, naziv, naziv2, proc_poreza, planska_maloprodajna_cijena, planska_veleprodajna_cijena, slika_url, grupa_id, akcija_popust, akcija_do, aktivan, webshop_aktivan', { count: 'exact' })
     .eq('aktivan', true)
     .eq('webshop_aktivan', true)
-    .eq('shop_id', shopData.id)
+    .eq('shop_id', shopId)
 
   if (search) query = query.or(`naziv.ilike.%${search}%,sifra.ilike.%${search}%,barkod.ilike.%${search}%`)
   if (grupaId) query = query.eq('grupa_id', grupaId)
@@ -54,7 +62,7 @@ export async function GET(req: NextRequest) {
   if (grupaIds.length) {
     const { data: grupe } = await supabaseAdmin
       .from('grupe').select('id, naziv')
-      .eq('shop_id', shopData.id)
+      .eq('shop_id', shopId)
       .in('id', grupaIds)
     grupe?.forEach((g: any) => { grupaMap[g.id] = g })
   }
@@ -76,5 +84,7 @@ export async function GET(req: NextRequest) {
     grupa: grupaMap[a.grupa_id] ?? null,
   }))
 
-  return NextResponse.json({ items, total: count ?? 0 })
+  return NextResponse.json({ items, total: count ?? 0 }, {
+    headers: { 'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=120' }
+  })
 }
