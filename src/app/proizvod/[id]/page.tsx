@@ -23,6 +23,8 @@ export default function ProizvodPage() {
   const { rabat, user } = useAuth()
   const { favoriti, toggle: toggleFavorit } = useFavoriti()
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
+  const [galerija, setGalerija] = useState<string[]>([])
+  const [aktivnaSlika, setAktivnaSlika] = useState<string | null>(null)
 
   useEffect(() => {
     if (!id) return
@@ -31,6 +33,16 @@ export default function ProizvodPage() {
       .then(a => {
         if (!a || a.error) { setLoading(false); return }
         setArtikal(a)
+        setAktivnaSlika(a.slika_url || null)
+        // Dohvati galeriju (sve slike artikla)
+        fetch('/api/artikal-slike?artikal=' + id + '&shop=main')
+          .then(r => r.ok ? r.json() : null)
+          .then(g => {
+            const urls = (g?.slike || []).map((s: any) => s.url)
+            // Ako galerija prazna a ima glavnu sliku, koristi nju
+            if (urls.length > 0) setGalerija(urls)
+            else if (a.slika_url) setGalerija([a.slika_url])
+          }).catch(() => { if (a.slika_url) setGalerija([a.slika_url]) })
         return fetch('/api/stanje?ids=' + id + '&shop=main').then(r => r.ok ? r.json() : null)
       })
       .then(s => {
@@ -119,8 +131,8 @@ export default function ProizvodPage() {
           {/* Slika */}
           <div style={{ position: 'sticky', top: '80px' }}>
             <div style={{ background: 'white', borderRadius: '20px', border: '1px solid var(--border)', aspectRatio: '1', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', padding: '32px', position: 'relative' }}>
-              {slika ? (
-                <img src={slika} alt={artikal.naziv} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
+              {(aktivnaSlika || slika) ? (
+                <img src={aktivnaSlika || slika} alt={artikal.naziv} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', color: 'var(--border)' }}>
                   <Package size={64} />
@@ -133,6 +145,24 @@ export default function ProizvodPage() {
                 </div>
               )}
             </div>
+
+            {/* Thumbnaili galerije - prikaži samo ako ima više od jedne slike */}
+            {galerija.length > 1 && (
+              <div style={{ display: 'flex', gap: '10px', marginTop: '16px', flexWrap: 'wrap' }}>
+                {galerija.map((url, i) => (
+                  <button key={i} onClick={() => setAktivnaSlika(url)}
+                    style={{
+                      width: '72px', height: '72px', padding: '6px', cursor: 'pointer',
+                      background: 'white', borderRadius: '12px',
+                      border: (aktivnaSlika || slika) === url ? '2px solid var(--brand)' : '1px solid var(--border)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
+                      transition: 'border-color 0.15s',
+                    }}>
+                    <img src={url} alt="" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Info */}

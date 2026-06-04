@@ -111,6 +111,14 @@ export default function ProizvodPage() {
               {artikal.barkod && <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', color: 'var(--text-muted)' }}><Barcode size={12} /> {artikal.barkod}</span>}
             </div>
 
+            {/* Opis artikla iz ERP-a */}
+            {artikal.opis && (
+              <div style={{ marginBottom: '20px', padding: '14px 16px', background: 'var(--surface)', borderRadius: '12px', border: '1px solid var(--border)' }}>
+                <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Opis</div>
+                <p style={{ fontSize: '14px', color: 'var(--text)', margin: 0, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{artikal.opis}</p>
+              </div>
+            )}
+
             {/* Cijena */}
             <div style={{ background: 'var(--surface)', borderRadius: '12px', padding: '16px 20px', marginBottom: '20px', border: '1px solid var(--border)' }}>
               <div style={{ fontSize: '32px', fontWeight: 800, color: 'var(--brand)', letterSpacing: '-0.02em' }}>{formatCijena(finalCijena)}</div>
