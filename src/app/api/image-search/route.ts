@@ -4,60 +4,32 @@ export async function GET(req: NextRequest) {
   const q = req.nextUrl.searchParams.get('q') || ''
   if (!q) return NextResponse.json({ images: [] })
 
-  try {
-    // Opcija 1: Google Custom Search API (ako je konfigurisan)
-    const apiKey = process.env.GOOGLE_API_KEY
-    const cx = process.env.GOOGLE_CX
+  const apiKey = process.env.GOOGLE_API_KEY
+  const cx = process.env.GOOGLE_CX
 
-    if (apiKey && cx) {
+  // Google Custom Search (preporučeno - pouzdano)
+  if (apiKey && cx) {
+    try {
       const res = await fetch(
-        `https://www.googleapis.com/customsearch/v1?key=${apiKey}&cx=${cx}&q=${encodeURIComponent(q)}&searchType=image&num=10&imgSize=medium&safe=active`
+        `https://www.googleapis.com/customsearch/v1?key=${apiKey}&cx=${cx}&q=${encodeURIComponent(q)}&searchType=image&num=10&imgSize=medium&imgType=photo&safe=active`
       )
       const data = await res.json()
+      if (data.error) {
+        // Vrati jasnu grešku da admin zna šta nije u redu
+        return NextResponse.json({
+          images: [],
+          error: 'Google API: ' + (data.error.message || 'greška'),
+        })
+      }
       const images = (data.items || []).map((item: any) => item.link).filter(Boolean)
       return NextResponse.json({ images, source: 'google' })
+    } catch (e: any) {
+      return NextResponse.json({ images: [], error: 'Google poziv pao: ' + e.message })
     }
+  }
 
-    // Opcija 2: DuckDuckGo Image Search (besplatno, bez API ključa)
-    const ddgRes = await fetch(
-      `https://duckduckgo.com/?q=${encodeURIComponent(q + ' product photo')}&iax=images&ia=images&format=json`,
-      {
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-          'Accept': 'text/html,application/xhtml+xml',
-        }
-      }
-    )
-
-    if (ddgRes.ok) {
-      const text = await ddgRes.text()
-      // Izvuci image URLs iz DDG odgovora
-      const vqdMatch = text.match(/vqd=([\d-]+)/)
-      if (vqdMatch) {
-        const vqd = vqdMatch[1]
-        const imgRes = await fetch(
-          `https://duckduckgo.com/i.js?l=us-en&o=json&q=${encodeURIComponent(q + ' product')}&vqd=${vqd}&f=,,,,,&p=1`,
-          {
-            headers: {
-              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-              'Referer': 'https://duckduckgo.com/',
-            }
-          }
-        )
-        if (imgRes.ok) {
-          const imgData = await imgRes.json()
-          const images = (imgData.results || [])
-            .slice(0, 12)
-            .map((r: any) => r.thumbnail || r.image)
-            .filter(Boolean)
-          if (images.length > 0) {
-            return NextResponse.json({ images, source: 'duckduckgo' })
-          }
-        }
-      }
-    }
-
-    // Opcija 3: Bing Image Search (scraping)
+  // Bez Google ključeva - pokušaj Bing scraping (manje pouzdano)
+  try {
     const bingRes = await fetch(
       `https://www.bing.com/images/search?q=${encodeURIComponent(q)}&form=HDRSC2&first=1&count=12`,
       {
@@ -68,10 +40,8 @@ export async function GET(req: NextRequest) {
         }
       }
     )
-
     if (bingRes.ok) {
       const html = await bingRes.text()
-      // Izvuci murl (media URL) vrijednosti
       const murls: string[] = []
       const murlRegex = /"murl":"([^"]+)"/g
       let match
@@ -81,13 +51,12 @@ export async function GET(req: NextRequest) {
           if (url.startsWith('http')) murls.push(url)
         } catch {}
       }
-      if (murls.length > 0) {
-        return NextResponse.json({ images: murls, source: 'bing' })
-      }
+      if (murls.length > 0) return NextResponse.json({ images: murls, source: 'bing' })
     }
+  } catch {}
 
-    return NextResponse.json({ images: [], source: 'none' })
-  } catch (err) {
-    return NextResponse.json({ images: [], error: 'Search failed' })
-  }
+  return NextResponse.json({
+    images: [],
+    error: 'Google API ključevi nisu postavljeni (GOOGLE_API_KEY, GOOGLE_CX), a Bing fallback nije vratio rezultate.',
+  })
 }

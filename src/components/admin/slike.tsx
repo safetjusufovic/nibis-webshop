@@ -26,6 +26,7 @@ export default function AdminSlikePage({ shopSlug = 'main' }: { shopSlug?: strin
   const [googleResults, setGoogleResults] = useState<string[]>([])
   const [googleLoading, setGoogleLoading] = useState(false)
   const [googleQuery, setGoogleQuery] = useState('')
+  const [galerija, setGalerija] = useState<{ id: string; url: string }[]>([])
   const PER = 24
 
   function showToast(msg: string, ok = true) {
@@ -38,33 +39,18 @@ export default function AdminSlikePage({ shopSlug = 'main' }: { shopSlug?: strin
     setGoogleLoading(true)
     setGoogleResults([])
     try {
-      // Koristimo Google Custom Search API ili fallback na scraping
-      const apiKey = process.env.NEXT_PUBLIC_GOOGLE_API_KEY
-      const cx = process.env.NEXT_PUBLIC_GOOGLE_CX
-      if (apiKey && cx) {
-        const res = await fetch(
-          'https://www.googleapis.com/customsearch/v1?key=' + apiKey +
-          '&cx=' + cx +
-          '&q=' + encodeURIComponent(query) +
-          '&searchType=image&num=10&imgSize=medium&imgType=photo&safe=active'
-        )
-        const data = await res.json()
-        const urls = (data.items || []).map((item: any) => item.link).filter(Boolean)
-        setGoogleResults(urls)
+      // Uvijek kroz server rutu — Google ključevi rade server-side (nema CORS, ključ skriven)
+      const res = await fetch('/api/image-search?q=' + encodeURIComponent(query))
+      const data = await res.json()
+      if (data.images && data.images.length > 0) {
+        setGoogleResults(data.images)
       } else {
-        // Fallback: Bing Image Search scraping kroz API rute
-        const res = await fetch('/api/image-search?q=' + encodeURIComponent(query))
-        if (res.ok) {
-          const data = await res.json()
-          setGoogleResults(data.images || [])
-        } else {
-          // Drugi fallback: predloži DuckDuckGo URL-ove
-          const duckUrl = 'https://duckduckgo.com/?q=' + encodeURIComponent(query + ' product') + '&iax=images&ia=images'
-          setGoogleResults(['__manual__' + duckUrl])
-        }
+        setGoogleResults([])
+        showToast(data.error || 'Nema rezultata. Provjeri Google API ključeve u postavkama.', false)
       }
     } catch {
       setGoogleResults([])
+      showToast('Greška pri pretrazi slika', false)
     }
     setGoogleLoading(false)
   }
@@ -118,6 +104,33 @@ export default function AdminSlikePage({ shopSlug = 'main' }: { shopSlug?: strin
     // Ručna slika ima prioritet nad ERP slikom
     await supabase.from('artikli').update({ slika_url: url, slika_rucna: true }).eq('id', artikalId).eq('shop_id', sid)
     setArtikli(prev => prev.map(a => a.id === artikalId ? { ...a, slika_url: url, slika_rucna: true } : a))
+  }
+
+  // Učitaj galeriju artikla
+  async function ucitajGaleriju(artikalId: number) {
+    const res = await fetch('/api/artikal-slike?artikal=' + artikalId + '&shop=' + shopSlug)
+    const data = await res.json()
+    setGalerija(data.slike || [])
+  }
+
+  async function obrisiIzGalerije(id: string) {
+    await fetch('/api/artikal-slike?id=' + id + '&shop=' + shopSlug, { method: 'DELETE' })
+    setGalerija(prev => prev.filter(s => s.id !== id))
+    showToast('Slika uklonjena iz galerije')
+  }
+
+  // Dodaj sliku u galeriju artikla (više slika po artiklu)
+  async function dodajUGaleriju(artikalId: number, url: string) {
+    const res = await fetch('/api/artikal-slike', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ artikal: artikalId, shop: shopSlug, url }),
+    })
+    const data = await res.json()
+    if (data.error) { showToast(data.error, false); return }
+    // Ako je prva slika u galeriji, postaje i glavna
+    setArtikli(prev => prev.map(a => a.id === artikalId && !a.slika_url ? { ...a, slika_url: url } : a))
+    if (data.slika) setGalerija(prev => [...prev, data.slika])
+    showToast('Dodano u galeriju!')
   }
 
   async function removeSlika(artikalId: number) {
@@ -272,7 +285,7 @@ export default function AdminSlikePage({ shopSlug = 'main' }: { shopSlug?: strin
                     <LinkIcon size={10} />
                   </button>
                   {/* Google pretraga */}
-                  <button onClick={() => { setSearchModal({ artikalId: a.id, naziv: a.naziv }); setGoogleQuery(a.naziv); setGoogleResults([]); }}
+                  <button onClick={() => { setSearchModal({ artikalId: a.id, naziv: a.naziv }); setGoogleQuery(a.naziv); setGoogleResults([]); ucitajGaleriju(a.id); }}
                     title="Pretraži sliku na Google"
                     style={{ padding: '5px 7px', background: '#FFF7ED', color: '#EA580C', border: '1px solid #FED7AA', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
                     <span style={{ fontSize: '10px' }}>🔍</span>
@@ -408,6 +421,25 @@ export default function AdminSlikePage({ shopSlug = 'main' }: { shopSlug?: strin
 
             {/* Results */}
             <div style={{ flex: 1, overflow: 'auto', padding: '16px 20px' }}>
+              {/* Postojeća galerija artikla */}
+              {galerija.length > 0 && (
+                <div style={{ marginBottom: '20px' }}>
+                  <div style={{ fontSize: '12px', fontWeight: 700, color: '#374151', marginBottom: '10px' }}>
+                    Slike u galeriji ({galerija.length}) — prva je glavna
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px' }}>
+                    {galerija.map((s, i) => (
+                      <div key={s.id} style={{ position: 'relative', border: i === 0 ? '2px solid var(--brand)' : '2px solid #E5E7EB', borderRadius: '10px', overflow: 'hidden', aspectRatio: '1', background: '#F9FAFB' }}>
+                        <img src={s.url} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain', padding: '6px' }} />
+                        {i === 0 && <span style={{ position: 'absolute', top: '4px', left: '4px', background: 'var(--brand)', color: 'white', fontSize: '9px', fontWeight: 700, padding: '2px 6px', borderRadius: '4px' }}>GLAVNA</span>}
+                        <button onClick={() => obrisiIzGalerije(s.id)}
+                          style={{ position: 'absolute', top: '4px', right: '4px', background: 'rgba(220,38,38,0.9)', color: 'white', border: 'none', borderRadius: '6px', width: '22px', height: '22px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px' }}>×</button>
+                      </div>
+                    ))}
+                  </div>
+                  <div style={{ height: '1px', background: '#E5E7EB', margin: '16px 0' }} />
+                </div>
+              )}
               {googleLoading && (
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px' }}>
                   {Array(8).fill(0).map((_, i) => (
@@ -459,9 +491,8 @@ export default function AdminSlikePage({ shopSlug = 'main' }: { shopSlug?: strin
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px' }}>
                   {googleResults.filter(r => !r.startsWith('__manual__')).map((url, i) => (
                     <button key={i} onClick={async () => {
-                      await saveUrl(searchModal.artikalId, url)
-                      showToast('Slika sačuvana!')
-                      setSearchModal(null)
+                      // Dodaj u galeriju (modal ostaje otvoren — možeš dodati više)
+                      await dodajUGaleriju(searchModal.artikalId, url)
                     }}
                       style={{ padding: 0, border: '2px solid #E5E7EB', borderRadius: '10px', cursor: 'pointer', overflow: 'hidden', background: '#F9FAFB', aspectRatio: '1', transition: 'all 0.15s', position: 'relative' }}
                       onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--brand)'; (e.currentTarget as HTMLElement).style.transform = 'scale(1.02)' }}
@@ -476,7 +507,7 @@ export default function AdminSlikePage({ shopSlug = 'main' }: { shopSlug?: strin
                       >
                         <span style={{ background: 'var(--brand)', color: 'white', fontSize: '11px', fontWeight: 700, padding: '4px 10px', borderRadius: '100px', opacity: 0, transition: 'opacity 0.15s' }}
                           className="select-label"
-                        >Odaberi</span>
+                        >+ Dodaj</span>
                       </div>
                     </button>
                   ))}
