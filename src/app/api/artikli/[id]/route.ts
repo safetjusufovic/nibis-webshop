@@ -11,7 +11,7 @@ export async function GET(
   // Resolve shop
   const shopSlug = req.nextUrl.searchParams.get('shop') || 'main'
   const { data: shopData } = await supabaseAdmin
-    .from('shopovi').select('id').eq('slug', shopSlug).single()
+    .from('shopovi').select('id').eq('slug', shopSlug).maybeSingle()
   if (!shopData?.id) return NextResponse.json({ error: 'Shop not found' }, { status: 404 })
 
   const { data, error } = await supabaseAdmin
@@ -25,7 +25,8 @@ export async function GET(
     `)
     .eq('id', id)
     .eq('shop_id', shopData.id)
-    .single()
+    .limit(1)
+    .maybeSingle()
 
   if (error) {
     console.error('[ARTIKAL]', error)
@@ -40,7 +41,7 @@ export async function GET(
   if (data.grupa_id) {
     const { data: g } = await supabaseAdmin
       .from('grupe').select('id, sifra, naziv')
-      .eq('id', data.grupa_id).eq('shop_id', shopData.id).single()
+      .eq('id', data.grupa_id).eq('shop_id', shopData.id).limit(1).maybeSingle()
     grupa = g
   }
 
