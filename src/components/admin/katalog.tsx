@@ -39,7 +39,19 @@ export default function AdminKatalogPage({ shopSlug = 'main' }: { shopSlug?: str
   const [akcijaModal, setAkcijaModal] = useState<AkcijaModal | null>(null)
   const [akcijaPopust, setAkcijaPopust] = useState('')
   const [akcijaDo, setAkcijaDo] = useState('')
+  const [opisModal, setOpisModal] = useState<any>(null)
+  const [opisTekst, setOpisTekst] = useState('')
   const [saving, setSaving] = useState(false)
+
+  async function spremiOpis() {
+    if (!opisModal) return
+    setSaving(true)
+    const sid = await getShopId()
+    await supabase.from('artikli').update({ opis: opisTekst }).eq('id', opisModal.id).eq('shop_id', sid)
+    setArtikli(prev => prev.map(a => a.id === opisModal.id ? { ...a, opis: opisTekst } : a))
+    setSaving(false)
+    setOpisModal(null)
+  }
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -259,6 +271,19 @@ export default function AdminKatalogPage({ shopSlug = 'main' }: { shopSlug?: str
                         <Tag size={11} />
                         {akcijaAktivna ? 'Uredi akciju' : 'Dodaj akciju'}
                       </button>
+                      <button
+                        onClick={() => { setOpisModal(a); setOpisTekst(a.opis || '') }}
+                        style={{
+                          display: 'inline-flex', alignItems: 'center', gap: '5px', marginLeft: '6px',
+                          padding: '6px 12px', fontSize: '12px',
+                          background: a.opis ? '#EFF6FF' : 'var(--surface)',
+                          color: a.opis ? '#1D4ED8' : 'var(--text-muted)',
+                          border: '1px solid var(--border)', borderRadius: '8px', cursor: 'pointer',
+                          fontFamily: 'inherit', fontWeight: 500, whiteSpace: 'nowrap',
+                        }}
+                      >
+                        ✎ {a.opis ? 'Uredi opis' : 'Dodaj opis'}
+                      </button>
                     </td>
                   </tr>
                 )
@@ -278,6 +303,31 @@ export default function AdminKatalogPage({ shopSlug = 'main' }: { shopSlug?: str
       )}
 
       {/* Akcija Modal */}
+      {opisModal && (
+        <div onClick={() => setOpisModal(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: '20px' }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: 'white', borderRadius: '16px', padding: '24px', width: '100%', maxWidth: '500px', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
+            <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text)', margin: '0 0 4px' }}>Opis artikla</h3>
+            <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: '0 0 16px' }}>{opisModal.naziv}</p>
+            <textarea
+              value={opisTekst}
+              onChange={e => setOpisTekst(e.target.value)}
+              rows={6}
+              placeholder="Unesite opis artikla koji će se prikazati na stranici proizvoda..."
+              style={{ width: '100%', padding: '12px', fontSize: '14px', border: '1px solid var(--border)', borderRadius: '10px', outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit', resize: 'vertical', lineHeight: 1.5 }}
+            />
+            <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: '6px 0 16px' }}>
+              Ručni opis ima prioritet i prikazuje se na detalju proizvoda. Korisno za artikle koje ERP nema opis.
+            </p>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+              <button onClick={() => setOpisModal(null)} style={{ padding: '9px 18px', background: 'none', border: '1px solid var(--border)', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', color: 'var(--text)' }}>Otkaži</button>
+              <button onClick={spremiOpis} disabled={saving} style={{ padding: '9px 20px', background: 'var(--brand)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: 600 }}>
+                {saving ? 'Snimam...' : 'Sačuvaj opis'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {akcijaModal && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
           <div style={{ background: 'white', borderRadius: '16px', width: '100%', maxWidth: '420px', overflow: 'hidden', boxShadow: '0 20px 50px rgba(0,0,0,0.2)' }}>

@@ -2,17 +2,19 @@ const RESEND_API_KEY = process.env.RESEND_API_KEY
 const FROM_EMAIL = process.env.EMAIL_FROM || 'onboarding@resend.dev'
 const ADMIN_EMAIL = process.env.EMAIL_ADMIN || ''
 
-async function sendEmail({ to, subject, html }: { to: string; subject: string; html: string }): Promise<boolean> {
+async function sendEmail({ to, subject, html, from }: { to: string; subject: string; html: string; from?: string }): Promise<boolean> {
   if (!RESEND_API_KEY) {
     console.warn('[EMAIL] RESEND_API_KEY nije postavljen')
     return false
   }
+  if (!to) { console.warn('[EMAIL] Nema primaoca'); return false }
   try {
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ from: FROM_EMAIL, to, subject, html }),
+      body: JSON.stringify({ from: from || FROM_EMAIL, to, subject, html }),
     })
+    if (!res.ok) console.error('[EMAIL] Resend odbio:', res.status, await res.text().catch(() => ''))
     return res.ok
   } catch (e) {
     console.error('[EMAIL]', e)
@@ -64,11 +66,12 @@ export async function sendOrderConfirmation(opts: {
 }
 
 export async function sendAdminOrderNotification(opts: {
-  oznakaDokumenta: string; partnerNaziv: string; korisnikIme: string; ukupno: number; stavkeCount: number
+  oznakaDokumenta: string; partnerNaziv: string; korisnikIme: string; ukupno: number; stavkeCount: number; adminEmail?: string
 }) {
-  if (!ADMIN_EMAIL) return false
+  const primalac = opts.adminEmail || ADMIN_EMAIL
+  if (!primalac) return false
   return sendEmail({
-    to: ADMIN_EMAIL,
+    to: primalac,
     subject: `Nova narudžba: ${opts.oznakaDokumenta}`,
     html: `<div style="font-family:sans-serif;max-width:400px">
       <h2>Nova narudžba primljena</h2>

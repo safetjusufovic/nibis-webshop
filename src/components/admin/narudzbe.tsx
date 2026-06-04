@@ -28,6 +28,7 @@ const STATUSI = {
   isporucena: { label: 'Isporučena',   bg: '#F0FDF4', color: '#166534', icon: <CheckCircle size={11} /> },
   otkazana:   { label: 'Otkazana',     bg: '#FEF2F2', color: '#991B1B', icon: <XCircle size={11} /> },
   greska:     { label: 'Greška',       bg: '#FEF2F2', color: '#991B1B', icon: <AlertCircle size={11} /> },
+  ceka_nibis: { label: 'Čeka ERP',     bg: '#FFF7ED', color: '#C2410C', icon: <AlertCircle size={11} /> },
 }
 
 function StatusBadge({ status }: { status: string }) {
@@ -180,6 +181,26 @@ export default function AdminNarudzbePage({ shopSlug = 'main' }: { shopSlug?: st
     setUpdatingStatus(null)
   }
 
+  // Ponovo pošalji narudžbu u NIBIS (za one koje su pale - status ceka_nibis)
+  async function posaljiPonovo(id: string) {
+    setUpdatingStatus(id)
+    try {
+      const res = await fetch('/api/admin/posalji-nibis', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ narudzbaId: id, shop: shopSlug }),
+      })
+      const data = await res.json()
+      if (data.ok) {
+        setNarudzbe(prev => prev.map(n => n.id === id ? { ...n, status: 'poslana', nibis_oznaka: data.oznaka } : n))
+      } else {
+        alert('Slanje nije uspjelo: ' + (data.error || 'nepoznato'))
+      }
+    } catch (e: any) {
+      alert('Greška: ' + e.message)
+    }
+    setUpdatingStatus(null)
+  }
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
 
@@ -319,6 +340,12 @@ export default function AdminNarudzbePage({ shopSlug = 'main' }: { shopSlug?: st
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Status:</span>
+                      {n.status === 'ceka_nibis' && (
+                        <button onClick={() => posaljiPonovo(n.id)} disabled={updatingStatus === n.id}
+                          style={{ fontSize: '13px', background: '#C2410C', color: 'white', border: 'none', borderRadius: '8px', padding: '6px 12px', fontFamily: 'inherit', cursor: 'pointer', fontWeight: 600, marginRight: '8px' }}>
+                          {updatingStatus === n.id ? 'Šaljem...' : '↻ Pošalji u ERP'}
+                        </button>
+                      )}
                       <select
                         value={n.status}
                         onChange={e => promijeniStatus(n.id, e.target.value)}
