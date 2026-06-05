@@ -9,9 +9,13 @@ export * from './types'
 // Factory — vraća odgovarajući adapter prema tipu ERP-a
 export function getErpAdapter(config: ErpConfig): ErpAdapter {
   switch (config.tip) {
-    case 'custom_rest':
-      // restConfig se prosljeđuje kroz config objekt
-      return new RestAdapter((config as any).restConfig as RestErpConfig)
+    case 'custom_rest': {
+      const rc = (config as any).restConfig as RestErpConfig
+      if (!rc || !rc.baseUrl || !rc.endpoints) {
+        throw new Error('Custom REST ERP nije konfigurisan (nedostaje baseUrl ili endpointi). Otvori super-admin → REST editor.')
+      }
+      return new RestAdapter(rc)
+    }
     case 'pantheon':
       return new PantheonAdapter(config)
     case 'nibis':

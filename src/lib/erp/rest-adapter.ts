@@ -15,6 +15,8 @@ export class RestAdapter implements ErpAdapter {
 
   constructor(config: RestErpConfig) {
     this.config = config
+    // Osiguraj da endpoints objekt postoji (da pristup .artikli ne pukne)
+    if (!this.config.endpoints) this.config.endpoints = {} as any
   }
 
   private buildUrl(ep: RestEndpointConfig, params: ErpListParams): string {
@@ -42,13 +44,25 @@ export class RestAdapter implements ErpAdapter {
 
   private async fetchList(ep: RestEndpointConfig | undefined, params: ErpListParams): Promise<{ rows: any[]; total: number }> {
     if (!ep?.path) return { rows: [], total: 0 }
-    const url = this.buildUrl(ep, params)
+    let url: string
+    try {
+      url = this.buildUrl(ep, params)
+    } catch (e: any) {
+      throw new Error(`Neispravan URL (baseUrl + ${ep.path}): ${e.message}`)
+    }
     const res = await fetch(url, {
       method: ep.method ?? 'GET',
       headers: buildAuthHeaders(this.config.auth),
+      signal: AbortSignal.timeout(10000),  // ne visi ako ERP ne odgovara
     })
     if (!res.ok) throw new Error(`REST ${ep.path} → HTTP ${res.status}: ${(await res.text()).slice(0, 200)}`)
-    const data = await res.json()
+    const text = await res.text()
+    let data: any
+    try {
+      data = JSON.parse(text)
+    } catch {
+      throw new Error(`REST ${ep.path} nije vratio JSON: ${text.slice(0, 150)}`)
+    }
 
     const rows = ep.itemsPath ? (getByPath(data, ep.itemsPath) ?? []) : (Array.isArray(data) ? data : (data.items ?? data.value ?? []))
     const total = ep.totalPath ? toNum(getByPath(data, ep.totalPath)) : (Array.isArray(rows) ? rows.length : 0)
@@ -148,13 +162,27 @@ export class RestAdapter implements ErpAdapter {
       tpl.stavkaTemplate
     )
 
+    // Provjeri da template proizvodi valjan JSON prije slanja
+    try {
+      JSON.parse(body)
+    } catch (e: any) {
+      throw new Error(`Narudžba template proizvodi nevaljan JSON: ${e.message}. Provjeri bodyTemplate u konfiguraciji.`)
+    }
+
     const res = await fetch(ep.path.startsWith('http') ? ep.path : this.config.baseUrl + ep.path, {
       method: 'POST',
       headers: buildAuthHeaders(this.config.auth),
       body,
+      signal: AbortSignal.timeout(12000),  // narudžba ne smije visiti
     })
     if (!res.ok) throw new Error(`REST narudžba → HTTP ${res.status}: ${(await res.text()).slice(0, 200)}`)
-    const data = await res.json()
+    const respText = await res.text()
+    let data: any
+    try {
+      data = JSON.parse(respText)
+    } catch {
+      throw new Error(`Narudžba odgovor nije JSON: ${respText.slice(0, 150)}`)
+    }
     return {
       id: tpl.responseIdPath ? getByPath(data, tpl.responseIdPath) : (data.id ?? data.Key),
       oznakaDokumenta: tpl.responseOznakaPath ? String(getByPath(data, tpl.responseOznakaPath)) : String(data.oznakaDokumenta ?? data.docNo ?? data.id ?? ''),
