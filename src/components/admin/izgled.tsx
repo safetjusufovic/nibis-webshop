@@ -404,11 +404,15 @@ export default function IzgledPage({ shopSlug = 'main' }: { shopSlug?: string })
   useEffect(() => {
     const keys = Object.keys(DEFAULTS).join(',')
     const shopParam = shopSlug ? '&shop=' + shopSlug : ''
-    fetch('/api/postavke?kljuci=' + keys + shopParam)
+    // cache: no-store — admin uvijek vidi svježe stanje (ne keširano)
+    fetch('/api/postavke?kljuci=' + keys + shopParam + '&_t=' + Date.now(), { cache: 'no-store' })
       .then(r => r.json())
       .then(data => {
         const m: Postavke = { ...DEFAULTS }
-        Object.entries(data || {}).forEach(([k, v]) => { if (v) m[k] = v as string })
+        // Postavi SVE vrijednosti koje postoje u bazi, uključujući prazne (da brisanje slike radi)
+        Object.entries(data || {}).forEach(([k, v]) => {
+          if (v !== undefined && v !== null) m[k] = v as string
+        })
         setP(m)
         setLoading(false)
       })
