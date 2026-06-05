@@ -35,7 +35,7 @@ export default function CartDrawer({ open, onClose , shopSlug = '' }: CartDrawer
   const [errorMsg, setErrorMsg] = useState('')
   const [napomena, setNapomena] = useState('')
   const [gost, setGost] = useState({ ime: '', email: '', telefon: '', adresa: '' })
-  const [nacinPlacanja, setNacinPlacanja] = useState<'Virman' | 'Gotovina' | 'Kartica' | 'Online kartica'>('Virman')
+  const [nacinPlacanja, setNacinPlacanja] = useState<'Virman' | 'Gotovina' | 'Online kartica'>('Virman')
 
   // Provjeri je li artikl na aktivnoj akciji
   function naAkciji(artikal: any): boolean {
@@ -316,7 +316,6 @@ export default function CartDrawer({ open, onClose , shopSlug = '' }: CartDrawer
                     {onlinePlacanje && <option value="Online kartica">💳 Online kartica (plati odmah)</option>}
                     <option value="Virman">Virman</option>
                     <option value="Gotovina">Gotovina</option>
-                    <option value="Kartica">Kartica</option>
                   </select>
                 </div>
 
