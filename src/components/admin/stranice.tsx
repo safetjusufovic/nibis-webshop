@@ -90,24 +90,16 @@ function RichEditor({ value, onChange, editorId }: {
     }
 
     try {
-      const { error } = await supabase.storage.from('slike').upload(
-        'clanci/' + Date.now() + '.' + (file.name.split('.').pop() || 'jpg'),
-        file, { upsert: true }
-      )
+      const path = 'clanci/' + Date.now() + '.' + (file.name.split('.').pop() || 'jpg')
+      const { error } = await supabase.storage.from('slike').upload(path, file, { upsert: true })
       if (!error) {
-        // Shouldn't happen without bucket, but handle it
-        const { data } = supabase.storage.from('slike').getPublicUrl('clanci/' + Date.now())
+        const { data } = supabase.storage.from('slike').getPublicUrl(path)
         insertImg(data.publicUrl)
       } else {
-        throw error
+        alert('Upload slike nije uspio: ' + error.message + '. Provjeri Storage dozvole.')
       }
-    } catch {
-      // Base64 fallback — always works
-      const reader = new FileReader()
-      reader.onload = ev => {
-        if (ev.target?.result) insertImg(ev.target.result as string)
-      }
-      reader.readAsDataURL(file)
+    } catch (err: any) {
+      alert('Greška pri uploadu: ' + (err?.message || 'nepoznato'))
     }
     setUploading(false)
   }
@@ -338,11 +330,11 @@ export default function AdminStranicePage({ shopSlug = 'main' }: { shopSlug?: st
         const { data } = supabase.storage.from('slike').getPublicUrl(path)
         setEditing(prev => prev ? { ...prev, slika_url: data.publicUrl } : null)
       } else {
-        const reader = new FileReader()
-        reader.onload = ev => setEditing(prev => prev ? { ...prev, slika_url: ev.target?.result as string } : null)
-        reader.readAsDataURL(file)
+        alert('Upload nije uspio: ' + error.message + '. Provjeri Storage dozvole.')
       }
-    } catch {}
+    } catch (err: any) {
+      alert('Greška pri uploadu: ' + (err?.message || 'nepoznato'))
+    }
     setUploadingSlika(false)
   }
 

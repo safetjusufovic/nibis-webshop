@@ -51,7 +51,7 @@ async function handleCallback(req: NextRequest, params: URLSearchParams) {
     const nibisResult = await createNarudzba(payload, config)
 
     // Spremi narudžbu u Supabase
-    await supabaseAdmin.from('narudzbe').insert({
+    const { data: novaNarudzba } = await supabaseAdmin.from('narudzbe').insert({
       korisnik_id: payload._korisnikId,
       partner_id: payload.partnerId,
       nibis_id: nibisResult.id,
@@ -62,7 +62,21 @@ async function handleCallback(req: NextRequest, params: URLSearchParams) {
       nacin_placanja: 'Online kartica',
       status: 'placeno',
       shop_id: pending.shop_id,
-    })
+    }).select('id').single()
+
+    // Spremi stavke narudžbe (da admin vidi šta je kupljeno)
+    if (novaNarudzba?.id && Array.isArray(payload.stavke)) {
+      await supabaseAdmin.from('narudzba_stavke').insert(
+        payload.stavke.map((s: any) => ({
+          narudzba_id: novaNarudzba.id,
+          artikal_id: s.artikalId,
+          naziv: s.naziv,
+          kolicina: s.kolicina,
+          jedinicna_cijena: s.jedinicnaCijena,
+          poreska_stopa: s.poreskaStopa ?? 0,
+        }))
+      )
+    }
 
     await supabaseAdmin.from('placanja_pending').update({ status: 'placeno', nibis_oznaka: nibisResult.oznakaDokumenta }).eq('id', pending.id)
 

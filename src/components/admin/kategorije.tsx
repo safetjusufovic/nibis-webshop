@@ -254,15 +254,10 @@ function GrupaRow({ grupa, onUpdate, onSave, saving, saved, hasChanges, presetBo
         const { data } = supabase.storage.from('slike').getPublicUrl(path)
         onUpdate(grupa.id, 'ikona_url', data.publicUrl)
       } else {
-        // Fallback base64
-        const reader = new FileReader()
-        reader.onload = ev => onUpdate(grupa.id, 'ikona_url', ev.target?.result as string)
-        reader.readAsDataURL(file)
+        alert('Upload nije uspio: ' + error.message + '. Provjeri Storage dozvole.')
       }
-    } catch {
-      const reader = new FileReader()
-      reader.onload = ev => onUpdate(grupa.id, 'ikona_url', ev.target?.result as string)
-      reader.readAsDataURL(file)
+    } catch (err: any) {
+      alert('Greška pri uploadu: ' + (err?.message || 'nepoznato'))
     }
     setUploading(false)
     e.target.value = ''
