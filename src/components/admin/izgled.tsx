@@ -311,13 +311,16 @@ function ImageInput({ label, value, onChange, hint }: {
       const ext = file.name.split('.').pop()
       const filename = 'uploads/' + Date.now() + '.' + ext
       const { error } = await supabase.storage.from('slike').upload(filename, file, { upsert: true })
-      if (error) throw error
+      if (error) {
+        // NE spremaj base64 u bazu (truje je) - prikaži jasnu grešku
+        alert('Upload slike nije uspio: ' + error.message + '\n\nProvjeri Storage dozvole za bucket "slike".')
+        setUploading(false)
+        return
+      }
       const { data } = supabase.storage.from('slike').getPublicUrl(filename)
       onChange(data.publicUrl)
-    } catch {
-      const reader = new FileReader()
-      reader.onload = ev => onChange(ev.target?.result as string)
-      reader.readAsDataURL(file)
+    } catch (err: any) {
+      alert('Greška pri uploadu: ' + (err?.message || 'nepoznato'))
     }
     setUploading(false)
   }
