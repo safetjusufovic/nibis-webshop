@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import OnboardingWizard from '@/components/super-admin/OnboardingWizard'
 import RestAdapterEditor from '@/components/super-admin/RestAdapterEditor'
-import { Plus, Trash2, Eye, EyeOff, Globe, ExternalLink, RefreshCw, Settings, CheckCircle, XCircle, Clock } from 'lucide-react'
+import { Plus, Trash2, Eye, EyeOff, Globe, ExternalLink, RefreshCw, Settings, CheckCircle, XCircle, Clock, UserPlus } from 'lucide-react'
 
 interface Shop {
   id: string
@@ -41,6 +41,9 @@ export default function SuperAdminPage() {
   const [saving, setSaving] = useState(false)
   const [syncing, setSyncing] = useState<string | null>(null)
   const [syncResults, setSyncResults] = useState<Record<string, { ok: boolean; msg: string }>>({})
+  const [adminModal, setAdminModal] = useState<Shop | null>(null)
+  const [adminForma, setAdminForma] = useState({ email: '', lozinka: '', ime: '' })
+  const [adminSaving, setAdminSaving] = useState(false)
   const [editApiId, setEditApiId] = useState<string | null>(null)
   const [editApiData, setEditApiData] = useState({ nibis_api_url: '', nibis_api_key: '', domena: '', org_jed_id: '1', company_year: new Date().getFullYear().toString(), tip_cijene: 'vpcijena', erp_tip: 'nibis', erp_username: '', erp_password: '', erp_database: '' })
   const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null)
@@ -120,6 +123,29 @@ export default function SuperAdminPage() {
     setShopovi(prev => prev.map(s => s.id === id ? { ...s, ...apiData } : s))
     setEditApiId(null)
     showToast('Sačuvano')
+  }
+
+  async function kreirajAdmina() {
+    if (!adminModal) return
+    if (!adminForma.email || !adminForma.lozinka) { showToast('Email i lozinka su obavezni', false); return }
+    setAdminSaving(true)
+    try {
+      const res = await fetch('/api/super-admin/kreiraj-admina', {
+        method: 'POST', headers: H,
+        body: JSON.stringify({ email: adminForma.email, lozinka: adminForma.lozinka, ime: adminForma.ime, shopId: adminModal.id }),
+      })
+      const data = await res.json()
+      if (data.ok) {
+        showToast(data.vec_postojao ? 'Postojeći korisnik unaprijeđen u admina' : 'Admin kreiran za ' + adminModal.naziv)
+        setAdminModal(null)
+        setAdminForma({ email: '', lozinka: '', ime: '' })
+      } else {
+        showToast(data.error || 'Greška', false)
+      }
+    } catch (e: any) {
+      showToast('Greška: ' + e.message, false)
+    }
+    setAdminSaving(false)
   }
 
   async function deleteShop(shop: Shop) {
@@ -242,7 +268,38 @@ export default function SuperAdminPage() {
           />
         )}
 
-        {wizardOpen && (
+        {adminModal && (
+        <div onClick={() => setAdminModal(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 200, padding: '20px' }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: 'white', borderRadius: '16px', padding: '24px', width: '100%', maxWidth: '440px', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
+            <h3 style={{ fontSize: '17px', fontWeight: 700, color: '#111827', margin: '0 0 4px' }}>Kreiraj admina</h3>
+            <p style={{ fontSize: '13px', color: '#6B7280', margin: '0 0 18px' }}>Za shop: <strong>{adminModal.naziv}</strong></p>
+
+            <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#374151', marginBottom: '5px' }}>Ime (opcionalno)</label>
+            <input type="text" value={adminForma.ime} onChange={e => setAdminForma(f => ({ ...f, ime: e.target.value }))}
+              style={{ width: '100%', padding: '10px 12px', fontSize: '14px', border: '1px solid #E5E7EB', borderRadius: '8px', outline: 'none', boxSizing: 'border-box', marginBottom: '14px' }} />
+
+            <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#374151', marginBottom: '5px' }}>Email *</label>
+            <input type="email" value={adminForma.email} onChange={e => setAdminForma(f => ({ ...f, email: e.target.value }))}
+              placeholder="admin@shop.ba"
+              style={{ width: '100%', padding: '10px 12px', fontSize: '14px', border: '1px solid #E5E7EB', borderRadius: '8px', outline: 'none', boxSizing: 'border-box', marginBottom: '14px' }} />
+
+            <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#374151', marginBottom: '5px' }}>Lozinka *</label>
+            <input type="text" value={adminForma.lozinka} onChange={e => setAdminForma(f => ({ ...f, lozinka: e.target.value }))}
+              placeholder="najmanje 6 znakova"
+              style={{ width: '100%', padding: '10px 12px', fontSize: '14px', border: '1px solid #E5E7EB', borderRadius: '8px', outline: 'none', boxSizing: 'border-box', marginBottom: '6px' }} />
+            <p style={{ fontSize: '11px', color: '#9CA3AF', margin: '0 0 18px' }}>Admin se prijavljuje ovim podacima i može upravljati SAMO ovim shopom.</p>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+              <button onClick={() => setAdminModal(null)} style={{ padding: '9px 18px', background: 'none', border: '1px solid #E5E7EB', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', color: '#374151' }}>Otkaži</button>
+              <button onClick={kreirajAdmina} disabled={adminSaving} style={{ padding: '9px 20px', background: '#6366f1', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: 600 }}>
+                {adminSaving ? 'Kreiram...' : 'Kreiraj admina'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {wizardOpen && (
           <OnboardingWizard
             onClose={() => setWizardOpen(false)}
             onCreated={() => { setWizardOpen(false); load(); showToast('Shop kreiran! Pokreni sinhronizaciju.') }}
@@ -355,6 +412,11 @@ export default function SuperAdminPage() {
                         </button>
                       </>
                     )}
+                    <button onClick={() => { setAdminModal(s); setAdminForma({ email: '', lozinka: '', ime: '' }) }}
+                      title="Kreiraj admina za ovaj shop"
+                      style={{ padding: '6px 10px', border: '1px solid #DDD6FE', borderRadius: '7px', background: '#F5F3FF', cursor: 'pointer', color: '#6D28D9', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', fontWeight: 600 }}>
+                      <UserPlus size={13} /> Admin
+                    </button>
                     <button onClick={() => toggleStatus(s)}
                       style={{ padding: '6px 8px', border: '1px solid #E5E7EB', borderRadius: '7px', background: 'white', cursor: 'pointer', color: s.status === 'aktivan' ? '#D97706' : '#10b981', display: 'flex' }}>
                       {s.status === 'aktivan' ? <EyeOff size={13} /> : <Eye size={13} />}
