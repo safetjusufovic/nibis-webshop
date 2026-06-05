@@ -60,7 +60,7 @@ export default function AdminKategorijePage({ shopSlug = 'main' }: { shopSlug?: 
     if (!izmjena) return
     setSaving(id)
     // Update grupu samo za ovaj shop
-    const shopRes = await fetch('/api/super-admin/shop-id?slug=' + shopSlug, { headers: { 'x-super-admin-secret': 'nibis-super-2025' } })
+    const shopRes = await fetch('/api/shop-info?slug=' + shopSlug)
     const { id: sid } = await shopRes.json()
     await supabase.from('grupe').update(izmjena).eq('id', id).eq('shop_id', sid)
     setSaving(null)

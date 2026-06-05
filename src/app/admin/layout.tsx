@@ -35,7 +35,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const shopSlugForHeader = shopSlug || 'main'
 
   return (
-    <AuthGuard requireAdmin>
+    <AuthGuard requireAdmin shopSlug="main">
       <div className="min-h-screen bg-gray-50">
         <Header shopSlug={shopSlugForHeader} />
         <div className="max-w-7xl mx-auto px-4 py-6 flex gap-6">

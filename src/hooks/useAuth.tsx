@@ -12,6 +12,7 @@ export interface KorisnikProfil {
   telefon: string | null
   role: 'admin' | 'kupac'
   odobren: boolean
+  shop_id: string | null
   // Iz join-a sa partneri tabelom
   partner?: {
     id: number
@@ -32,6 +33,7 @@ interface AuthContextValue {
   isAdmin: boolean
   isOdobren: boolean
   rabat: number // 0-100, rabat partnera ili 0
+  adminShopId: string | null // shop kojem admin pripada
   signIn: (email: string, password: string) => Promise<{ error: string | null }>
   signOut: () => Promise<void>
 }
@@ -49,7 +51,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { data } = await supabase
       .from('korisnici')
       .select(`
-        id, partner_id, ime, prezime, telefon, role, odobren,
+        id, partner_id, ime, prezime, telefon, role, odobren, shop_id,
         partner:partneri (
           id, naziv, rabat, rok_placanja, pdv_broj, limit_fin, limit_fin2
         )
@@ -91,9 +93,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const isAdmin = profil?.role === 'admin'
   const isOdobren = profil?.odobren === true
   const rabat = (profil?.partner as any)?.rabat ?? 0
+  const adminShopId = profil?.shop_id ?? null
 
   return (
-    <AuthContext.Provider value={{ user, session, profil, loading, isAdmin, isOdobren, rabat, signIn, signOut }}>
+    <AuthContext.Provider value={{ user, session, profil, loading, isAdmin, isOdobren, rabat, adminShopId, signIn, signOut }}>
       {children}
     </AuthContext.Provider>
   )

@@ -25,7 +25,7 @@ const PER_PAGE = 30
 
 export default function AdminKatalogPage({ shopSlug = 'main' }: { shopSlug?: string }) {
   async function getShopId(): Promise<string | null> {
-    const r = await fetch('/api/super-admin/shop-id?slug=' + shopSlug, { headers: { 'x-super-admin-secret': 'nibis-super-2025' } })
+    const r = await fetch('/api/shop-info?slug=' + shopSlug)
     const d = await r.json()
     return d.id || null
   }

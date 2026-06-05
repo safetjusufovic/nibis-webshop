@@ -25,7 +25,7 @@ export default function AdminKorisniciPage({ shopSlug = 'main' }: { shopSlug?: s
 
   useEffect(() => {
     // Uvijek dohvati shop_id - main shop koristi slug 'main'
-    fetch('/api/super-admin/shop-id?slug=' + shopSlug, { headers: { 'x-super-admin-secret': 'nibis-super-2025' } })
+    fetch('/api/shop-info?slug=' + shopSlug)
       .then(r => r.json()).then(d => setShopId(d.id || null))
   }, [shopSlug])
 

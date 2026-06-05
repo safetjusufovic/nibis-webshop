@@ -7,10 +7,11 @@ import { useAuth } from '@/hooks/useAuth'
 interface Props {
   children: React.ReactNode
   requireAdmin?: boolean
+  shopSlug?: string  // shop kojem stranica pripada (za provjeru admin pripadnosti)
 }
 
-export default function AuthGuard({ children, requireAdmin = false }: Props) {
-  const { user, profil, loading } = useAuth()
+export default function AuthGuard({ children, requireAdmin = false, shopSlug }: Props) {
+  const { user, profil, loading, adminShopId } = useAuth()
   const router = useRouter()
   const [ready, setReady] = useState(false)
 
@@ -38,6 +39,22 @@ export default function AuthGuard({ children, requireAdmin = false }: Props) {
 
     if (requireAdmin && profil.role !== 'admin') {
       router.replace('/')
+      return
+    }
+
+    // Sigurnost: admin smije pristupiti SAMO svom shopu
+    if (requireAdmin && shopSlug && adminShopId) {
+      fetch('/api/shop-info?slug=' + shopSlug)
+        .then(r => r.json())
+        .then(d => {
+          if (d.id && d.id !== adminShopId) {
+            // Admin pokušava pristupiti tuđem shopu
+            router.replace('/')
+          } else {
+            setReady(true)
+          }
+        })
+        .catch(() => setReady(true))
       return
     }
 

@@ -44,7 +44,7 @@ export default function AdminIzvjestajiPage({ shopSlug = 'main' }: { shopSlug?: 
 
   useEffect(() => {
     const lookupSlug = shopSlug || 'main'
-    fetch('/api/super-admin/shop-id?slug=' + lookupSlug, { headers: { 'x-super-admin-secret': 'nibis-super-2025' } })
+    fetch('/api/shop-info?slug=' + lookupSlug)
       .then(r => r.json()).then(d => setShopId(d.id || null))
   }, [shopSlug])
 

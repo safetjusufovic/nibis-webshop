@@ -161,7 +161,7 @@ export default function AdminNarudzbePage({ shopSlug = 'main' }: { shopSlug?: st
     if (filterStatus) q = q.eq('status', filterStatus)
     // Uvijek dohvati shop_id - main shop koristi slug 'main'
     const activeSlug = shopSlug || 'main'
-    const shopRes = await fetch('/api/super-admin/shop-id?slug=' + activeSlug, { headers: { 'x-super-admin-secret': 'nibis-super-2025' } })
+    const shopRes = await fetch('/api/shop-info?slug=' + activeSlug)
     const shopData = await shopRes.json()
     if (shopData?.id) q = q.eq('shop_id', shopData.id)
     else return
