@@ -34,6 +34,7 @@ export default function CartDrawer({ open, onClose , shopSlug = '' }: CartDrawer
   const [orderRef, setOrderRef] = useState('')
   const [errorMsg, setErrorMsg] = useState('')
   const [napomena, setNapomena] = useState('')
+  const [gost, setGost] = useState({ ime: '', email: '', telefon: '', adresa: '' })
   const [nacinPlacanja, setNacinPlacanja] = useState<'Virman' | 'Gotovina' | 'Kartica' | 'Online kartica'>('Virman')
 
   // Provjeri je li artikl na aktivnoj akciji
@@ -61,6 +62,16 @@ export default function CartDrawer({ open, onClose , shopSlug = '' }: CartDrawer
 
   async function handleSubmit() {
     if (!items.length) return
+
+    // B2C gost — provjeri obavezna polja
+    if (tipCijene === 'mpcijena' && !profil) {
+      if (!gost.ime.trim() || !gost.telefon.trim() || !gost.adresa.trim()) {
+        setStatus('error')
+        setErrorMsg('Molimo popunite ime, telefon i adresu za dostavu.')
+        return
+      }
+    }
+
     setStatus('loading')
     setErrorMsg('')
 
@@ -134,7 +145,7 @@ export default function CartDrawer({ open, onClose , shopSlug = '' }: CartDrawer
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
-        body: JSON.stringify({ stavke, nacinPlacanja, napomena }),
+        body: JSON.stringify({ stavke, nacinPlacanja, napomena, gost: (tipCijene === 'mpcijena' && !profil) ? gost : undefined }),
       })
       if (!res.ok) {
         const err = await res.json().catch(() => ({}))
@@ -288,6 +299,16 @@ export default function CartDrawer({ open, onClose , shopSlug = '' }: CartDrawer
                   }
                   return null
                 })()}
+
+                {tipCijene === 'mpcijena' && !profil && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', padding: '12px', background: '#F9FAFB', borderRadius: '10px', border: '1px solid #E5E7EB' }}>
+                    <div style={{ fontSize: '12px', fontWeight: 600, color: '#374151' }}>Vaši podaci</div>
+                    <input value={gost.ime} onChange={e => setGost(g => ({ ...g, ime: e.target.value }))} placeholder="Ime i prezime *" className="input text-sm" />
+                    <input value={gost.telefon} onChange={e => setGost(g => ({ ...g, telefon: e.target.value }))} placeholder="Telefon *" className="input text-sm" />
+                    <input value={gost.email} onChange={e => setGost(g => ({ ...g, email: e.target.value }))} placeholder="Email (za potvrdu)" className="input text-sm" />
+                    <input value={gost.adresa} onChange={e => setGost(g => ({ ...g, adresa: e.target.value }))} placeholder="Adresa za dostavu *" className="input text-sm" />
+                  </div>
+                )}
 
                 <div>
                   <label className="text-xs text-gray-500 mb-1 block">Način plaćanja</label>

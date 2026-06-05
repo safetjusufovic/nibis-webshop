@@ -50,30 +50,39 @@ async function getShopConfig(req: NextRequest): Promise<{ shopId: string | null;
 
 export async function POST(req: NextRequest) {
   try {
-    // 1. Auth
-    const authHeader = req.headers.get('authorization') ?? ''
-    const token = authHeader.replace('Bearer ', '')
-
-    const supabaseUser = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      { global: { headers: { Authorization: `Bearer ${token}` } } }
-    )
-
-    const { data: { user }, error: authError } = await supabaseUser.auth.getUser()
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Neovlašten pristup' }, { status: 401 })
-    }
-
-    // 2. Shop config
+    // 1. Shop config + tip cijene (treba prvo da znamo je li B2C)
     const { shopId, nibisConfig, orgJedId } = await getShopConfig(req)
 
-    // Tip cijene shopa (vpcijena=B2B bez PDV, mpcijena=B2C sa PDV)
     let tipCijene: 'vpcijena' | 'mpcijena' = 'vpcijena'
+    let b2cPartnerId: number | null = null
     if (shopId) {
-      const { data: tcPostavka } = await supabaseAdmin
-        .from('postavke').select('vrijednost').eq('kljuc', 'tip_cijene').eq('shop_id', shopId).single()
-      if (tcPostavka?.vrijednost === 'mpcijena' || tcPostavka?.vrijednost === 'mp') tipCijene = 'mpcijena'
+      const { data: postavke } = await supabaseAdmin
+        .from('postavke').select('kljuc, vrijednost').eq('shop_id', shopId)
+        .in('kljuc', ['tip_cijene', 'b2c_partner_id'])
+      postavke?.forEach((p: any) => {
+        if (p.kljuc === 'tip_cijene' && (p.vrijednost === 'mpcijena' || p.vrijednost === 'mp')) tipCijene = 'mpcijena'
+        if (p.kljuc === 'b2c_partner_id' && p.vrijednost) b2cPartnerId = parseInt(p.vrijednost)
+      })
+    }
+    const jeB2C = tipCijene === 'mpcijena'
+
+    // 2. Auth — obavezan za B2B, opcionalan za B2C (gost može naručiti)
+    const authHeader = req.headers.get('authorization') ?? ''
+    const token = authHeader.replace('Bearer ', '')
+    let user: any = null
+    if (token) {
+      const supabaseUser = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        { global: { headers: { Authorization: `Bearer ${token}` } } }
+      )
+      const { data } = await supabaseUser.auth.getUser()
+      user = data?.user ?? null
+    }
+
+    // B2B traži prijavu; B2C dozvoljava gosta
+    if (!user && !jeB2C) {
+      return NextResponse.json({ error: 'Prijava je obavezna za poslovne kupce' }, { status: 401 })
     }
 
     // SMTP postavke shopa (svaki shop svoje) + admin email
@@ -96,26 +105,37 @@ export async function POST(req: NextRequest) {
       shopAdminEmail = ep.email_admin || undefined
     }
 
-    // 3. Korisnik
-    const { data: korisnik } = await supabaseAdmin
-      .from('korisnici')
-      .select('id, partner_id, odobren, role, partneri:partner_id(id, naziv, rabat)')
-      .eq('id', user.id)
-      .single()
-
-    if (!korisnik || !korisnik.odobren) {
-      return NextResponse.json({ error: 'Račun nije odobren' }, { status: 403 })
+    // 3. Korisnik (samo ako je prijavljen; gost B2C nema profil)
+    let korisnik: any = null
+    if (user) {
+      const { data } = await supabaseAdmin
+        .from('korisnici')
+        .select('id, partner_id, odobren, role, partneri:partner_id(id, naziv, rabat)')
+        .eq('id', user.id)
+        .single()
+      korisnik = data
+      if (!korisnik || !korisnik.odobren) {
+        return NextResponse.json({ error: 'Račun nije odobren' }, { status: 403 })
+      }
     }
 
     const body = await req.json()
-    const externalId = `WEB-${Date.now()}-${user.id.slice(0, 8)}`
+    const externalId = `WEB-${Date.now()}-${user ? user.id.slice(0, 8) : 'gost'}`
+
+    // Partner: prijavljeni → njegov partner; gost B2C → generički B2C partner
+    const partnerIdZaNarudzbu = korisnik?.partner_id ?? b2cPartnerId ?? null
+
+    // Gostovi podaci (B2C) — idu u napomenu jer NIBIS veže za generičkog partnera
+    const gostInfo = (!user && body.gost)
+      ? `KUPAC: ${body.gost.ime || ''} | Tel: ${body.gost.telefon || ''} | Email: ${body.gost.email || ''} | Adresa: ${body.gost.adresa || ''}`
+      : ''
 
     const payload: NarudzbaCreate = {
       orgJedId,
       datum: new Date().toISOString(),
       rbrAuto: true,
       rbr: null,
-      partnerId: korisnik.partner_id ?? null,
+      partnerId: partnerIdZaNarudzbu,
       knjigaFakturaId: null,
       externalId,
       datumVazenja: null,
@@ -132,7 +152,7 @@ export async function POST(req: NextRequest) {
       opis1: body.napomena ?? null,
       opis2: null,
       opis3: null,
-      napomena: body.napomena ?? null,
+      napomena: [body.napomena, gostInfo].filter(Boolean).join(' || ') || null,
       stavke: body.stavke,
     }
 
@@ -167,8 +187,8 @@ export async function POST(req: NextRequest) {
     const { data: narudzba } = await supabaseAdmin
       .from('narudzbe')
       .insert({
-        korisnik_id: user.id,
-        partner_id: korisnik.partner_id,
+        korisnik_id: user?.id ?? null,
+        partner_id: korisnik?.partner_id ?? b2cPartnerId ?? null,
         nibis_id: nibisResult?.id ?? null,
         nibis_oznaka: nibisResult?.oznakaDokumenta ?? null,
         nibis_external_id: externalId,
@@ -200,7 +220,7 @@ export async function POST(req: NextRequest) {
     }
 
     // 6. Email
-    const userEmail = user.email ?? ''
+    const userEmail = user?.email ?? body.gost?.email ?? ''
     const imeKupca = `${(korisnik as any).ime ?? ''} ${(korisnik as any).prezime ?? ''}`.trim() || userEmail
     const partnerNaziv = (korisnik?.partneri as any)?.naziv ?? ''
 
