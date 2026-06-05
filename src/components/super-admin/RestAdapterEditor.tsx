@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { X, Plug, Code, ArrowRight, Loader2, CheckCircle2, AlertCircle, Plus, Trash2 } from 'lucide-react'
 
 const STANDARD_FIELDS: Record<string, string[]> = {
-  artikli: ['id', 'sifra', 'barkod', 'naziv', 'naziv2', 'opis', 'aktivan', 'procPoreza', 'planskaMaloprodajnaCijena', 'planskaVeleprodajnaCijena', 'grupaId'],
+  artikli: ['id', 'sifra', 'barkod', 'naziv', 'naziv2', 'opis', 'aktivan', 'procPoreza', 'planskaMaloprodajnaCijena', 'planskaVeleprodajnaCijena', 'grupaId', 'slikaUrl'],
   grupe: ['id', 'sifra', 'naziv', 'parentId'],
   stanje: ['id', 'artikalId', 'raspolozivaKolicina', 'vpcijena', 'mpcijena', 'nabavnaCijena'],
   partneri: ['id', 'sifra', 'naziv', 'pdvBroj', 'grad', 'rabat'],
